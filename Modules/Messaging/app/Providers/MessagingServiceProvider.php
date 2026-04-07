@@ -1,21 +1,21 @@
 <?php
 
-namespace Modules\Blog\Providers;
+namespace Modules\Messaging\Providers;
 
 use Nwidart\Modules\Support\ModuleServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 
-class BlogServiceProvider extends ModuleServiceProvider
+class MessagingServiceProvider extends ModuleServiceProvider
 {
     /**
      * The name of the module.
      */
-    protected string $name = 'Blog';
+    protected string $name = 'Messaging';
 
     /**
      * The lowercase version of the module name.
      */
-    protected string $nameLower = 'blog';
+    protected string $nameLower = 'messaging';
 
     /**
      * Command classes to register.

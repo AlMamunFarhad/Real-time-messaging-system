@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AuthController;
+use Modules\Messaging\Helpers\AuthParticipant;
 
 Route::get('/', function () {
     return view('welcome');
@@ -19,7 +20,6 @@ Route::middleware('auth')->group(function () {
 });
 
 
-
 // Admin Routes
 Route::prefix('admin')->group(function () {
 
@@ -34,5 +34,10 @@ Route::prefix('admin')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
     });
 });
+
+// Route::get('/test-auth', function () {
+//     dd(AuthParticipant::id());
+// });
+
 
 require __DIR__ . '/auth.php';

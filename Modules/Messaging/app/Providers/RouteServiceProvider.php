@@ -1,13 +1,13 @@
 <?php
 
-namespace Modules\Blog\Providers;
+namespace Modules\Messaging\Providers;
 
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends ServiceProvider
 {
-    protected string $name = 'Blog';
+    protected string $name = 'Messaging';
 
     /**
      * Called before routes are registered.

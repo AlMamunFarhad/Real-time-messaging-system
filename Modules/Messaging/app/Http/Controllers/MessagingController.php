@@ -1,18 +1,18 @@
 <?php
 
-namespace Modules\Blog\Http\Controllers;
+namespace Modules\Messaging\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class BlogController extends Controller
+class MessagingController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('blog::index');
+        return view('messaging::index');
     }
 
     /**
@@ -20,7 +20,7 @@ class BlogController extends Controller
      */
     public function create()
     {
-        return view('blog::create');
+        return view('messaging::create');
     }
 
     /**
@@ -33,7 +33,7 @@ class BlogController extends Controller
      */
     public function show($id)
     {
-        return view('blog::show');
+        return view('messaging::show');
     }
 
     /**
@@ -41,7 +41,7 @@ class BlogController extends Controller
      */
     public function edit($id)
     {
-        return view('blog::edit');
+        return view('messaging::edit');
     }
 
     /**
