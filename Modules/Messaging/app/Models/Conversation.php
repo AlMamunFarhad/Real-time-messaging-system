@@ -4,24 +4,13 @@ namespace Modules\Messaging\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Messaging\Models\Message;
-// use Modules\Messaging\Database\Factories\ConversationFactory;
 
 class Conversation extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     */
-    protected $fillable = ['type']; // or group
+    protected $fillable = ['type'];
 
-    // protected static function newFactory(): ConversationFactory
-    // {
-    //     // return ConversationFactory::new();
-    // }
-
-    // participants
     public function participants()
     {
         return $this->hasMany(ConversationParticipant::class);
@@ -30,5 +19,19 @@ class Conversation extends Model
     public function messages()
     {
         return $this->hasMany(Message::class);
+    }
+
+    public function lastMessage()
+    {
+        return $this->belongsTo(Message::class, 'last_message_id');
+    }
+
+    public function getUnreadCountForUser($userId, $userType)
+    {
+        return $this->messages()
+            ->whereNull('read_at')
+            ->where('sender_id', '!=', $userId)
+            ->where('sender_type', '!=', $userType)
+            ->count();
     }
 }

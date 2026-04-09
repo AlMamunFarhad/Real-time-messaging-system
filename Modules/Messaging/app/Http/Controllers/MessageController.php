@@ -30,66 +30,177 @@ class MessageController extends Controller
 
     public function send(Request $request)
     {
-        $request->validate([
-            'receiver_id' => 'required',
-            'receiver_type' => 'required',
-            'message' => 'required'
-        ]);
-
-        $senderId = AuthParticipant::id();
-        $senderType = AuthParticipant::type();
-
-        // Step 1: conversation find or create
-        $conversation = Conversation::whereHas('participants', function ($q) use ($senderId, $senderType) {
-            $q->where('participant_id', $senderId)
-                ->where('participant_type', $senderType);
-        })
-            ->whereHas('participants', function ($q) use ($request) {
-                $q->where('participant_id', $request->receiver_id)
-                    ->where('participant_type', $request->receiver_type);
-            })
-            ->first();
-
-        // if conversation not found then create new conversation and add participants
-        if (!$conversation) {
-            $conversation = Conversation::create();
-
-            // sender add
-            ConversationParticipant::create([
-                'conversation_id' => $conversation->id,
-                'participant_id' => $senderId,
-                'participant_type' => $senderType,
-                'joined_at' => now(),
+        try {
+            $request->validate([
+                'message' => 'required|string|max:1000',
+                'conversation_id' => 'required|integer'
             ]);
 
-            // receiver add
-            ConversationParticipant::create([
-                'conversation_id' => $conversation->id,
-                'participant_id' => $request->receiver_id,
-                'participant_type' => $request->receiver_type,
-                'joined_at' => now(),
+            $senderId = AuthParticipant::id();
+            $senderType = AuthParticipant::type();
+
+            \Illuminate\Support\Facades\Log::info('Auth check', [
+                'guard' => AuthParticipant::guard(),
+                'id' => $senderId,
+                'type' => $senderType
             ]);
+
+            if (!$senderId || !$senderType) {
+                return response()->json(['error' => 'Unauthorized: No authenticated user', 'debug' => ['guard' => AuthParticipant::guard()]], 401);
+            }
+
+            $conversationId = $request->conversation_id;
+            $senderTypeShort = strtolower(class_basename($senderType));
+            
+            \Illuminate\Support\Facades\Log::info('Sending message', [
+                'sender_id' => $senderId,
+                'sender_type' => $senderType,
+                'conversation_id' => $conversationId
+            ]);
+            
+            $conversation = Conversation::where('id', $conversationId)
+                ->whereHas('participants', function ($q) use ($senderId, $senderType, $senderTypeShort) {
+                    $q->where('participant_id', $senderId)
+                      ->whereIn('participant_type', [$senderType, $senderTypeShort]);
+                })
+                ->first();
+
+            if (!$conversation) {
+                return response()->json(['error' => 'Conversation not found or you are not a participant'], 404);
+            }
+
+            $message = Message::create([
+                'conversation_id' => $conversation->id,
+                'sender_id' => $senderId,
+                'sender_type' => $senderType,
+                'body' => $request->message,
+            ]);
+
+            $conversation->update([
+                'last_message_id' => $message->id
+            ]);
+
+            // Add sender name to message for display
+            $senderModel = AuthParticipant::model();
+            $message->sender_name = $senderModel ? $senderModel->name : 'Unknown';
+
+            try {
+                event(new MessageSent($message));
+            } catch (\Exception $broadcastException) {
+                \Illuminate\Support\Facades\Log::warning('Broadcast failed but message saved: ' . $broadcastException->getMessage());
+            }
+
+            return response()->json($message);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Send message error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function markRead(Request $request)
+    {
+        $conversationId = $request->conversation_id;
+        
+        if (!$conversationId) {
+            return response()->json(['error' => 'Conversation ID required'], 400);
         }
 
-        // Step 2: message insert
-        $message = Message::create([
-            'conversation_id' => $conversation->id,
-            'sender_id' => $senderId,
-            'sender_type' => $senderType,
-            'body' => $request->message,
-        ]);
-        event(new MessageSent($message));
+        $userId = AuthParticipant::id();
+        $userType = AuthParticipant::type();
 
-        return response()->json([
-            'message' => 'Message sent',
-            'data' => $message
-        ]);
+        if (!$userId || !$userType) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $updated = Message::where('conversation_id', $conversationId)
+            ->whereNull('read_at')
+            ->where('sender_id', '!=', $userId)
+            ->where('sender_type', '!=', $userType)
+            ->update(['read_at' => now()]);
+
+        return response()->json(['marked_read' => $updated]);
     }
+
+    // public function send(Request $request)
+    // {
+    //     $request->validate([
+    //         'receiver_id' => 'required',
+    //         'receiver_type' => 'required',
+    //         'message' => 'required'
+    //     ]);
+
+    //     $senderId = AuthParticipant::id();
+    //     $senderType = AuthParticipant::type();
+
+    //     // Step 1: conversation find or create
+    //     $conversation = Conversation::whereHas('participants', function ($q) use ($senderId, $senderType) {
+    //         $q->where('participant_id', $senderId)
+    //             ->where('participant_type', $senderType);
+    //     })
+    //         ->whereHas('participants', function ($q) use ($request) {
+    //             $q->where('participant_id', $request->receiver_id)
+    //                 ->where('participant_type', $request->receiver_type);
+    //         })
+    //         ->first();
+
+    //     // if conversation not found then create new conversation and add participants
+    //     if (!$conversation) {
+    //         $conversation = Conversation::create();
+
+    //         // sender add
+    //         ConversationParticipant::create([
+    //             'conversation_id' => $conversation->id,
+    //             'participant_id' => $senderId,
+    //             'participant_type' => $senderType,
+    //             'joined_at' => now(),
+    //         ]);
+
+    //         // receiver add
+    //         ConversationParticipant::create([
+    //             'conversation_id' => $conversation->id,
+    //             'participant_id' => $request->receiver_id,
+    //             'participant_type' => $request->receiver_type,
+    //             'joined_at' => now(),
+    //         ]);
+    //     }
+
+    //     // Step 2: message insert
+    //     $message = Message::create([
+    //         'conversation_id' => $conversation->id,
+    //         'sender_id' => $senderId,
+    //         'sender_type' => $senderType,
+    //         'body' => $request->message,
+    //     ]);
+    //     event(new MessageSent($message));
+
+    //     return response()->json([
+    //         'message' => 'Message sent',
+    //         'data' => $message
+    //     ]);
+    // }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request) {}
+    public function store(Request $request)
+    {
+        // $user = auth()->user();
+        // $message = Message::create([
+        //     'conversation_id' => $request->conversation_id,
+        //     'sender_id' => $user->id,
+        //     'sender_type' => get_class($user),
+        //     'body' => $request->message,
+        // ]);
+
+        // // real-time trigger
+        // event(new MessageSent($message));
+
+        // return response()->json($message);
+    }
 
     /**
      * Show the specified resource.

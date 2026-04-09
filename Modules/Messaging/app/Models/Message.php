@@ -4,9 +4,8 @@ namespace Modules\Messaging\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Modules\Messaging\Database\Factories\MessageFactory;
 
-class message extends Model
+class Message extends Model
 {
     use HasFactory;
 
@@ -21,14 +20,39 @@ class message extends Model
         'is_deleted',
     ];
 
+    protected $casts = [
+        'read_at' => 'datetime',
+    ];
+
     public function conversation()
     {
         return $this->belongsTo(Conversation::class);
     }
 
-    // polymorphic sender
     public function sender()
     {
         return $this->morphTo();
+    }
+
+    public function markAsRead()
+    {
+        if (is_null($this->read_at)) {
+            $this->update(['read_at' => now()]);
+        }
+    }
+
+    public function isRead()
+    {
+        return !is_null($this->read_at);
+    }
+
+    public function scopeUnread($query)
+    {
+        return $query->whereNull('read_at');
+    }
+
+    public function scopeRead($query)
+    {
+        return $query->whereNotNull('read_at');
     }
 }

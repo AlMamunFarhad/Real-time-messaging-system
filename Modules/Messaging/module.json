@@ -7,5 +7,7 @@
     "providers": [
         "Modules\\Messaging\\Providers\\MessagingServiceProvider"
     ],
-    "files": []
+    "files": [
+        "app/Helpers/AuthParticipant.php"
+    ]
 }
