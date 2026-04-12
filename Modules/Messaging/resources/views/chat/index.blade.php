@@ -31,35 +31,41 @@
         }
     @endphp
 
-    <div style="width: 100%; max-width: 800px; margin: 1rem auto; background: white; border-radius: 1rem; border: 1px solid #e5e7eb; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+    <div style="width: 100%; max-width: 900px; margin: 1.5rem auto; background: #ffffff; border-radius: 24px; border: 1px solid rgba(15, 23, 42, 0.08); overflow: hidden; box-shadow: 0 20px 40px -12px rgba(15, 23, 42, 0.12);">
 
         <!-- Header -->
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem;">
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 1.25rem 1.5rem;">
             <div style="display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <div style="height: 2.5rem; width: 2.5rem; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center;">
-                        <svg xmlns="http://www.w3.org/2000/svg" style="height: 1.5rem; width: 1.5rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="height: 48px; width: 48px; border-radius: 14px; background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="height: 1.5rem; width: 1.5rem; color: white;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
                     </div>
                     <div>
-                        <h3 style="font-weight: 600; font-size: 1.125rem; margin: 0;">{{ $otherUserName }}</h3>
-                        <p style="font-size: 0.75rem; color: #c7d2fe; margin: 0;">Conversation #{{ $conversation->id }}</p>
+                        <h3 style="font-weight: 700; font-size: 1.25rem; margin: 0;">{{ $otherUserName }}</h3>
+                        <p style="font-size: 0.8rem; color: #94a3b8; margin: 0;">Conversation #{{ $conversation->id }}</p>
                     </div>
                 </div>
-                <div id="online-status" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem;">
-                    <span id="online-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #9ca3af;"></span>
-                    <span id="online-text" style="color: #c7d2fe;">Offline</span>
+                <div id="online-status" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 0.4rem 0.8rem; border-radius: 20px;">
+                    <span id="online-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #64748b; box-shadow: 0 0 8px rgba(100, 116, 139, 0.5);"></span>
+                    <span id="online-text" style="color: #cbd5e1;">Offline</span>
                 </div>
             </div>
         </div>
 
         <!-- Chat Body -->
-        <div id="chat-box" style="height: 60vh; min-height: 400px; overflow-y: auto; padding: 1rem; background: #f8fafc;">
+        <div id="chat-box" style="height: 65vh; min-height: 450px; overflow-y: auto; padding: 1.5rem; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);">
+            <div style="text-align: center; color: #64748b; padding: 2rem; font-size: 14px;">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4;" fill="none" viewBox="0 0 24 24" stroke="#94a3b8">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <p>Start your conversation</p>
+            </div>
         </div>
 
         <!-- Input -->
-        <div style="border-top: 1px solid #e5e7eb; background: white; padding: 1rem;">
+        <div style="border-top: 1px solid #e2e8f0; background: white; padding: 1rem;">
             <!-- File Preview -->
             <div id="file-preview" style="display: none; margin-bottom: 0.5rem; padding: 0.5rem; background: #f3f4f6; border-radius: 8px;">
                 <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -75,7 +81,7 @@
                     </svg>
                 </button>
                 <input type="text" id="message-input" style="flex: 1; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 9999px; padding: 0.75rem 1rem; color: #374151; font-size: 0.9375rem; outline: none;" placeholder="Type your message..." autocomplete="off">
-                <button type="button" onclick="sendMessage()" style="background: #667eea; color: white; padding: 0.75rem 1rem; border-radius: 9999px; border: none; cursor: pointer; transition: background 0.2s; white-space: nowrap;">
+                <button type="button" onclick="sendMessage()" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 0.75rem 1rem; border-radius: 9999px; border: none; cursor: pointer; transition: background 0.2s; white-space: nowrap;">
                     <span style="display: flex; align-items: center; gap: 0.25rem;">
                         Send
                         <svg xmlns="http://www.w3.org/2000/svg" style="height: 1rem; width: 1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -94,6 +100,7 @@
         window.otherParticipantType = '{{ $otherTypeShort }}';
         window.userId = {{ $participantId ?? 0 }};
         window.userType = '{{ $participantType }}';
+        window.userTypeShort = '{{ $participantTypeShort }}';
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.7/dist/axios.min.js"></script>
@@ -108,10 +115,24 @@
     </script>
 
     <style>
+        #chat-box {
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+        }
         .message-row {
             display: flex;
             width: 100%;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.3s ease-out;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         .message-row.my-message {
             justify-content: flex-end;
@@ -120,9 +141,10 @@
             justify-content: flex-start;
         }
         .message-container {
-            max-width: 65%;
+            max-width: 70%;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
         .message-row.my-message .message-container {
             align-items: flex-end;
@@ -132,30 +154,69 @@
         }
         .sender-name {
             font-size: 12px;
-            color: #8b5cf6;
+            color: #f59e0b;
             font-weight: 600;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            margin-left: 12px;
         }
         .message-bubble {
-            padding: 12px 16px;
-            border-radius: 18px;
+            padding: 14px 18px;
+            border-radius: 20px;
             word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
         }
+        /* User's message - Dark slate theme */
         .my-message .message-bubble {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: white;
-            border-bottom-right-radius: 4px;
+            border-bottom-right-radius: 6px;
+            position: relative;
         }
+        .my-message .message-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: -8px;
+            width: 0;
+            height: 0;
+            border: 8px solid transparent;
+            border-top: 0;
+            border-bottom: 12px solid #1e293b;
+            border-left: 0;
+            border-right: 0;
+            transform: rotate(-45deg);
+        }
+        /* Admin/Other message - Clean white style */
         .their-message .message-bubble {
-            background: white;
-            color: #1f2937;
-            border: 1px solid #e5e7eb;
-            border-bottom-left-radius: 4px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            color: #1e293b;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-bottom-left-radius: 6px;
+            position: relative;
+        }
+        .their-message .message-bubble::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -8px;
+            width: 0;
+            height: 0;
+            border: 8px solid transparent;
+            border-top: 0;
+            border-bottom: 12px solid #f1f5f9;
+            border-right: 0;
+            transform: rotate(45deg);
         }
         .message-time {
-            font-size: 10px;
-            color: #9ca3af;
-            margin-top: 4px;
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 6px;
+            padding: 0 4px;
+        }
+        .my-message .message-time {
+            color: #64748b;
         }
     </style>
 
@@ -173,9 +234,8 @@
             let chatBox = document.getElementById('chat-box');
             if (!chatBox) return;
 
-            let senderTypeShort = message.sender_type ? message.sender_type.split('\\').pop().toLowerCase() : '';
-            let myTypeShort = window.userType ? window.userType.split('\\').pop().toLowerCase() : '';
-            let isMe = (message.sender_id == window.userId && (message.sender_type === window.userType || senderTypeShort === myTypeShort));
+            let messageTypeShort = message.sender_type ? message.sender_type.split('\\').pop().toLowerCase() : '';
+            let isMe = (message.sender_id == window.userId && messageTypeShort === window.userTypeShort);
 
             let time = message.created_at ? new Date(message.created_at).toLocaleTimeString() : new Date().toLocaleTimeString();
             let senderName = message.sender_name || (isMe ? 'You' : 'Unknown');
@@ -346,13 +406,10 @@
                         messages.forEach(msg => {
                             if (!window.loadedMessageIds.has(msg.id)) {
                                 window.loadedMessageIds.add(msg.id);
-                                let senderTypeFull = msg.sender_type || '';
-                                let myTypeFull = window.userType || '';
-                                let senderTypeShort = senderTypeFull.split('\\').pop().toLowerCase();
-                                let myTypeShort = myTypeFull.split('\\').pop().toLowerCase();
+                                let senderTypeShort = msg.sender_type ? msg.sender_type.split('\\').pop().toLowerCase() : '';
                                 // Check if sender is SAME person (both id AND type must match)
-                                let isSameUser = (msg.sender_id == window.userId && senderTypeShort === myTypeShort);
-                                console.log('Message', msg.id, 'from:', senderTypeShort, 'to:', myTypeShort, 'sameUser:', isSameUser);
+                                let isSameUser = (msg.sender_id == window.userId && senderTypeShort === window.userTypeShort);
+                                console.log('Message', msg.id, 'from:', senderTypeShort, 'to:', window.userTypeShort, 'sameUser:', isSameUser);
                                 if (!isSameUser) {
                                     window.appendMessage(msg);
                                 }
@@ -388,10 +445,12 @@
                 const text = document.getElementById('online-text');
                 if (dot && text) {
                     if (isOnline) {
-                        dot.style.background = '#22c55e';
+                        dot.style.background = '#10b981';
+                        dot.style.boxShadow = '0 0 10px #10b981';
                         text.textContent = 'Online';
                     } else {
-                        dot.style.background = '#6b7280';
+                        dot.style.background = '#64748b';
+                        dot.style.boxShadow = '0 0 8px rgba(100, 116, 139, 0.5)';
                         text.textContent = 'Offline';
                     }
                 }
