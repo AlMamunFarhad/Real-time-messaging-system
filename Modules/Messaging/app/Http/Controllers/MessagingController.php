@@ -65,6 +65,9 @@ class MessagingController extends Controller
             ->map(function ($msg) {
                 $sender = $msg->sender;
                 $msg->sender_name = $sender ? ($sender->name ?? 'Unknown') : 'Unknown';
+                if ($msg->file_path) {
+                    $msg->file_url = asset($msg->file_path);
+                }
                 return $msg;
             });
 
@@ -100,6 +103,9 @@ class MessagingController extends Controller
             ->map(function ($msg) {
                 $sender = $msg->sender;
                 $msg->sender_name = $sender ? ($sender->name ?? 'Unknown') : 'Unknown';
+                if ($msg->file_path) {
+                    $msg->file_url = asset($msg->file_path);
+                }
                 return $msg;
             });
 

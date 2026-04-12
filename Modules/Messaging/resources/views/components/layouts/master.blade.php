@@ -19,6 +19,7 @@
 
     {{-- Vite CSS --}}
     {{-- {{ module_vite('build-messaging', 'resources/assets/sass/app.scss') }} --}}
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
 <body>

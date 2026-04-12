@@ -7,11 +7,6 @@ use Modules\Messaging\Http\Controllers\ChatController;
 use Modules\Messaging\Http\Controllers\OnlineStatusController;
 use Modules\Messaging\Helpers\AuthParticipant;
 
-// Send message - works for both user and admin via AuthParticipant
-Route::post('/send-message', [MessageController::class, 'send'])
-    ->middleware(['auth:admin,web'])
-    ->name('messages.send');
-
 // Online status routes
 Route::post('/online-heartbeat', [OnlineStatusController::class, 'heartbeat'])
     ->middleware(['auth:admin,web'])

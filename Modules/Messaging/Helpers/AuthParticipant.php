@@ -10,10 +10,12 @@ class AuthParticipant
 
     public static function guard()
     {
-        foreach (self::$guards as $guard) {
-            if (Auth::guard($guard)->check()) {
-                return $guard;
-            }
+        // Check admin first (priority)
+        if (Auth::guard('admin')->check()) {
+            return 'admin';
+        }
+        if (Auth::guard('web')->check()) {
+            return 'web';
         }
 
         return null;
@@ -22,15 +24,19 @@ class AuthParticipant
     public static function id()
     {
         $guard = self::guard();
+        if (!$guard) return null;
 
-        return $guard ? Auth::guard($guard)->id() : null;
+        // If admin guard, use admin guard's id
+        if ($guard === 'admin') {
+            return Auth::guard('admin')->id();
+        }
+        
+        return Auth::guard($guard)->id();
     }
 
     public static function type()
     {
         $guard = self::guard();
-
-        // dd($guard);
 
         return match ($guard) {
             'admin' => \App\Models\Admin::class,

@@ -32,15 +32,15 @@ class MessageController extends Controller
     {
         try {
             $request->validate([
-                'message' => 'required|string|max:1000',
                 'conversation_id' => 'required|integer'
             ]);
 
             $senderId = AuthParticipant::id();
             $senderType = AuthParticipant::type();
+            $guard = AuthParticipant::guard();
 
             \Illuminate\Support\Facades\Log::info('Auth check', [
-                'guard' => AuthParticipant::guard(),
+                'guard' => $guard,
                 'id' => $senderId,
                 'type' => $senderType
             ]);
@@ -51,12 +51,6 @@ class MessageController extends Controller
 
             $conversationId = $request->conversation_id;
             $senderTypeShort = strtolower(class_basename($senderType));
-
-            \Illuminate\Support\Facades\Log::info('Sending message', [
-                'sender_id' => $senderId,
-                'sender_type' => $senderType,
-                'conversation_id' => $conversationId
-            ]);
 
             $conversation = Conversation::where('id', $conversationId)
                 ->whereHas('participants', function ($q) use ($senderId, $senderType, $senderTypeShort) {
@@ -69,51 +63,66 @@ class MessageController extends Controller
                 return response()->json(['error' => 'Conversation not found or you are not a participant'], 404);
             }
 
+            // Handle file upload
+            $filePath = null;
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip', 'rar'];
+                $extension = $file->getClientOriginalExtension();
+                
+                if (in_array(strtolower($extension), $allowedExtensions)) {
+                    $fileName = time() . '_' . $file->getClientOriginalName();
+                    $file->move(public_path('uploads/messages'), $fileName);
+                    $filePath = 'uploads/messages/' . $fileName;
+                }
+            }
+
             $message = Message::create([
                 'conversation_id' => $conversation->id,
                 'sender_id' => $senderId,
                 'sender_type' => $senderType,
-                'body' => $request->message,
+                'body' => $request->message ?? '',
+                'type' => $filePath ? 'file' : 'text',
+                'file_path' => $filePath,
             ]);
 
             $conversation->touch();
 
-            // Add sender name to message for display
             $senderModel = AuthParticipant::model();
             $senderName = $senderModel ? $senderModel->name : 'Unknown';
 
-            // Dispatch broadcast event synchronously to ensure it works
             try {
-                \Illuminate\Support\Facades\Log::info('Attempting to broadcast message', [
-                    'message_id' => $message->id,
-                    'conversation_id' => $message->conversation_id
-                ]);
-                
                 event(new MessageSent($message));
-                
-                \Illuminate\Support\Facades\Log::info('Event dispatched successfully');
             } catch (\Exception $broadcastException) {
-                \Illuminate\Support\Facades\Log::error('Broadcast failed: ' . $broadcastException->getMessage(), [
-                    'exception' => $broadcastException
-                ]);
+                \Illuminate\Support\Facades\Log::error('Broadcast failed: ' . $broadcastException->getMessage());
             }
 
-            // Return message with sender_name included
-            return response()->json([
+            $response = [
                 'id' => $message->id,
                 'conversation_id' => $message->conversation_id,
                 'sender_id' => $message->sender_id,
                 'sender_type' => $message->sender_type,
                 'sender_name' => $senderName,
                 'body' => $message->body,
+                'type' => $message->type,
                 'created_at' => $message->created_at,
                 'read_at' => $message->read_at,
-            ]);
+                'debug' => [
+                    'guard' => AuthParticipant::guard(),
+                    'senderTypeShort' => strtolower(class_basename($senderType))
+                ]
+            ];
+            
+            if ($filePath) {
+                $response['file_url'] = asset($filePath);
+                $response['file_name'] = $request->file('file')->getClientOriginalName();
+            }
+
+            return response()->json($response);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Send message error: ' . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
             ]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
