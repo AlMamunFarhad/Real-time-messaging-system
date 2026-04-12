@@ -6,6 +6,8 @@
         $participantType = \Modules\Messaging\Helpers\AuthParticipant::type();
         $participantTypeShort = strtolower(class_basename($participantType));
 
+        $currentUserName = $currentUserName ?? 'User';
+
         $participants = $conversation->participants ?? collect();
 
         // Debug - remove in production
@@ -109,13 +111,215 @@ if ($otherParticipant && $otherParticipant->participant_type) {
         window.userId = {{ $participantId ?? 0 }};
         window.userType = '{{ $participantType }}';
         window.uniqueUserId = '{{ $participantTypeShort }}_{{ $participantId }}';
+        window.currentUserName = '{{ $currentUserName }}';
 
         console.log('Chat initialized - conversationId:', window.conversationId, 'userId:', window.userId);
-        console.log('Other participant ID:', window.otherParticipantId, 'Type:', window.otherParticipantType);
     </script>
 
-    {{-- ================== VITE ================== --}}
-    @vite(['resources/js/app.js', 'Modules/Messaging/resources/assets/js/app.js', 'Modules/Messaging/resources/assets/js/chat.js'])
+    {{-- Load axios via CDN --}}
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.7/dist/axios.min.js"></script>
+    <script>
+        // Set up axios defaults
+        window.axios = axios;
+        window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+        window.axios.defaults.withCredentials = true;
+        
+        // Set CSRF token from meta tag
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (csrfToken) {
+            window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
+            console.log('CSRF token found');
+        } else {
+            console.log('WARNING: CSRF token not found!');
+        }
+    </script>
+
+    {{-- Basic Chat Application (Inline - No Dependencies) --}}
+    <script>
+        console.log('Starting chat application...');
+        
+        // Variables
+        window.loadedMessageIds = new Set();
+        window.lastMessageId = 0;
+        
+        // Function to append message to chat
+        window.appendMessage = function(message, append = true, isNew = false) {
+            let chatBox = document.getElementById('chat-box');
+            if (!chatBox) {
+                console.error('Chat box not found!');
+                return;
+            }
+            
+            // Compare both sender_id AND sender_type to determine if it's my message
+            let senderTypeShort = message.sender_type ? message.sender_type.split('\\').pop().toLowerCase() : '';
+            let myTypeShort = window.userType ? window.userType.split('\\').pop().toLowerCase() : '';
+            
+            // My message if sender_id matches AND (sender_type matches OR types are same)
+            let isMe = (message.sender_id == window.userId && (message.sender_type === window.userType || senderTypeShort === myTypeShort));
+            
+            let time = message.created_at ? new Date(message.created_at).toLocaleTimeString() : new Date().toLocaleTimeString();
+            let senderName = message.sender_name || (isMe ? (window.currentUserName || 'You') : 'Unknown');
+            
+            console.log('Appending message:', isMe ? 'MY message' : 'THEIR message', 'sender:', senderName, 'sender_id:', message.sender_id, 'userId:', window.userId);
+            
+            let div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.width = '100%';
+            div.style.marginBottom = '0.75rem';
+            div.style.justifyContent = isMe ? 'flex-end' : 'flex-start';
+            div.dataset.messageId = message.id;
+            
+            if (isMe) {
+                div.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; max-width: 75%;">
+                        <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; padding: 0.75rem 1rem; border-radius: 1rem 1rem 0.25rem 1rem;">
+                            <span style="font-size: 0.9375rem; color: white; word-wrap: break-word;">${message.body}</span>
+                        </div>
+                        <div style="font-size: 0.6875rem; color: #9ca3af; margin-top: 0.25rem;">${time}</div>
+                    </div>`;
+            } else {
+                div.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: flex-start; max-width: 75%;">
+                        <span style="font-size: 0.6875rem; color: #6b7280; margin-bottom: 0.25rem; font-weight: 500;">${senderName}</span>
+                        <div style="background: white; color: #1f2937; padding: 0.75rem 1rem; border-radius: 1rem 1rem 1rem 0.25rem; border: 1px solid #e5e7eb;">
+                            <span style="font-size: 0.9375rem; color: #374151; word-wrap: break-word;">${message.body}</span>
+                        </div>
+                        <div style="font-size: 0.6875rem; color: #9ca3af; margin-top: 0.25rem;">${time}</div>
+                    </div>`;
+            }
+            
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        };
+        
+        // Load messages from API
+        async function loadMessages() {
+            console.log('Loading messages for conversation:', window.conversationId);
+            try {
+                const response = await axios.get('/messages/' + window.conversationId);
+                console.log('Messages API response:', response.data);
+                
+                const messages = response.data.messages || [];
+                console.log('Got', messages.length, 'messages');
+                
+                messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                
+                messages.forEach(msg => {
+                    if (!window.loadedMessageIds.has(msg.id)) {
+                        window.loadedMessageIds.add(msg.id);
+                        window.appendMessage(msg, true);
+                    }
+                });
+                
+                if (window.loadedMessageIds.size > 0) {
+                    window.lastMessageId = Math.max(...Array.from(window.loadedMessageIds));
+                    console.log('Last message ID set to:', window.lastMessageId);
+                }
+                
+                console.log('Loaded', window.loadedMessageIds.size, 'messages total');
+            } catch (error) {
+                console.error('Load messages error:', error);
+                if (error.response) {
+                    console.error('Status:', error.response.status, 'Data:', error.response.data);
+                }
+            }
+        }
+        
+        // Send message function
+        window.sendMessage = async function() {
+            let input = document.getElementById('message-input');
+            let message = input.value.trim();
+            
+            if (!message) return;
+            
+            console.log('Sending message:', message);
+            input.disabled = true;
+            
+            try {
+                const response = await axios.post('/send-message', {
+                    message: message,
+                    conversation_id: window.conversationId
+                });
+                
+                console.log('Send response:', response.data);
+                input.value = '';
+                
+                if (response.data && response.data.id) {
+                    window.loadedMessageIds.add(response.data.id);
+                    window.lastMessageId = Math.max(window.lastMessageId, response.data.id);
+                    window.appendMessage(response.data, true, true);
+                    console.log('Message displayed, ID:', response.data.id);
+                }
+            } catch (error) {
+                alert('Failed to send message');
+                console.error('Send error:', error);
+            } finally {
+                input.disabled = false;
+                input.focus();
+            }
+        };
+        
+        // Initialize
+        console.log('Initializing chat...');
+        console.log('User ID:', window.userId);
+        console.log('Conversation ID:', window.conversationId);
+        
+        // Load existing messages
+        loadMessages();
+        
+        // Poll for new messages every 2 seconds (faster for real-time feel)
+        setInterval(async () => {
+            try {
+                const response = await axios.get('/messages/' + window.conversationId);
+                const messages = response.data.messages || [];
+                
+                if (messages.length > 0) {
+                    messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                    const latestMessage = messages[messages.length - 1];
+                    const newMessageId = latestMessage.id;
+                    
+                    console.log('Polling - latest ID:', newMessageId, 'last ID:', window.lastMessageId);
+                    
+                    if (newMessageId > window.lastMessageId) {
+                        console.log('>>> NEW MESSAGE FOUND! <<<');
+                        
+                        messages.forEach(msg => {
+                            if (!window.loadedMessageIds.has(msg.id)) {
+                                window.loadedMessageIds.add(msg.id);
+                                console.log('Adding new message:', msg.id, msg.body.substring(0, 20));
+                                
+                                // Check if it's NOT my message using sender_type comparison
+                                let senderTypeShort = msg.sender_type ? msg.sender_type.split('\\').pop().toLowerCase() : '';
+                                let myTypeShort = window.userType ? window.userType.split('\\').pop().toLowerCase() : '';
+                                let isMyMessage = (msg.sender_id == window.userId && (msg.sender_type === window.userType || senderTypeShort === myTypeShort));
+                                
+                                if (!isMyMessage) {
+                                    window.appendMessage(msg, true, true);
+                                }
+                            }
+                        });
+                        
+                        window.lastMessageId = newMessageId;
+                    }
+                }
+            } catch (error) {
+                console.log('Polling error:', error.message);
+            }
+        }, 2000);
+        
+        // Enter key handler
+        const input = document.getElementById('message-input');
+        if (input) {
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    window.sendMessage();
+                }
+            });
+        }
+        
+        console.log('Chat initialized successfully');
+    </script>
 
     {{-- ================== INLINE STYLE (SAFE) ================== --}}
     <style>

@@ -140,6 +140,16 @@ class MessagingController extends Controller
             $conversation->unread_count = $unread;
 
             $conversation->last_message = $conversation->messages->first();
+
+            // Add participant names
+            foreach ($conversation->participants as $participant) {
+                if ($participant->participant_type && class_exists($participant->participant_type)) {
+                    $model = $participant->participant_type::find($participant->participant_id);
+                    if ($model) {
+                        $participant->participant_name = $model->name ?? ($model->email ?? 'User #' . $participant->participant_id);
+                    }
+                }
+            }
         }
 
         return response()->json([

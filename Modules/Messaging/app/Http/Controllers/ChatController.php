@@ -28,6 +28,13 @@ class ChatController extends Controller
             abort(401, 'Unauthorized');
         }
 
+        // Get current user name
+        $currentUserName = 'User';
+        $currentUser = $senderType::find($senderId);
+        if ($currentUser) {
+            $currentUserName = $currentUser->name ?? ($currentUser->email ?? 'User #' . $senderId);
+        }
+
         // Resolve type to full class name
         $receiverType = $this->resolveType($type);
 
@@ -67,7 +74,7 @@ class ChatController extends Controller
             ]);
         }
 
-        return view('messaging::chat.index', compact('conversation'));
+        return view('messaging::chat.index', compact('conversation', 'currentUserName'));
     }
 
     public function show($conversationId)
@@ -77,6 +84,13 @@ class ChatController extends Controller
 
         if (!$senderId || !$senderType) {
             abort(401, 'Unauthorized');
+        }
+
+        // Get current user name
+        $currentUserName = 'User';
+        $currentUser = $senderType::find($senderId);
+        if ($currentUser) {
+            $currentUserName = $currentUser->name ?? ($currentUser->email ?? 'User #' . $senderId);
         }
 
         $conversation = Conversation::where('id', $conversationId)
@@ -91,6 +105,6 @@ class ChatController extends Controller
             abort(403, 'You are not a participant of this conversation');
         }
 
-        return view('messaging::chat.index', compact('conversation'));
+        return view('messaging::chat.index', compact('conversation', 'currentUserName'));
     }
 }

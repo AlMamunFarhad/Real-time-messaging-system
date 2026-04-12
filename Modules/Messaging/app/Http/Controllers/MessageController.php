@@ -82,10 +82,20 @@ class MessageController extends Controller
             $senderModel = AuthParticipant::model();
             $senderName = $senderModel ? $senderModel->name : 'Unknown';
 
+            // Dispatch broadcast event synchronously to ensure it works
             try {
+                \Illuminate\Support\Facades\Log::info('Attempting to broadcast message', [
+                    'message_id' => $message->id,
+                    'conversation_id' => $message->conversation_id
+                ]);
+                
                 event(new MessageSent($message));
+                
+                \Illuminate\Support\Facades\Log::info('Event dispatched successfully');
             } catch (\Exception $broadcastException) {
-                \Illuminate\Support\Facades\Log::warning('Broadcast failed but message saved: ' . $broadcastException->getMessage());
+                \Illuminate\Support\Facades\Log::error('Broadcast failed: ' . $broadcastException->getMessage(), [
+                    'exception' => $broadcastException
+                ]);
             }
 
             // Return message with sender_name included

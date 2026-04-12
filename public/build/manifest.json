@@ -1,6 +1,12 @@
 {
+  "Modules/Messaging/resources/assets/js/chat.js": {
+    "file": "assets/chat-Cr8sitA-.js",
+    "name": "chat",
+    "src": "Modules/Messaging/resources/assets/js/chat.js",
+    "isEntry": true
+  },
   "resources/css/app.css": {
-    "file": "assets/app-CMRAGUJs.css",
+    "file": "assets/app-JCRRxxcw.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",

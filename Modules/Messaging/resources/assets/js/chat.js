@@ -5,7 +5,7 @@ window.appendMessage = function (message, append = true, isNew = false) {
     let isMe = message.sender_id == window.userId;
 
     let time = message.created_at ? new Date(message.created_at).toLocaleTimeString() : new Date().toLocaleTimeString();
-    let senderName = message.sender_name || (isMe ? 'You' : 'Unknown');
+    let senderName = message.sender_name || (isMe ? (window.currentUserName || 'You') : 'Unknown');
 
     let div = document.createElement('div');
     div.style.display = 'flex';
@@ -255,10 +255,13 @@ window.sendMessage = async function () {
         input.value = '';
 
         if (response.data && response.data.id) {
-            if (!loadedMessageIds.has(response.data.id)) {
-                loadedMessageIds.add(response.data.id);
-                appendMessage(response.data, true, true);
-            }
+            // Always add message ID and display it
+            loadedMessageIds.add(response.data.id);
+            lastMessageId = Math.max(lastMessageId, response.data.id);
+            
+            // Always append own messages immediately
+            appendMessage(response.data, true, true);
+            console.log('Own message appended, ID:', response.data.id, 'lastMessageId:', lastMessageId);
         }
 
         markAsRead();
@@ -283,9 +286,10 @@ window.handleEnterKey = function (event) {
 
 // Global flag to prevent double initialization
 let chatInitialized = false;
+let lastMessageId = 0;
 
 // Initialize on page load
-function initChat() {
+async function initChat() {
     if (chatInitialized) {
         console.log('Chat already initialized, skipping');
         return;
@@ -294,7 +298,27 @@ function initChat() {
 
     console.log('Initializing chat for conversation:', window.conversationId);
     console.log('Window userId:', window.userId, 'uniqueUserId:', window.uniqueUserId);
-    console.log('Echo available:', typeof Echo !== 'undefined');
+
+    // Wait for Echo to be available (retry up to 3 times)
+    let echoAttempts = 0;
+    const waitForEcho = () => {
+        return new Promise((resolve) => {
+            const check = () => {
+                echoAttempts++;
+                if (typeof Echo !== 'undefined') {
+                    resolve(true);
+                } else if (echoAttempts < 10) {
+                    setTimeout(check, 500);
+                } else {
+                    resolve(false);
+                }
+            };
+            check();
+        });
+    };
+
+    const echoAvailable = await waitForEcho();
+    console.log('Echo available:', echoAvailable, 'attempts:', echoAttempts);
 
     // Send heartbeat every 5 seconds to stay online
     setInterval(() => {
@@ -303,13 +327,13 @@ function initChat() {
     // Send initial heartbeat
     axios.post('/online-heartbeat').catch(() => { });
 
-    // Listen for messages
-    if (typeof Echo !== 'undefined') {
+    // Listen for messages via Echo (real-time)
+    if (echoAvailable && typeof Echo !== 'undefined') {
         const channel = Echo.private('conversation.' + window.conversationId);
         console.log('[Echo] Subscribing to channel: conversation.' + window.conversationId);
 
         channel.error((error) => {
-            console.error('[Echo] Channel authorization failed:', error);
+            console.error('[Echo] Channel error:', error);
         });
 
         channel.subscribed(() => {
@@ -317,12 +341,13 @@ function initChat() {
         });
 
         channel.listen('.message.sent', (e) => {
-            console.log('Real-time message received:', e.message);
-            console.log(' sender_id:', e.message.sender_id, ' window.userId:', window.userId);
+            console.log('Real-time message received!', e);
+            console.log('Message data:', e.message);
+            console.log(' sender_id:', e.message?.sender_id, ' window.userId:', window.userId);
 
             // Always append incoming messages at bottom
-            if (e.message.sender_id != window.userId) {
-                console.log('Appending incoming message');
+            if (e.message && e.message.sender_id != window.userId) {
+                console.log('Appending incoming message via Echo');
 
                 // Add to loaded messages to prevent duplicate
                 if (!loadedMessageIds.has(e.message.id)) {
@@ -337,24 +362,64 @@ function initChat() {
 
         // Listen for typing events
         channel.listenForWhisper('typing', (e) => {
-            console.log('[Typing] Received whisper from:', e.userId, 'typing:', e.typing, 'current user:', window.uniqueUserId);
+            console.log('[Typing] Received whisper from:', e.userId, 'typing:', e.typing);
             if (e.userId !== window.uniqueUserId) {
-                console.log('[Typing] Showing indicator for remote user');
                 showTypingIndicator(e.typing);
-            } else {
-                console.log('[Typing] Ignoring own typing event');
             }
         });
 
     } else {
-        console.log('[Echo] Echo is not defined!');
+        console.log('[Echo] Echo not available, using polling fallback');
     }
 
-    // Also listen on global event for debugging
+    // Fallback: Poll for new messages every 3 seconds (works even without Echo)
+    setInterval(async () => {
+        try {
+            const response = await axios.get(`/messages/${window.conversationId}`);
+            const messages = response.data.messages || [];
+            
+            if (messages.length > 0) {
+                // Sort by date
+                messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                
+                const latestMessage = messages[messages.length - 1];
+                const newMessageId = latestMessage.id;
+                
+                // If there's a new message we haven't loaded
+                if (newMessageId > lastMessageId) {
+                    console.log('[Polling] New message found:', newMessageId, 'last was:', lastMessageId);
+                    
+                    messages.forEach(msg => {
+                        if (!loadedMessageIds.has(msg.id)) {
+                            loadedMessageIds.add(msg.id);
+                            // Only append if it's not from current user (we already show sent messages)
+                            if (msg.sender_id != window.userId) {
+                                appendMessage(msg, true, true); // isNew = true for animation
+                            }
+                        }
+                    });
+                }
+                
+                // Always update lastMessageId
+                lastMessageId = newMessageId;
+            }
+        } catch (error) {
+            // Silent fail for polling
+        }
+    }, 3000);
+
+    // Also make Echo available globally
     window.Echo = Echo;
 
-    // Load previous messages
-    loadMessages();
+    // Load previous messages and set lastMessageId
+    await loadMessages();
+    
+    // Update lastMessageId after loading
+    if (loadedMessageIds.size > 0) {
+        // Convert Set to array and get max
+        lastMessageId = Math.max(...Array.from(loadedMessageIds));
+        console.log('Initial lastMessageId set to:', lastMessageId);
+    }
 
     // Add Enter key listener
     const input = document.getElementById('message-input');
