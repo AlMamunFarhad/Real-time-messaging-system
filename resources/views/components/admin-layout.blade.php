@@ -30,9 +30,6 @@
                     @php
                         $currentUserId = \Modules\Messaging\Helpers\AuthParticipant::id();
                         $currentUserType = \Modules\Messaging\Helpers\AuthParticipant::type();
-                    @endphp
-                    @if($currentUserId)
-                    <x-message-icon :currentUserId="$currentUserId" :currentUserType="$currentUserType" :conversations="[]" :unreadCount="0" />
                     @endif
                 </div>
             </div>

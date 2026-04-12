@@ -192,7 +192,13 @@
             if (isMe) {
                 let content = message.body || '';
                 if (hasImage) {
-                    content += `<img src="${fileUrl}" style="max-width: 200px; max-height: 200px; border-radius: 8px;">`;
+                    content += `<img src="${fileUrl}" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                    <a href="${fileUrl}" download style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; margin-top: 6px; background: rgba(255,255,255,0.3); border-radius: 6px; text-decoration: none; font-size: 11px; color: white;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download
+                    </a>`;
                 } else if (fileUrl) {
                     content += `<a href="${fileUrl}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(255,255,255,0.2); border-radius: 8px; text-decoration: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -207,7 +213,13 @@
             } else {
                 let content = message.body || '';
                 if (hasImage) {
-                    content += `<img src="${fileUrl}" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #e5e7eb;">`;
+                    content += `<img src="${fileUrl}" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                    <a href="${fileUrl}" download style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; margin-top: 6px; background: #e5e7eb; border-radius: 6px; text-decoration: none; font-size: 11px; color: #374151;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download
+                    </a>`;
                 } else if (fileUrl) {
                     content += `<a href="${fileUrl}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #e5e7eb; border-radius: 8px; text-decoration: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; color: #6b7280;" fill="none" viewBox="0 0 24 24" stroke="currentColor">

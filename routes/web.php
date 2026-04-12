@@ -36,6 +36,18 @@ Route::prefix('admin')->group(function () {
             return view('admin.dashboard');
         })->name('admin.dashboard');
 
+        Route::get('/users/list', function () {
+            $page = request()->get('page', 1);
+            $adminId = auth()->guard('admin')->id();
+            $users = \App\Models\User::where('id', '!=', $adminId)->orderBy('id', 'desc')->paginate(10, ['*'], 'page', $page);
+            return response()->json([
+                'users' => $users->items(),
+                'currentPage' => $users->currentPage(),
+                'lastPage' => $users->lastPage(),
+                'total' => $users->total(),
+            ]);
+        })->name('admin.users.list');
+
         Route::get('/test-auth', function () {
             return [
                 'guard' => \Modules\Messaging\Helpers\AuthParticipant::guard(),

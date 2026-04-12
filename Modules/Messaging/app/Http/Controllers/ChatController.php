@@ -28,6 +28,18 @@ class ChatController extends Controller
             abort(401, 'Unauthorized');
         }
 
+        $senderTypeShort = strtolower(class_basename($senderType));
+        
+        // Regular users can only chat with admin
+        if ($senderTypeShort === 'user' && strtolower($type) !== 'admin') {
+            abort(403, 'Users can only message the admin');
+        }
+        
+        // Admin can only chat with users
+        if ($senderTypeShort === 'admin' && strtolower($type) !== 'user') {
+            abort(403, 'Admin can only message users');
+        }
+
         // Get current user name
         $currentUserName = 'User';
         $currentUser = $senderType::find($senderId);
@@ -84,6 +96,28 @@ class ChatController extends Controller
 
         if (!$senderId || !$senderType) {
             abort(401, 'Unauthorized');
+        }
+
+        $senderTypeShort = strtolower(class_basename($senderType));
+
+        $conversation = Conversation::where('id', $conversationId)
+            ->whereHas('participants', function ($q) use ($senderId, $senderType) {
+                $q->where('participant_id', $senderId)
+                    ->whereIn('participant_type', [$senderType, strtolower(class_basename($senderType))]);
+            })
+            ->with('participants')
+            ->first();
+
+        if (!$conversation) {
+            abort(403, 'You are not a participant of this conversation');
+        }
+
+        // Regular users can only view conversations with admin
+        if ($senderTypeShort === 'user') {
+            $hasAdmin = $conversation->participants()->where('participant_type', 'App\Models\Admin')->exists();
+            if (!$hasAdmin) {
+                abort(403, 'You can only view conversations with the admin');
+            }
         }
 
         // Get current user name

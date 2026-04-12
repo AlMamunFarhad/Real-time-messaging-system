@@ -123,10 +123,19 @@ class MessagingController extends Controller
 
         $userTypeShort = strtolower(class_basename($userType));
 
-        $conversations = Conversation::whereHas('participants', function ($q) use ($userId, $userType, $userTypeShort) {
+        $query = Conversation::whereHas('participants', function ($q) use ($userId, $userType, $userTypeShort) {
             $q->where('participant_id', $userId)
                 ->whereIn('participant_type', [$userType, $userTypeShort]);
-        })
+        });
+
+        // Regular users can only see conversations with admin
+        if ($userTypeShort === 'user') {
+            $query->whereHas('participants', function ($q) {
+                $q->where('participant_type', 'App\Models\Admin');
+            });
+        }
+
+        $conversations = $query
             ->with(['participants'])
             ->with(['messages' => function ($q) {
                 $q->orderBy('created_at', 'desc')->limit(1);

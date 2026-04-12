@@ -4,6 +4,9 @@
     $userTypeShort = $userType ? strtolower(class_basename($userType)) : null;
     $unread = $unreadCount ?? 0;
     $convs = $conversations ?? collect();
+    $userList = $userList ?? [];
+    $isAdminDashboard = $isAdminDashboard ?? ($userTypeShort === 'admin');
+    $lastPage = $lastPage ?? 1;
     
     $hasConversation = $convs->isNotEmpty();
     
@@ -25,8 +28,26 @@
     userType: '{{ $userType }}',
     userTypeShort: '{{ $userTypeShort }}',
     currentUserName: '{{ $currentUserName }}',
+    currentPage: 1,
+    totalPages: {{ $lastPage }},
+    userList: @js($userList),
+    async loadPage(page) {
+        if (page < 1 || page > this.totalPages) return;
+        this.currentPage = page;
+        try {
+            const response = await fetch('/admin/users/list?page=' + page, { credentials: 'include' });
+            if (response.ok) {
+                const data = await response.json();
+                this.userList = data.users;
+            }
+        } catch (e) { console.error(e); }
+    },
     init() {
         this.refreshConversations();
+        
+        if (this.userList.length === 0 && this.totalPages > 0) {
+            this.loadPage(1);
+        }
 
         this.$watch('open', (value) => {
             if (value) {
@@ -131,26 +152,55 @@
             <p class="text-blue-100 text-xs mt-1" x-text="'Logged in as: ' + currentUserName"></p>
         </div>
 
-        <!-- New Message Button (show only if no conversations exist yet) -->
-        <div x-show="conversations.length === 0" class="px-4 py-2 border-b border-gray-100">
-            <button @click="showNewMessage = !showNewMessage" 
-                class="w-full flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                New Message
-            </button>
-            <!-- New Message Options -->
-            <div x-show="showNewMessage" x-transition class="mt-2 bg-gray-50 rounded-lg p-2">
-                <p class="text-xs text-gray-500 mb-2">Select recipient:</p>
-                <div class="space-y-1">
-                    <a href="{{ route('chat.index', ['userId' => 1, 'type' => 'admin']) }}" 
-                        class="block px-3 py-2 text-sm text-gray-700 hover:bg-white hover:text-blue-600 rounded-lg transition-colors">
-                        Message Admin
-                    </a>
+        <!-- Admin: Show user list by default with pagination -->
+        @if($isAdminDashboard)
+        <div class="px-4 py-2 border-b border-gray-100">
+            <div class="bg-gray-50 rounded-lg p-2">
+                <p class="text-xs text-gray-500 mb-2">Select user to message:</p>
+                <div class="space-y-1 max-h-48 overflow-y-auto">
+                    <template x-if="userList.length === 0">
+                        <div class="text-sm text-gray-500 text-center py-2">Loading...</div>
+                    </template>
+                    <template x-for="user in userList" :key="user.id">
+                        <a :href="'/chat/' + user.id + '/user'" 
+                            class="block px-3 py-2 text-sm text-gray-700 hover:bg-white hover:text-blue-600 rounded-lg transition-colors">
+                            <span x-text="user.name"></span>
+                        </a>
+                    </template>
+                </div>
+                <!-- Pagination -->
+                <div class="mt-2 pt-2 border-t border-gray-200 flex justify-between items-center">
+                    <button @click="loadPage(currentPage - 1)" 
+                        :disabled="currentPage <= 1"
+                        class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Prev
+                    </button>
+                    <span class="text-xs text-gray-500">Page <span x-text="currentPage"></span> / <span x-text="totalPages"></span></span>
+                    <button @click="loadPage(currentPage + 1)" 
+                        :disabled="currentPage >= totalPages"
+                        class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Next
+                    </button>
                 </div>
             </div>
         </div>
+        @else
+        <!-- User Dashboard - Direct message to admin without select option -->
+        <div x-show="conversations.length === 0" class="px-4 py-2 border-b border-gray-100">
+            @php
+                $firstAdmin = \App\Models\Admin::first();
+            @endphp
+            @if($firstAdmin)
+            <a href="{{ route('chat.index', ['userId' => $firstAdmin->id, 'type' => 'admin']) }}" 
+                class="w-full flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                Message Admin
+            </a>
+            @endif
+        </div>
+        @endif
 
         <!-- Conversation List -->
         <div class="max-h-80 overflow-y-auto" x-show="conversations.length > 0">

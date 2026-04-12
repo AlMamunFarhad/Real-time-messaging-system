@@ -7,7 +7,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 use Modules\Messaging\Models\Conversation;
 use Modules\Messaging\Helpers\AuthParticipant;
-use Illuminate\Support\Str;
 
 class MessageIcon extends Component
 {
@@ -15,6 +14,10 @@ class MessageIcon extends Component
     public $conversations;
     public $currentUserId;
     public $currentUserType;
+    public $allUsers;
+    public $isAdminDashboard;
+    public $userList;
+    public $lastPage;
 
     public function __construct()
     {
@@ -24,10 +27,14 @@ class MessageIcon extends Component
 
         $this->currentUserId = $userId;
         $this->currentUserType = $userType;
+        $this->isAdminDashboard = ($userTypeShort === 'admin');
 
         if (!$userId || !$userType) {
             $this->unreadCount = 0;
             $this->conversations = collect();
+            $this->allUsers = collect();
+            $this->userList = [];
+            $this->lastPage = 1;
             return;
         }
 
@@ -54,6 +61,17 @@ class MessageIcon extends Component
 
         $this->unreadCount = $unreadCount;
         $this->conversations = $conversations;
+
+        // For admin, get users (10 per page loaded via AJAX)
+        if ($this->isAdminDashboard) {
+            $paginator = \App\Models\User::where('id', '!=', $userId)->orderBy('id', 'desc')->paginate(10);
+            $this->userList = $paginator->items();
+            $this->lastPage = $paginator->lastPage();
+        } else {
+            $this->userList = [];
+            $this->lastPage = 1;
+        }
+        $this->allUsers = collect();
     }
 
     public function render(): View|Closure|string
