@@ -30,19 +30,16 @@ class ChatController extends Controller
 
         // Resolve type to full class name
         $receiverType = $this->resolveType($type);
-        
-        $senderTypeShort = strtolower(class_basename($senderType));
-        $receiverTypeShort = strtolower(class_basename($receiverType));
 
         // conversation find or create - match both class name and short name
         $conversation = Conversation::where('type', 'private')
-            ->whereHas('participants', function ($q) use ($senderId, $senderType, $senderTypeShort) {
+            ->whereHas('participants', function ($q) use ($senderId, $senderType) {
                 $q->where('participant_id', $senderId)
-                    ->whereIn('participant_type', [$senderType, $senderTypeShort]);
+                    ->whereIn('participant_type', [$senderType, strtolower(class_basename($senderType))]);
             })
-            ->whereHas('participants', function ($q) use ($userId, $receiverType, $receiverTypeShort) {
+            ->whereHas('participants', function ($q) use ($userId, $receiverType) {
                 $q->where('participant_id', $userId)
-                    ->whereIn('participant_type', [$receiverType, $receiverTypeShort]);
+                    ->whereIn('participant_type', [$receiverType, strtolower(class_basename($receiverType))]);
             })
             ->first();
 

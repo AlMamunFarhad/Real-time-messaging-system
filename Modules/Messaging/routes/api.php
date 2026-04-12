@@ -11,6 +11,6 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
 });
 
 // Web-based message loading (for admin panel / web app)
-Route::middleware(['web'])->prefix('web')->group(function () {
+Route::middleware(['web', 'auth:admin,web'])->prefix('web')->group(function () {
     Route::get('messagings/{conversationId}/messages', [MessagingController::class, 'messagesWeb']);
 });

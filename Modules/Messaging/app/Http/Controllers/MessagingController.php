@@ -50,7 +50,7 @@ class MessagingController extends Controller
         $conversation = Conversation::where('id', $conversationId)
             ->whereHas('participants', function ($q) use ($userId, $userType, $userTypeShort) {
                 $q->where('participant_id', $userId)
-                  ->whereIn('participant_type', [$userType, $userTypeShort]);
+                    ->whereIn('participant_type', [$userType, $userTypeShort]);
             })
             ->first();
 
@@ -85,7 +85,7 @@ class MessagingController extends Controller
         $conversation = Conversation::where('id', $conversationId)
             ->whereHas('participants', function ($q) use ($userId, $userType, $userTypeShort) {
                 $q->where('participant_id', $userId)
-                  ->whereIn('participant_type', [$userType, $userTypeShort]);
+                    ->whereIn('participant_type', [$userType, $userTypeShort]);
             })
             ->first();
 
@@ -104,5 +104,47 @@ class MessagingController extends Controller
             });
 
         return response()->json(['messages' => $messages]);
+    }
+
+    public function getConversations(Request $request)
+    {
+        $userId = AuthParticipant::id();
+        $userType = AuthParticipant::type();
+
+        if (!$userId || !$userType) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $userTypeShort = strtolower(class_basename($userType));
+
+        $conversations = Conversation::whereHas('participants', function ($q) use ($userId, $userType, $userTypeShort) {
+            $q->where('participant_id', $userId)
+                ->whereIn('participant_type', [$userType, $userTypeShort]);
+        })
+            ->with(['participants'])
+            ->with(['messages' => function ($q) {
+                $q->orderBy('created_at', 'desc')->limit(1);
+            }])
+            ->orderBy('updated_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        $unreadCount = 0;
+        foreach ($conversations as $conversation) {
+            $unread = $conversation->messages()
+                ->whereNull('read_at')
+                ->where('sender_id', '!=', $userId)
+                ->where('sender_type', '!=', $userType)
+                ->count();
+            $unreadCount += $unread;
+            $conversation->unread_count = $unread;
+
+            $conversation->last_message = $conversation->messages->first();
+        }
+
+        return response()->json([
+            'conversations' => $conversations,
+            'unread_count' => $unreadCount
+        ]);
     }
 }

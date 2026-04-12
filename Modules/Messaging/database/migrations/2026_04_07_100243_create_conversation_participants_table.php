@@ -13,14 +13,10 @@ return new class extends Migration
     {
         Schema::create('conversation_participants', function (Blueprint $table) {
             $table->id();
-
             $table->foreignId('conversation_id')->constrained()->cascadeOnDelete();
-
             $table->morphs('participant'); // participant_type + participant_id
-
             $table->timestamp('last_read_at')->nullable();
             $table->timestamp('joined_at')->nullable();
-
             $table->unique(['conversation_id', 'participant_id', 'participant_type'], 'conv_participant_unique');
             $table->timestamps();
         });

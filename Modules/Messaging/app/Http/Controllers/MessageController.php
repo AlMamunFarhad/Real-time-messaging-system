@@ -51,17 +51,17 @@ class MessageController extends Controller
 
             $conversationId = $request->conversation_id;
             $senderTypeShort = strtolower(class_basename($senderType));
-            
+
             \Illuminate\Support\Facades\Log::info('Sending message', [
                 'sender_id' => $senderId,
                 'sender_type' => $senderType,
                 'conversation_id' => $conversationId
             ]);
-            
+
             $conversation = Conversation::where('id', $conversationId)
                 ->whereHas('participants', function ($q) use ($senderId, $senderType, $senderTypeShort) {
                     $q->where('participant_id', $senderId)
-                      ->whereIn('participant_type', [$senderType, $senderTypeShort]);
+                        ->whereIn('participant_type', [$senderType, $senderTypeShort]);
                 })
                 ->first();
 
@@ -76,13 +76,11 @@ class MessageController extends Controller
                 'body' => $request->message,
             ]);
 
-            $conversation->update([
-                'last_message_id' => $message->id
-            ]);
+            $conversation->touch();
 
             // Add sender name to message for display
             $senderModel = AuthParticipant::model();
-            $message->sender_name = $senderModel ? $senderModel->name : 'Unknown';
+            $senderName = $senderModel ? $senderModel->name : 'Unknown';
 
             try {
                 event(new MessageSent($message));
@@ -90,7 +88,17 @@ class MessageController extends Controller
                 \Illuminate\Support\Facades\Log::warning('Broadcast failed but message saved: ' . $broadcastException->getMessage());
             }
 
-            return response()->json($message);
+            // Return message with sender_name included
+            return response()->json([
+                'id' => $message->id,
+                'conversation_id' => $message->conversation_id,
+                'sender_id' => $message->sender_id,
+                'sender_type' => $message->sender_type,
+                'sender_name' => $senderName,
+                'body' => $message->body,
+                'created_at' => $message->created_at,
+                'read_at' => $message->read_at,
+            ]);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Send message error: ' . $e->getMessage(), [
                 'file' => $e->getFile(),
@@ -104,7 +112,7 @@ class MessageController extends Controller
     public function markRead(Request $request)
     {
         $conversationId = $request->conversation_id;
-        
+
         if (!$conversationId) {
             return response()->json(['error' => 'Conversation ID required'], 400);
         }
