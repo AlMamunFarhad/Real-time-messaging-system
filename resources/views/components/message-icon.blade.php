@@ -3,15 +3,9 @@
     $userType = $currentUserType ?? AuthParticipant::type();
     $userTypeShort = $userType ? strtolower(class_basename($userType)) : null;
     $unread = $unreadCount ?? 0;
-    $convs = $conversations ?? collect();
-    $userList = $userList ?? [];
     $isAdminDashboard = $isAdminDashboard ?? ($userTypeShort === 'admin');
-    $lastPage = $lastPage ?? 1;
-    
-    $hasConversation = $convs->isNotEmpty();
-    
-    // Get current logged in user's name
     $currentUserName = 'User';
+
     if ($userType && $userId) {
         $user = $userType::find($userId);
         if ($user) {
@@ -19,303 +13,332 @@
         }
     }
 @endphp
-<div x-data="{
-    open: false,
-    showNewMessage: false,
-    conversations: @js($convs),
-    unreadCount: {{ $unread }},
-    userId: {{ $userId ?? 0 }},
-    userType: '{{ $userType }}',
-    userTypeShort: '{{ $userTypeShort }}',
-    currentUserName: '{{ $currentUserName }}',
-    currentPage: 1,
-    totalPages: 1,
-    userList: @js($userList),
-    userSearch: '',
-    searchTimeout: null,
-    refreshInFlight: false,
-    refreshTimer: null,
-    async loadPage(page) {
-        if (page < 1 || page > this.totalPages) return;
-        this.currentPage = page;
-        try {
-            const query = encodeURIComponent(this.userSearch.trim());
-            const response = await fetch('/admin/users/list?page=' + page + '&q=' + query, { credentials: 'include' });
-            if (response.ok) {
-                const data = await response.json();
-                this.userList = data.users || [];
-                this.currentPage = data.currentPage || 1;
-                this.totalPages = data.lastPage || 1;
-            }
-        } catch (e) { console.error(e); }
-    },
-    handleSearchInput() {
-        clearTimeout(this.searchTimeout);
 
-        this.searchTimeout = setTimeout(() => {
-            const query = this.userSearch.trim();
-
-            if (!query) {
-                this.userList = [];
-                this.currentPage = 1;
-                this.totalPages = 1;
-                return;
-            }
-
-            this.loadPage(1);
-        }, 250);
-    },
-    init() {
-        this.refreshConversations(true);
-
-        this.$watch('open', (value) => {
-            if (value) {
-                this.refreshConversations(true);
-                this.showNewMessage = false;
-            }
-        });
-
-        this.refreshTimer = setInterval(() => {
-            this.refreshConversations();
-        }, 1500);
-
-        window.addEventListener('focus', () => this.refreshConversations(true));
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                this.refreshConversations(true);
-            }
-        });
-        window.addEventListener('message-counter-sync', () => this.refreshConversations(true));
-        window.addEventListener('storage', (event) => {
-            if (event.key === 'message-counter-sync') {
-                this.refreshConversations(true);
-            }
-        });
-
-        if (typeof Echo !== 'undefined' && this.userId) {
-            const channelName = 'user.' + this.userTypeShort + '.' + this.userId;
-
-            Echo.private(channelName)
-                .listen('.message.sent', (e) => {
-                    console.log('New message received in message-icon:', e.message);
-                    this.refreshConversations(true);
-                })
-                .error((error) => {
-                    console.log('Echo subscription error:', error);
-                });
-        }
-    },
-    formatTime(dateStr) {
-        if (!dateStr) return '';
-        const date = new Date(dateStr);
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-        
-        if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return diffMins + 'm ago';
-        if (diffHours < 24) return diffHours + 'h ago';
-        if (diffDays < 7) return diffDays + 'd ago';
-        return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-    },
-    getOtherParticipantName(conversation) {
-        if (conversation?.other_participant_name) {
-            return conversation.other_participant_name;
-        }
-
-        const participants = conversation?.participants || [];
-        const currentUserId = this.userId;
-        const currentUserTypeShort = this.userTypeShort;
-
-        if (!participants || participants.length === 0) return 'Unknown';
-        for (let p of participants) {
-            let pTypeShort = p.participant_type ? p.participant_type.split('\\\\').pop().toLowerCase() : '';
-            if (p.participant_id != currentUserId || pTypeShort != currentUserTypeShort) {
-                return p.participant_name || 'User #' + p.participant_id;
-            }
-        }
-        return 'User';
-    },
-    getConversationInitial(conversation) {
-        const name = this.getOtherParticipantName(conversation);
-        return name ? name.charAt(0).toUpperCase() : '?';
-    },
-    async refreshConversations(force = false) {
-        if (this.refreshInFlight && !force) {
-            return;
-        }
-
-        this.refreshInFlight = true;
-
-        try {
-            console.log('Refreshing conversations...');
-            const url = '{{ route('messages.conversations') }}' + '?t=' + Date.now();
-            const response = await fetch(url, {
-                credentials: 'include'
-            });
-            if (response.ok) {
-                const data = await response.json();
-                this.conversations = data.conversations || [];
-                this.unreadCount = data.unread_count || 0;
-                console.log('Conversations refreshed:', this.conversations.length);
-            }
-        } catch (error) {
-            console.error('Failed to refresh conversations:', error);
-        } finally {
-            this.refreshInFlight = false;
-        }
-    }
-}" x-init="init()" class="relative">
-    <!-- Message Icon Button -->
-    <button @click="open = !open" class="relative p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200">
+@if ($isAdminDashboard)
+    <a href="{{ route('admin.messages') }}" class="relative inline-flex p-2 text-gray-600 transition-colors duration-200 hover:text-blue-600">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
         </svg>
-        <template x-if="unreadCount > 0">
-            <span
-                class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse"
-                x-text="unreadCount > 9 ? '9+' : unreadCount"></span>
-        </template>
-    </button>
+        @if ($unread > 0)
+            <span class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                {{ $unread > 9 ? '9+' : $unread }}
+            </span>
+        @endif
+    </a>
+@elseif (\App\Models\Admin::first())
+    <div
+        x-data="userMessagePanel({
+            unreadCount: {{ $unread }},
+            userId: {{ $userId ?? 0 }},
+            userTypeShort: @js($userTypeShort),
+            conversationUrl: @js(route('user.messages.conversation'))
+        })"
+        x-init="init()"
+        class="relative"
+    >
+        <button @click="openChat()" class="relative p-2 text-gray-600 transition-colors duration-200 hover:text-blue-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            <template x-if="unreadCount > 0">
+                <span class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white" x-text="unreadCount > 9 ? '9+' : unreadCount"></span>
+            </template>
+        </button>
 
-    <!-- Dropdown Popup -->
-    <div x-show="open" @click.outside="open = false; showNewMessage = false" x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100"
-        x-transition:leave-end="opacity-0 scale-95"
-        class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50">
+        <div x-show="open" x-transition.opacity class="fixed inset-0 z-[70] bg-slate-950/45 backdrop-blur-sm" style="display:none;">
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div @click.outside="closeChat()" class="flex h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.45)]">
+                    <div class="border-b border-slate-200 bg-white px-6 py-5">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-300 text-slate-900">
+                                    <span class="text-base font-semibold" x-text="otherParticipantName ? otherParticipantName.charAt(0).toUpperCase() : 'A'"></span>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-semibold text-slate-900" x-text="otherParticipantName"></h3>
+                                    <p class="text-xs text-slate-500">Direct chat</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-500">
+                                    <span id="user-online-dot" class="h-2.5 w-2.5 rounded-full bg-slate-400"></span>
+                                    <span id="user-online-text">Offline</span>
+                                </div>
+                                <button type="button" @click="closeChat()" class="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-50">Close</button>
+                            </div>
+                        </div>
+                    </div>
 
-        <!-- Header with User Name -->
-        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-3">
-            <h3 class="text-white font-semibold flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                Messages
-                <template x-if="unreadCount > 0">
-                    <span class="bg-red-400 text-white text-xs px-2 py-0.5 rounded-full"
-                        x-text="unreadCount + ' new'"></span>
-                </template>
-            </h3>
-            <p class="text-blue-100 text-xs mt-1" x-text="'Logged in as: ' + currentUserName"></p>
-        </div>
+                    <div id="user-chat-box" class="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top,#f8fafc_0%,#ffffff_42%,#f8fafc_100%)] px-6 py-6">
+                        <template x-if="loadingChat">
+                            <div class="space-y-3">
+                                <div class="h-14 w-2/3 animate-pulse rounded-3xl bg-white"></div>
+                                <div class="ml-auto h-14 w-1/2 animate-pulse rounded-3xl bg-slate-200"></div>
+                            </div>
+                        </template>
+                        <div id="user-chat-empty-note" x-show="!loadingChat" class="rounded-3xl border border-dashed border-slate-300 bg-white/80 px-6 py-10 text-center text-slate-500">
+                            <p class="text-sm font-medium">Chat load ??? ?????</p>
+                        </div>
+                    </div>
 
-        <!-- Admin: Show user list by default with pagination -->
-        @if($isAdminDashboard)
-        <div class="px-4 py-2 border-b border-gray-100">
-            <div class="bg-gray-50 rounded-lg p-2">
-                <p class="text-xs text-gray-500 mb-2">Select user to message:</p>
-                <div class="mb-2">
-                    <input
-                        x-model="userSearch"
-                        @input="handleSearchInput()"
-                        type="text"
-                        placeholder="Search user by name or email"
-                        class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                    >
-                </div>
-                <div class="space-y-1 max-h-48 overflow-y-auto">
-                    <template x-if="!userSearch.trim()">
-                        <div class="text-sm text-gray-500 text-center py-2">Type a user name or email to search</div>
-                    </template>
-                    <template x-if="userSearch.trim() && userList.length === 0">
-                        <div class="text-sm text-gray-500 text-center py-2">No user found</div>
-                    </template>
-                    <template x-for="user in userList" :key="user.id">
-                        <a :href="'/chat/' + user.id + '/user'" 
-                            class="block px-3 py-2 text-sm text-gray-700 hover:bg-white hover:text-blue-600 rounded-lg transition-colors">
-                            <div class="font-medium" x-text="user.name"></div>
-                            <div class="text-xs text-gray-400" x-text="user.email"></div>
-                        </a>
-                    </template>
-                </div>
-                <!-- Pagination -->
-                <div class="mt-2 pt-2 border-t border-gray-200 flex justify-between items-center">
-                    <button @click="loadPage(currentPage - 1)" 
-                        :disabled="!userSearch.trim() || currentPage <= 1"
-                        class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                        Prev
-                    </button>
-                    <span class="text-xs text-gray-500">Page <span x-text="currentPage"></span> / <span x-text="totalPages"></span></span>
-                    <button @click="loadPage(currentPage + 1)" 
-                        :disabled="!userSearch.trim() || currentPage >= totalPages"
-                        class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                        Next
-                    </button>
+                    <div class="border-t border-slate-200 bg-white px-6 py-4">
+                        <div id="user-file-preview" style="display:none;" class="mb-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                            <div class="flex items-center justify-between gap-3">
+                                <span id="user-file-name" class="text-sm text-slate-600"></span>
+                                <button type="button" @click="removeFile()" class="text-xl leading-none text-slate-400 transition hover:text-slate-700">&times;</button>
+                            </div>
+                        </div>
+                        <div class="flex items-end gap-3">
+                            <input type="file" id="user-file-input" class="hidden" @change="handleFileSelect($event)">
+                            <button type="button" @click="document.getElementById('user-file-input').click()" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                </svg>
+                            </button>
+                            <input type="text" id="user-message-input" @keydown.enter.prevent="sendMessage()" class="h-12 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200" placeholder="Write a message...">
+                            <button type="button" @click="sendMessage()" class="inline-flex h-12 shrink-0 items-center gap-2 rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800">Send</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        @else
-        <!-- User Dashboard - Direct message to admin without select option -->
-        <div x-show="conversations.length === 0" class="px-4 py-2 border-b border-gray-100">
-            @php
-                $firstAdmin = \App\Models\Admin::first();
-            @endphp
-            @if($firstAdmin)
-            <a href="{{ route('chat.index', ['userId' => $firstAdmin->id, 'type' => 'admin']) }}" 
-                class="w-full flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                Message Admin
-            </a>
-            @endif
-        </div>
-        @endif
-
-        <!-- Conversation List -->
-        <div class="max-h-80 overflow-y-auto" x-show="conversations.length > 0">
-            <template x-for="conversation in conversations" :key="conversation.id">
-                <a :href="'/chat/' + conversation.id"
-                    class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors duration-150 border-b border-gray-50 last:border-b-0">
-                    <!-- Avatar -->
-                    <div class="relative">
-                        <div
-                            class="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-semibold">
-                            <span
-                                x-text="getConversationInitial(conversation)"></span>
-                        </div>
-                        <template x-if="conversation.unread_count > 0">
-                            <span
-                                class="absolute -bottom-1 -right-1 bg-green-500 h-3 w-3 rounded-full border-2 border-white"></span>
-                        </template>
-                    </div>
-
-                    <!-- Content -->
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-semibold text-gray-900 truncate"
-                                x-text="getOtherParticipantName(conversation)"></span>
-                            <span class="text-xs text-gray-400"
-                                x-text="conversation.last_message ? formatTime(conversation.last_message.created_at) : ''"></span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <p class="text-sm text-gray-500 truncate"
-                                x-text="conversation.last_message ? conversation.last_message.body.substring(0, 30) : 'No messages yet'">
-                            </p>
-                            <template x-if="conversation.unread_count > 0">
-                                <span
-                                    class="bg-blue-500 text-white text-xs font-bold rounded-full h-5 min-w-5 px-1.5 flex items-center justify-center"
-                                    x-text="conversation.unread_count"></span>
-                            </template>
-                        </div>
-                    </div>
-                </a>
-            </template>
-        </div>
-        <!-- Empty state -->
-        <div x-show="conversations.length === 0" class="px-4 py-8 text-center text-gray-500">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-gray-300" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-            <p>No conversations yet</p>
-        </div>
     </div>
-</div>
+
+    <style>
+        .message-row { display:flex; width:100%; margin-bottom:18px; }
+        .message-row.my-message { justify-content:flex-end; }
+        .message-row.their-message { justify-content:flex-start; }
+        .message-container { max-width:min(78%,680px); display:flex; flex-direction:column; }
+        .message-row.my-message .message-container { align-items:flex-end; }
+        .message-bubble { border-radius:22px; padding:14px 16px; font-size:14px; line-height:1.6; word-break:break-word; box-shadow:0 18px 35px -26px rgba(15,23,42,.45); }
+        .my-message .message-bubble { background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%); color:#fff; border-bottom-right-radius:8px; }
+        .their-message .message-bubble { background:#fff; color:#0f172a; border:1px solid rgba(148,163,184,.28); border-bottom-left-radius:8px; }
+        .sender-name { margin-bottom:6px; padding-left:8px; font-size:12px; font-weight:600; color:#475569; }
+        .message-time { margin-top:6px; padding:0 6px; font-size:11px; color:#64748b; }
+    </style>
+
+    <script>
+        function buildUserAttachmentHtml(fileUrl, fileName, isMe) {
+            if (!fileUrl) return '';
+
+            const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            const ext = fileUrl.split('.').pop().toLowerCase().split('?')[0];
+            const isImage = imageExts.includes(ext);
+            const safeName = fileName || 'Download file';
+
+            if (isImage) {
+                return `
+                    <div style="margin-top:10px;">
+                        <img src="${fileUrl}" alt="${safeName}" style="max-width:220px; max-height:220px; border-radius:16px; border:1px solid rgba(148,163,184,.25); display:block;">
+                        <a href="${fileUrl}" download="${safeName}" style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:14px;background:${isMe ? 'rgba(255,255,255,0.14)' : '#f8fafc'};color:${isMe ? '#fff' : '#0f172a'};text-decoration:none;font-size:12px;">Download image</a>
+                    </div>
+                `;
+            }
+
+            return `
+                <a href="${fileUrl}" download="${safeName}" style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:14px;background:${isMe ? 'rgba(255,255,255,0.14)' : '#f8fafc'};color:${isMe ? '#fff' : '#0f172a'};text-decoration:none;font-size:12px;">Download file</a>
+            `;
+        }
+
+        function userMessagePanel(config) {
+            return {
+                open: false,
+                unreadCount: config.unreadCount || 0,
+                loadingChat: false,
+                activeConversationId: null,
+                otherParticipantId: null,
+                otherParticipantType: 'admin',
+                otherParticipantName: 'Admin',
+                lastMessageId: 0,
+                loadedMessageIds: new Set(),
+                lastMarkedReadAt: 0,
+                pollTimer: null,
+                init() {
+                    this.refreshConversations();
+                    window.addEventListener('message-counter-sync', () => this.refreshConversations());
+                    window.addEventListener('storage', (event) => {
+                        if (event.key === 'message-counter-sync') this.refreshConversations();
+                    });
+                },
+                async refreshConversations() {
+                    try {
+                        const response = await fetch('{{ route('messages.conversations') }}?t=' + Date.now(), { credentials: 'include' });
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.unreadCount = data.unread_count || 0;
+                        }
+                    } catch (error) {
+                        console.error(error);
+                    }
+                },
+                async openChat() {
+                    this.open = true;
+                    this.loadingChat = true;
+                    try {
+                        const response = await axios.get(config.conversationUrl);
+                        this.activeConversationId = response.data.conversation.id;
+                        this.otherParticipantId = response.data.other_participant.id;
+                        this.otherParticipantType = response.data.other_participant.type || 'admin';
+                        this.otherParticipantName = response.data.other_participant.name || 'Admin';
+                        await this.loadMessages();
+                        this.startPolling();
+                        this.checkOnlineStatus();
+                    } catch (error) {
+                        console.error('Open chat error:', error);
+                    } finally {
+                        this.loadingChat = false;
+                    }
+                },
+                closeChat() {
+                    this.open = false;
+                    if (this.pollTimer) {
+                        clearInterval(this.pollTimer);
+                        this.pollTimer = null;
+                    }
+                },
+                async markConversationAsRead(force = false) {
+                    const now = Date.now();
+                    if (!force && now - this.lastMarkedReadAt < 1500) return;
+                    try {
+                        await axios.post('/mark-read', { conversation_id: this.activeConversationId });
+                        this.lastMarkedReadAt = now;
+                        this.refreshConversations();
+                    } catch (error) {
+                        console.error(error);
+                    }
+                },
+                renderMessage(message) {
+                    const chatBox = document.getElementById('user-chat-box');
+                    if (!chatBox) return;
+                    const note = document.getElementById('user-chat-empty-note');
+                    if (note) note.remove();
+                    const senderTypeShort = message.sender_type ? message.sender_type.split('\\').pop().toLowerCase() : '';
+                    const isMe = (message.sender_id == config.userId && senderTypeShort === config.userTypeShort);
+                    const row = document.createElement('div');
+                    row.className = isMe ? 'message-row my-message' : 'message-row their-message';
+                    const container = document.createElement('div');
+                    container.className = 'message-container';
+                    let content = message.body || '';
+                    const fileUrl = message.file_url || '';
+                    const fileName = message.file_name || 'Attachment';
+                    content += buildUserAttachmentHtml(fileUrl, fileName, isMe);
+                    const time = message.created_at ? new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                    container.innerHTML = isMe
+                        ? `<div class="message-bubble">${content}</div><div class="message-time">${time}</div>`
+                        : `<div class="sender-name">${message.sender_name || this.otherParticipantName}</div><div class="message-bubble">${content}</div><div class="message-time">${time}</div>`;
+                    row.appendChild(container);
+                    chatBox.appendChild(row);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                },
+                async loadMessages() {
+                    if (!this.activeConversationId) return;
+                    try {
+                        const response = await axios.get('/messages/' + this.activeConversationId + '?t=' + Date.now());
+                        const messages = response.data.messages || [];
+                        const chatBox = document.getElementById('user-chat-box');
+                        if (chatBox) chatBox.innerHTML = '';
+                        this.loadedMessageIds = new Set();
+                        messages.forEach((msg) => {
+                            this.loadedMessageIds.add(msg.id);
+                            this.renderMessage(msg);
+                        });
+                        this.lastMessageId = messages.length ? messages[messages.length - 1].id : 0;
+                        await this.markConversationAsRead(true);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                },
+                async sendMessage() {
+                    if (!this.activeConversationId) return;
+                    const input = document.getElementById('user-message-input');
+                    const fileInput = document.getElementById('user-file-input');
+                    const file = fileInput.files[0];
+                    const message = input.value.trim();
+                    if (!message && !file) return;
+                    input.disabled = true;
+                    const formData = new FormData();
+                    if (message) formData.append('message', message);
+                    if (file) formData.append('file', file);
+                    formData.append('conversation_id', this.activeConversationId);
+                    try {
+                        const response = await axios.post('/send-message', formData, {
+                            headers: { 'Content-Type': 'multipart/form-data' }
+                        });
+                        input.value = '';
+                        fileInput.value = '';
+                        document.getElementById('user-file-preview').style.display = 'none';
+                        if (response.data && response.data.id) {
+                            this.loadedMessageIds.add(response.data.id);
+                            this.lastMessageId = Math.max(this.lastMessageId, response.data.id);
+                            this.renderMessage(response.data);
+                        }
+                    } catch (error) {
+                        console.error(error);
+                    } finally {
+                        input.disabled = false;
+                        input.focus();
+                    }
+                },
+                handleFileSelect(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    const nameEl = document.getElementById('user-file-name');
+                    nameEl.innerHTML = '';
+                    if (file.type.startsWith('image/')) {
+                        const img = document.createElement('img');
+                        img.src = URL.createObjectURL(file);
+                        img.style.maxWidth = '96px';
+                        img.style.maxHeight = '96px';
+                        img.style.borderRadius = '14px';
+                        nameEl.appendChild(img);
+                    } else {
+                        nameEl.textContent = file.name;
+                    }
+                    document.getElementById('user-file-preview').style.display = 'block';
+                },
+                removeFile() {
+                    document.getElementById('user-file-input').value = '';
+                    document.getElementById('user-file-preview').style.display = 'none';
+                },
+                startPolling() {
+                    if (this.pollTimer) clearInterval(this.pollTimer);
+                    this.pollTimer = setInterval(async () => {
+                        if (!this.activeConversationId || !this.open) return;
+                        try {
+                            const response = await axios.get('/messages/' + this.activeConversationId + '?t=' + Date.now());
+                            const messages = response.data.messages || [];
+                            if (!messages.length) return;
+                            const newestId = messages[messages.length - 1].id;
+                            if (newestId > this.lastMessageId) {
+                                messages.forEach((msg) => {
+                                    if (!this.loadedMessageIds.has(msg.id)) {
+                                        this.loadedMessageIds.add(msg.id);
+                                        this.renderMessage(msg);
+                                    }
+                                });
+                                this.lastMessageId = newestId;
+                                await this.markConversationAsRead();
+                            }
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    }, 2000);
+                },
+                async checkOnlineStatus() {
+                    if (!this.otherParticipantId || !this.otherParticipantType) return;
+                    try {
+                        const response = await axios.get('/online-status/' + this.otherParticipantId + '/' + this.otherParticipantType);
+                        const dot = document.getElementById('user-online-dot');
+                        const text = document.getElementById('user-online-text');
+                        if (dot && text) {
+                            dot.style.background = response.data.online ? '#10b981' : '#94a3b8';
+                            text.textContent = response.data.online ? 'Online' : 'Offline';
+                        }
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            };
+        }
+    </script>
+@endif

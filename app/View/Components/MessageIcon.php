@@ -17,7 +17,6 @@ class MessageIcon extends Component
     public $allUsers;
     public $isAdminDashboard;
     public $userList;
-    public $lastPage;
 
     public function __construct()
     {
@@ -34,7 +33,6 @@ class MessageIcon extends Component
             $this->conversations = collect();
             $this->allUsers = collect();
             $this->userList = [];
-            $this->lastPage = 1;
             return;
         }
 
@@ -77,12 +75,12 @@ class MessageIcon extends Component
 
         // For admin, get users (10 per page loaded via AJAX)
         if ($this->isAdminDashboard) {
-            $paginator = \App\Models\User::where('id', '!=', $userId)->orderBy('id', 'desc')->paginate(10);
-            $this->userList = $paginator->items();
-            $this->lastPage = $paginator->lastPage();
+            $this->userList = \App\Models\User::where('id', '!=', $userId)
+                ->orderBy('name')
+                ->get(['id', 'name', 'email'])
+                ->all();
         } else {
             $this->userList = [];
-            $this->lastPage = 1;
         }
         $this->allUsers = collect();
     }

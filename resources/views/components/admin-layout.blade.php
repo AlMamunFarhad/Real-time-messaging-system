@@ -42,7 +42,7 @@
                 <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
                     Users
                 </a>
-                <a href="{{ route('chat.index', ['userId' => 1, 'type' => 'admin']) }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+                <a href="{{ route('admin.messages') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg {{ request()->routeIs('admin.messages') ? 'bg-blue-50 text-blue-700' : '' }}">
                     Open Chat
                 </a>
                 <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">

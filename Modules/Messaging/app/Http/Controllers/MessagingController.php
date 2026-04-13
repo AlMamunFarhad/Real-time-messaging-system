@@ -222,7 +222,7 @@ class MessagingController extends Controller
                 : 'User';
         }
 
-        $conversations = $allConversations->take(10)->values();
+        $conversations = $allConversations->values();
 
         return response()->json([
             'conversations' => $conversations,

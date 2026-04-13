@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Modules\Messaging\Http\Controllers\MessageController;
 use Modules\Messaging\Helpers\AuthParticipant;
+use Modules\Messaging\Http\Controllers\ChatController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -36,42 +37,39 @@ Route::prefix('admin')->group(function () {
             return view('admin.dashboard');
         })->name('admin.dashboard');
 
+        Route::get('/messages', [ChatController::class, 'adminDashboard'])
+            ->name('admin.messages');
+        Route::get('/messages/conversation', [ChatController::class, 'adminConversation'])
+            ->name('admin.messages.conversation');
+
         Route::get('/users/list', function () {
-            $page = (int) request()->get('page', 1);
             $search = trim((string) request()->get('q', ''));
-            $query = \App\Models\User::query()->orderBy('name');
+            $query = \App\Models\User::query()
+                ->where('id', '!=', optional(auth('admin')->user())->id)
+                ->orderBy('name');
 
-            if ($search === '') {
-                return response()->json([
-                    'users' => [],
-                    'currentPage' => 1,
-                    'lastPage' => 1,
-                    'total' => 0,
-                ]);
-            }
-
-            $users = $query
-                ->where(function ($q) use ($search) {
+            if ($search !== '') {
+                $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%')
                         ->orWhere('email', 'like', '%' . $search . '%');
-                })
-                ->paginate(10, ['*'], 'page', $page);
+                });
+            }
+
+            $users = $query->get(['id', 'name', 'email']);
 
             return response()->json([
-                'users' => $users->items(),
-                'currentPage' => $users->currentPage(),
-                'lastPage' => $users->lastPage(),
-                'total' => $users->total(),
+                'users' => $users,
+                'total' => $users->count(),
             ]);
         })->name('admin.users.list');
 
         Route::get('/test-auth', function () {
             return [
-                'guard' => \Modules\Messaging\Helpers\AuthParticipant::guard(),
-                'id'    => \Modules\Messaging\Helpers\AuthParticipant::id(),
-                'type'  => \Modules\Messaging\Helpers\AuthParticipant::type(),
-                'name'  => \Modules\Messaging\Helpers\AuthParticipant::name(),
-                'check' => \Modules\Messaging\Helpers\AuthParticipant::check(),
+                'guard' => AuthParticipant::guard(),
+                'id'    => AuthParticipant::id(),
+                'type'  => AuthParticipant::type(),
+                'name'  => AuthParticipant::name(),
+                'check' => AuthParticipant::check(),
             ];
         });
 
@@ -79,46 +77,13 @@ Route::prefix('admin')->group(function () {
     });
 });
 
-// Route::get('/test-auth', function () {
-//     dd(AuthParticipant::id());
-// });
+Route::middleware('auth')->group(function () {
+    Route::get('/user/messages/conversation', [ChatController::class, 'userConversation'])
+        ->name('user.messages.conversation');
+});
+
 
 
 require __DIR__ . '/auth.php';
 
 Route::post('/send-message', [MessageController::class, 'send']);
-
-// Route::get('/test-auth', function () {
-//     return [
-//         'guard' => \Modules\Messaging\Helpers\AuthParticipant::guard(),
-//         'id'    => \Modules\Messaging\Helpers\AuthParticipant::id(),
-//         'type'  => \Modules\Messaging\Helpers\AuthParticipant::type(),
-//         'name'  => \Modules\Messaging\Helpers\AuthParticipant::name(),
-//         'check' => \Modules\Messaging\Helpers\AuthParticipant::check(),
-//     ];
-// })->middleware('auth');
-
-// Route::get('/test-auth', function () {
-//     $webCheck = Auth::guard('web')->check();
-//     $adminCheck = Auth::guard('admin')->check();
-
-//     $result = [
-//         'web_check' => $webCheck,
-//         'admin_check' => $adminCheck,
-//     ];
-
-//     if ($webCheck) {
-//         $result['web_id'] = Auth::guard('web')->id();
-//         $result['web_user'] = Auth::guard('web')->user()?->name;
-//     }
-
-//     if ($adminCheck) {
-//         $result['admin_id'] = Auth::guard('admin')->id();
-//         $result['admin_user'] = Auth::guard('admin')->user()?->name;
-//     }
-
-//     $result['default_guard'] = AuthParticipant::guard();
-//     $result['default_id'] = AuthParticipant::id();
-
-//     return $result;
-// })->middleware('auth');

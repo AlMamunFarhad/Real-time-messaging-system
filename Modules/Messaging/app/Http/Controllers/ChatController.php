@@ -2,8 +2,10 @@
 
 namespace Modules\Messaging\Http\Controllers;
 
+use App\Models\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\User;
 use Modules\Messaging\Helpers\AuthParticipant;
 use Modules\Messaging\Models\Conversation;
 use Modules\Messaging\Models\ConversationParticipant;
@@ -46,6 +48,200 @@ class ChatController extends Controller
         });
     }
 
+    protected function findOrCreatePrivateConversation(int $senderId, string $senderType, int $userId, string $receiverType): Conversation
+    {
+        $conversation = Conversation::where('type', 'private')
+            ->whereHas('participants', function ($q) use ($senderId, $senderType) {
+                $q->where('participant_id', $senderId)
+                    ->whereIn('participant_type', [$senderType, strtolower(class_basename($senderType))]);
+            })
+            ->whereHas('participants', function ($q) use ($userId, $receiverType) {
+                $q->where('participant_id', $userId)
+                    ->whereIn('participant_type', [$receiverType, strtolower(class_basename($receiverType))]);
+            })
+            ->first();
+
+        if (!$conversation) {
+            $conversation = Conversation::create(['type' => 'private']);
+
+            ConversationParticipant::insert([
+                [
+                    'conversation_id' => $conversation->id,
+                    'participant_id' => $senderId,
+                    'participant_type' => $senderType,
+                    'joined_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'conversation_id' => $conversation->id,
+                    'participant_id' => $userId,
+                    'participant_type' => $receiverType,
+                    'joined_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+            ]);
+        }
+
+        return $conversation->load('participants');
+    }
+
+    public function adminDashboard(Request $request)
+    {
+        $senderId = AuthParticipant::id();
+        $senderType = AuthParticipant::type();
+
+        if (!$senderId || !$senderType) {
+            abort(401, 'Unauthorized');
+        }
+
+        if (strtolower(class_basename($senderType)) !== 'admin') {
+            abort(403, 'Only admins can access this page');
+        }
+
+        $conversation = null;
+        $otherParticipant = null;
+        $otherUserName = null;
+        $selectedUserId = $request->integer('user');
+        $selectedConversationId = $request->integer('conversation');
+
+        if ($selectedUserId) {
+            $selectedUser = User::findOrFail($selectedUserId);
+            $conversation = $this->findOrCreatePrivateConversation(
+                $senderId,
+                $senderType,
+                $selectedUser->id,
+                User::class
+            );
+        } elseif ($selectedConversationId) {
+            $conversation = Conversation::where('id', $selectedConversationId)
+                ->whereHas('participants', function ($q) use ($senderId, $senderType) {
+                    $q->where('participant_id', $senderId)
+                        ->whereIn('participant_type', [$senderType, strtolower(class_basename($senderType))]);
+                })
+                ->with('participants')
+                ->firstOrFail();
+        }
+
+        if ($conversation) {
+            $otherParticipant = $this->findOtherParticipant($conversation, $senderId, $senderType);
+            $otherUserName = $otherParticipant
+                ? $this->getParticipantDisplayName($otherParticipant)
+                : 'User';
+        }
+
+        $activeUserId = $otherParticipant?->participant_id ?? $selectedUserId;
+
+        return view('messaging::chat.admin', compact(
+            'conversation',
+            'otherParticipant',
+            'otherUserName',
+            'activeUserId'
+        ));
+    }
+
+    public function adminConversation(Request $request)
+    {
+        $senderId = AuthParticipant::id();
+        $senderType = AuthParticipant::type();
+
+        if (!$senderId || !$senderType) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        if (strtolower(class_basename($senderType)) !== 'admin') {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        $selectedUserId = $request->integer('user');
+        $selectedConversationId = $request->integer('conversation');
+        $conversation = null;
+
+        if ($selectedUserId) {
+            $selectedUser = User::findOrFail($selectedUserId);
+            $conversation = $this->findOrCreatePrivateConversation(
+                $senderId,
+                $senderType,
+                $selectedUser->id,
+                User::class
+            );
+        } elseif ($selectedConversationId) {
+            $conversation = Conversation::where('id', $selectedConversationId)
+                ->whereHas('participants', function ($q) use ($senderId, $senderType) {
+                    $q->where('participant_id', $senderId)
+                        ->whereIn('participant_type', [$senderType, strtolower(class_basename($senderType))]);
+                })
+                ->with('participants')
+                ->firstOrFail();
+        } else {
+            return response()->json(['error' => 'User or conversation is required'], 422);
+        }
+
+        $otherParticipant = $this->findOtherParticipant($conversation, $senderId, $senderType);
+        $otherUserName = $otherParticipant
+            ? $this->getParticipantDisplayName($otherParticipant)
+            : 'User';
+
+        $resolvedOtherType = $this->resolveType($otherParticipant?->participant_type);
+
+        return response()->json([
+            'conversation' => [
+                'id' => $conversation->id,
+            ],
+            'other_participant' => [
+                'id' => $otherParticipant?->participant_id,
+                'type' => $resolvedOtherType ? strtolower(class_basename($resolvedOtherType)) : null,
+                'name' => $otherUserName,
+            ],
+        ]);
+    }
+
+    public function userConversation()
+    {
+        $senderId = AuthParticipant::id();
+        $senderType = AuthParticipant::type();
+
+        if (!$senderId || !$senderType) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        if (strtolower(class_basename($senderType)) !== 'user') {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        $admin = Admin::query()->orderBy('id')->first();
+
+        if (!$admin) {
+            return response()->json(['error' => 'Admin not found'], 404);
+        }
+
+        $conversation = $this->findOrCreatePrivateConversation(
+            $senderId,
+            $senderType,
+            $admin->id,
+            Admin::class
+        );
+
+        $otherParticipant = $this->findOtherParticipant($conversation, $senderId, $senderType);
+        $otherUserName = $otherParticipant
+            ? $this->getParticipantDisplayName($otherParticipant)
+            : ($admin->name ?? 'Admin');
+
+        $resolvedOtherType = $this->resolveType($otherParticipant?->participant_type);
+
+        return response()->json([
+            'conversation' => [
+                'id' => $conversation->id,
+            ],
+            'other_participant' => [
+                'id' => $otherParticipant?->participant_id ?? $admin->id,
+                'type' => $resolvedOtherType ? strtolower(class_basename($resolvedOtherType)) : 'admin',
+                'name' => $otherUserName,
+            ],
+        ]);
+    }
+
     public function index($userId, $type)
     {
         $senderId = AuthParticipant::id();
@@ -71,42 +267,7 @@ class ChatController extends Controller
         $receiverType = $this->resolveType($type);
 
         // conversation find or create - match both class name and short name
-        $conversation = Conversation::where('type', 'private')
-            ->whereHas('participants', function ($q) use ($senderId, $senderType) {
-                $q->where('participant_id', $senderId)
-                    ->whereIn('participant_type', [$senderType, strtolower(class_basename($senderType))]);
-            })
-            ->whereHas('participants', function ($q) use ($userId, $receiverType) {
-                $q->where('participant_id', $userId)
-                    ->whereIn('participant_type', [$receiverType, strtolower(class_basename($receiverType))]);
-            })
-            ->first();
-
-        // create if not exists
-        if (!$conversation) {
-            $conversation = Conversation::create(['type' => 'private']);
-
-            ConversationParticipant::insert([
-                [
-                    'conversation_id' => $conversation->id,
-                    'participant_id' => $senderId,
-                    'participant_type' => $senderType,
-                    'joined_at' => now(),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ],
-                [
-                    'conversation_id' => $conversation->id,
-                    'participant_id' => $userId,
-                    'participant_type' => $receiverType,
-                    'joined_at' => now(),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]
-            ]);
-        }
-
-        $conversation->load('participants');
+        $conversation = $this->findOrCreatePrivateConversation($senderId, $senderType, $userId, $receiverType);
 
         $otherParticipant = $this->findOtherParticipant($conversation, $senderId, $senderType);
         $otherUserName = $otherParticipant
