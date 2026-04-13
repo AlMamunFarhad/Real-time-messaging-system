@@ -37,9 +37,26 @@ Route::prefix('admin')->group(function () {
         })->name('admin.dashboard');
 
         Route::get('/users/list', function () {
-            $page = request()->get('page', 1);
-            $adminId = auth()->guard('admin')->id();
-            $users = \App\Models\User::where('id', '!=', $adminId)->orderBy('id', 'desc')->paginate(10, ['*'], 'page', $page);
+            $page = (int) request()->get('page', 1);
+            $search = trim((string) request()->get('q', ''));
+            $query = \App\Models\User::query()->orderBy('name');
+
+            if ($search === '') {
+                return response()->json([
+                    'users' => [],
+                    'currentPage' => 1,
+                    'lastPage' => 1,
+                    'total' => 0,
+                ]);
+            }
+
+            $users = $query
+                ->where(function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%');
+                })
+                ->paginate(10, ['*'], 'page', $page);
+
             return response()->json([
                 'users' => $users->items(),
                 'currentPage' => $users->currentPage(),

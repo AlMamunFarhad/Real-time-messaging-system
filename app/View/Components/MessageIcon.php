@@ -44,15 +44,28 @@ class MessageIcon extends Component
             })
             ->with(['participants', 'lastMessage'])
             ->orderBy('updated_at', 'desc')
-            ->limit(10)
             ->get();
 
         $unreadCount = 0;
         foreach ($conversations as $conversation) {
+            $participant = $conversation->participants->first(function ($participant) use ($userId, $userType, $userTypeShort) {
+                $participantType = match ($participant->participant_type ?? null) {
+                    'admin' => \App\Models\Admin::class,
+                    'user' => \App\Models\User::class,
+                    default => $participant->participant_type,
+                };
+                $participantTypeShort = strtolower(class_basename($participantType ?? ''));
+
+                return (int) $participant->participant_id === (int) $userId
+                    && ($participantType === $userType || $participantTypeShort === $userTypeShort);
+            });
+
             $unread = $conversation->messages()
-                ->whereNull('read_at')
-                ->where('sender_id', '!=', $userId)
-                ->where('sender_type', '!=', $userType)
+                ->when($participant?->last_read_at, fn ($query) => $query->where('created_at', '>', $participant->last_read_at))
+                ->where(function ($query) use ($userId, $userType, $userTypeShort) {
+                    $query->where('sender_id', '!=', $userId)
+                        ->orWhereNotIn('sender_type', [$userType, $userTypeShort]);
+                })
                 ->count();
             $unreadCount += $unread;
             
@@ -60,7 +73,7 @@ class MessageIcon extends Component
         }
 
         $this->unreadCount = $unreadCount;
-        $this->conversations = $conversations;
+        $this->conversations = $conversations->take(10)->values();
 
         // For admin, get users (10 per page loaded via AJAX)
         if ($this->isAdminDashboard) {

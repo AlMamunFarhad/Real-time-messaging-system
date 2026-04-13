@@ -27,10 +27,9 @@
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-semibold text-gray-800">Admin Panel</h2>
                     <!-- Message Icon with Counter -->
-                    @php
-                        $currentUserId = \Modules\Messaging\Helpers\AuthParticipant::id();
-                        $currentUserType = \Modules\Messaging\Helpers\AuthParticipant::type();
-                    @endif
+                    @auth('admin')
+                        <x-message-icon />
+                    @endauth
                 </div>
             </div>
 

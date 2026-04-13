@@ -45,11 +45,21 @@ window.appendMessage = function (message, append = true, isNew = false) {
 }
 
 // Mark messages as read
+let lastMarkedReadAt = 0;
+
 async function markAsRead() {
+    const now = Date.now();
+
+    if (now - lastMarkedReadAt < 1500) {
+        return;
+    }
+
     try {
-        await axios.post('/mark-read', {
+        const response = await axios.post('/mark-read', {
             conversation_id: window.conversationId
         });
+        lastMarkedReadAt = now;
+        console.log('Marked as read:', response.data);
     } catch (error) {
         console.log('Failed to mark as read', error);
     }
@@ -434,3 +444,10 @@ if (document.readyState === 'loading') {
 } else {
     initChat();
 }
+
+window.addEventListener('focus', () => markAsRead());
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        markAsRead();
+    }
+});

@@ -19,6 +19,33 @@ class ChatController extends Controller
         };
     }
 
+    protected function getParticipantDisplayName($participant): string
+    {
+        $participantType = $this->resolveType($participant->participant_type ?? null);
+
+        if (!$participantType || !class_exists($participantType)) {
+            return 'User #' . $participant->participant_id;
+        }
+
+        $model = $participantType::find($participant->participant_id);
+
+        return $model?->name ?? ($model?->email ?? 'User #' . $participant->participant_id);
+    }
+
+    protected function findOtherParticipant($conversation, int $senderId, string $senderType)
+    {
+        $senderTypeShort = strtolower(class_basename($senderType));
+
+        return $conversation->participants->first(function ($participant) use ($senderId, $senderType, $senderTypeShort) {
+            $participantType = $this->resolveType($participant->participant_type ?? null);
+            $participantTypeShort = strtolower(class_basename($participantType ?? ''));
+            $sameId = (int) $participant->participant_id === $senderId;
+            $sameType = $participantType === $senderType || $participantTypeShort === $senderTypeShort;
+
+            return !($sameId && $sameType);
+        });
+    }
+
     public function index($userId, $type)
     {
         $senderId = AuthParticipant::id();
@@ -38,13 +65,6 @@ class ChatController extends Controller
         // Admin can only chat with users
         if ($senderTypeShort === 'admin' && strtolower($type) !== 'user') {
             abort(403, 'Admin can only message users');
-        }
-
-        // Get current user name
-        $currentUserName = 'User';
-        $currentUser = $senderType::find($senderId);
-        if ($currentUser) {
-            $currentUserName = $currentUser->name ?? ($currentUser->email ?? 'User #' . $senderId);
         }
 
         // Resolve type to full class name
@@ -86,7 +106,14 @@ class ChatController extends Controller
             ]);
         }
 
-        return view('messaging::chat.index', compact('conversation', 'currentUserName'));
+        $conversation->load('participants');
+
+        $otherParticipant = $this->findOtherParticipant($conversation, $senderId, $senderType);
+        $otherUserName = $otherParticipant
+            ? $this->getParticipantDisplayName($otherParticipant)
+            : 'User #' . $userId;
+
+        return view('messaging::chat.index', compact('conversation', 'otherParticipant', 'otherUserName'));
     }
 
     public function show($conversationId)
@@ -120,13 +147,6 @@ class ChatController extends Controller
             }
         }
 
-        // Get current user name
-        $currentUserName = 'User';
-        $currentUser = $senderType::find($senderId);
-        if ($currentUser) {
-            $currentUserName = $currentUser->name ?? ($currentUser->email ?? 'User #' . $senderId);
-        }
-
         $conversation = Conversation::where('id', $conversationId)
             ->whereHas('participants', function ($q) use ($senderId, $senderType) {
                 $q->where('participant_id', $senderId)
@@ -139,6 +159,11 @@ class ChatController extends Controller
             abort(403, 'You are not a participant of this conversation');
         }
 
-        return view('messaging::chat.index', compact('conversation', 'currentUserName'));
+        $otherParticipant = $this->findOtherParticipant($conversation, $senderId, $senderType);
+        $otherUserName = $otherParticipant
+            ? $this->getParticipantDisplayName($otherParticipant)
+            : 'User';
+
+        return view('messaging::chat.index', compact('conversation', 'otherParticipant', 'otherUserName'));
     }
 }

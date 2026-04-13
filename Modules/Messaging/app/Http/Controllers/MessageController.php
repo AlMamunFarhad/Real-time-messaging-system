@@ -88,6 +88,11 @@ class MessageController extends Controller
 
             $conversation->touch();
 
+            ConversationParticipant::where('conversation_id', $conversation->id)
+                ->where('participant_id', $senderId)
+                ->whereIn('participant_type', [$senderType, $senderTypeShort])
+                ->update(['last_read_at' => now()]);
+
             $senderModel = AuthParticipant::model();
             $senderName = $senderModel ? $senderModel->name : 'Unknown';
 
@@ -143,13 +148,33 @@ class MessageController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        $userTypeShort = strtolower(class_basename($userType));
+
+        $participant = ConversationParticipant::where('conversation_id', $conversationId)
+            ->where('participant_id', $userId)
+            ->whereIn('participant_type', [$userType, $userTypeShort])
+            ->first();
+
+        if (!$participant) {
+            return response()->json(['error' => 'Conversation not found or you are not a participant'], 404);
+        }
+
+        $readAt = now();
+
+        $participant->update(['last_read_at' => $readAt]);
+
         $updated = Message::where('conversation_id', $conversationId)
             ->whereNull('read_at')
-            ->where('sender_id', '!=', $userId)
-            ->where('sender_type', '!=', $userType)
-            ->update(['read_at' => now()]);
+            ->where(function ($query) use ($userId, $userType, $userTypeShort) {
+                $query->where('sender_id', '!=', $userId)
+                    ->orWhereNotIn('sender_type', [$userType, $userTypeShort]);
+            })
+            ->update(['read_at' => $readAt]);
 
-        return response()->json(['marked_read' => $updated]);
+        return response()->json([
+            'marked_read' => $updated,
+            'last_read_at' => $readAt->toISOString(),
+        ]);
     }
 
     // public function send(Request $request)

@@ -7,27 +7,16 @@
 
         $participants = $conversation->participants ?? collect();
 
-        $otherParticipant = null;
-        foreach ($participants as $p) {
-            $pTypeShort = strtolower(class_basename($p->participant_type ?? ''));
-            if ($p->participant_id != $participantId || $pTypeShort != $participantTypeShort) {
-                $otherParticipant = $p;
-                break;
-            }
-        }
-
         $otherParticipantId = $otherParticipant ? $otherParticipant->participant_id : 0;
         $otherTypeShort = '';
         if ($otherParticipant) {
-            $otherTypeShort = strtolower(class_basename($otherParticipant->participant_type));
-        }
+            $resolvedOtherType = match ($otherParticipant->participant_type) {
+                'admin' => \App\Models\Admin::class,
+                'user' => \App\Models\User::class,
+                default => $otherParticipant->participant_type,
+            };
 
-        $otherUserName = 'User';
-        if ($otherParticipant && $otherParticipant->participant_type) {
-            $otherUser = $otherParticipant->participant_type::find($otherParticipant->participant_id);
-            if ($otherUser) {
-                $otherUserName = $otherUser->name ?? ($otherUser->email ?? 'User #' . $otherParticipant->participant_id);
-            }
+            $otherTypeShort = strtolower(class_basename($resolvedOtherType));
         }
     @endphp
 
@@ -223,11 +212,49 @@
     <script>
         window.loadedMessageIds = new Set();
         window.lastMessageId = 0;
+        window.lastMarkedReadAt = 0;
 
         function isImage(url) {
             if (!url) return false;
             const ext = url.split('.').pop().toLowerCase();
             return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+        }
+
+        function syncMessageCounter(reason = 'refresh') {
+            try {
+                const payload = JSON.stringify({
+                    reason,
+                    conversationId: window.conversationId,
+                    at: Date.now(),
+                });
+
+                localStorage.setItem('message-counter-sync', payload);
+                window.dispatchEvent(new CustomEvent('message-counter-sync', {
+                    detail: JSON.parse(payload)
+                }));
+            } catch (error) {
+                console.error('Message counter sync error:', error);
+            }
+        }
+
+        async function markConversationAsRead(force = false) {
+            const now = Date.now();
+
+            if (!force && now - window.lastMarkedReadAt < 1500) {
+                return;
+            }
+
+            try {
+                const response = await axios.post('/mark-read', {
+                    conversation_id: window.conversationId
+                });
+
+                window.lastMarkedReadAt = now;
+                console.log('Marked conversation as read:', response.data);
+                syncMessageCounter('read');
+            } catch (error) {
+                console.error('Mark read error:', error);
+            }
         }
 
         window.appendMessage = function(message) {
@@ -314,6 +341,7 @@
                 if (window.loadedMessageIds.size > 0) {
                     window.lastMessageId = Math.max(...Array.from(window.loadedMessageIds));
                 }
+                await markConversationAsRead(true);
                 console.log('Loaded messages. Total loaded:', window.loadedMessageIds.size, 'Last ID:', window.lastMessageId);
             } catch (error) {
                 console.error('Load error:', error);
@@ -348,6 +376,7 @@
                     window.loadedMessageIds.add(response.data.id);
                     window.lastMessageId = Math.max(window.lastMessageId, response.data.id);
                     window.appendMessage(response.data);
+                    syncMessageCounter('sent');
                 }
             } catch (error) {
                 console.error('Send error:', error);
@@ -416,6 +445,7 @@
                             }
                         });
                         window.lastMessageId = newMessageId;
+                        await markConversationAsRead();
                     }
                 }
             } catch (e) {
@@ -466,6 +496,12 @@
         checkOnlineStatus();
         setInterval(checkOnlineStatus, 5000);
         setInterval(sendHeartbeat, 8000);
+        window.addEventListener('focus', () => markConversationAsRead(true));
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                markConversationAsRead(true);
+            }
+        });
     </script>
 
 </x-messaging::layouts.master>

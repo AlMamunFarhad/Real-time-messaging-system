@@ -29,36 +29,68 @@
     userTypeShort: '{{ $userTypeShort }}',
     currentUserName: '{{ $currentUserName }}',
     currentPage: 1,
-    totalPages: {{ $lastPage }},
+    totalPages: 1,
     userList: @js($userList),
+    userSearch: '',
+    searchTimeout: null,
+    refreshInFlight: false,
+    refreshTimer: null,
     async loadPage(page) {
         if (page < 1 || page > this.totalPages) return;
         this.currentPage = page;
         try {
-            const response = await fetch('/admin/users/list?page=' + page, { credentials: 'include' });
+            const query = encodeURIComponent(this.userSearch.trim());
+            const response = await fetch('/admin/users/list?page=' + page + '&q=' + query, { credentials: 'include' });
             if (response.ok) {
                 const data = await response.json();
-                this.userList = data.users;
+                this.userList = data.users || [];
+                this.currentPage = data.currentPage || 1;
+                this.totalPages = data.lastPage || 1;
             }
         } catch (e) { console.error(e); }
     },
-    init() {
-        this.refreshConversations();
-        
-        if (this.userList.length === 0 && this.totalPages > 0) {
+    handleSearchInput() {
+        clearTimeout(this.searchTimeout);
+
+        this.searchTimeout = setTimeout(() => {
+            const query = this.userSearch.trim();
+
+            if (!query) {
+                this.userList = [];
+                this.currentPage = 1;
+                this.totalPages = 1;
+                return;
+            }
+
             this.loadPage(1);
-        }
+        }, 250);
+    },
+    init() {
+        this.refreshConversations(true);
 
         this.$watch('open', (value) => {
             if (value) {
-                this.refreshConversations();
+                this.refreshConversations(true);
                 this.showNewMessage = false;
             }
         });
 
-        setInterval(() => {
+        this.refreshTimer = setInterval(() => {
             this.refreshConversations();
-        }, 3000);
+        }, 1500);
+
+        window.addEventListener('focus', () => this.refreshConversations(true));
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                this.refreshConversations(true);
+            }
+        });
+        window.addEventListener('message-counter-sync', () => this.refreshConversations(true));
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'message-counter-sync') {
+                this.refreshConversations(true);
+            }
+        });
 
         if (typeof Echo !== 'undefined' && this.userId) {
             const channelName = 'user.' + this.userTypeShort + '.' + this.userId;
@@ -66,7 +98,7 @@
             Echo.private(channelName)
                 .listen('.message.sent', (e) => {
                     console.log('New message received in message-icon:', e.message);
-                    this.refreshConversations();
+                    this.refreshConversations(true);
                 })
                 .error((error) => {
                     console.log('Echo subscription error:', error);
@@ -88,7 +120,15 @@
         if (diffDays < 7) return diffDays + 'd ago';
         return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
     },
-    getOtherParticipantName(participants, currentUserId, currentUserTypeShort) {
+    getOtherParticipantName(conversation) {
+        if (conversation?.other_participant_name) {
+            return conversation.other_participant_name;
+        }
+
+        const participants = conversation?.participants || [];
+        const currentUserId = this.userId;
+        const currentUserTypeShort = this.userTypeShort;
+
         if (!participants || participants.length === 0) return 'Unknown';
         for (let p of participants) {
             let pTypeShort = p.participant_type ? p.participant_type.split('\\\\').pop().toLowerCase() : '';
@@ -98,10 +138,21 @@
         }
         return 'User';
     },
-    async refreshConversations() {
+    getConversationInitial(conversation) {
+        const name = this.getOtherParticipantName(conversation);
+        return name ? name.charAt(0).toUpperCase() : '?';
+    },
+    async refreshConversations(force = false) {
+        if (this.refreshInFlight && !force) {
+            return;
+        }
+
+        this.refreshInFlight = true;
+
         try {
             console.log('Refreshing conversations...');
-            const response = await fetch('{{ route('messages.conversations') }}', {
+            const url = '{{ route('messages.conversations') }}' + '?t=' + Date.now();
+            const response = await fetch(url, {
                 credentials: 'include'
             });
             if (response.ok) {
@@ -112,6 +163,8 @@
             }
         } catch (error) {
             console.error('Failed to refresh conversations:', error);
+        } finally {
+            this.refreshInFlight = false;
         }
     }
 }" x-init="init()" class="relative">
@@ -157,27 +210,40 @@
         <div class="px-4 py-2 border-b border-gray-100">
             <div class="bg-gray-50 rounded-lg p-2">
                 <p class="text-xs text-gray-500 mb-2">Select user to message:</p>
+                <div class="mb-2">
+                    <input
+                        x-model="userSearch"
+                        @input="handleSearchInput()"
+                        type="text"
+                        placeholder="Search user by name or email"
+                        class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    >
+                </div>
                 <div class="space-y-1 max-h-48 overflow-y-auto">
-                    <template x-if="userList.length === 0">
-                        <div class="text-sm text-gray-500 text-center py-2">Loading...</div>
+                    <template x-if="!userSearch.trim()">
+                        <div class="text-sm text-gray-500 text-center py-2">Type a user name or email to search</div>
+                    </template>
+                    <template x-if="userSearch.trim() && userList.length === 0">
+                        <div class="text-sm text-gray-500 text-center py-2">No user found</div>
                     </template>
                     <template x-for="user in userList" :key="user.id">
                         <a :href="'/chat/' + user.id + '/user'" 
                             class="block px-3 py-2 text-sm text-gray-700 hover:bg-white hover:text-blue-600 rounded-lg transition-colors">
-                            <span x-text="user.name"></span>
+                            <div class="font-medium" x-text="user.name"></div>
+                            <div class="text-xs text-gray-400" x-text="user.email"></div>
                         </a>
                     </template>
                 </div>
                 <!-- Pagination -->
                 <div class="mt-2 pt-2 border-t border-gray-200 flex justify-between items-center">
                     <button @click="loadPage(currentPage - 1)" 
-                        :disabled="currentPage <= 1"
+                        :disabled="!userSearch.trim() || currentPage <= 1"
                         class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
                         Prev
                     </button>
                     <span class="text-xs text-gray-500">Page <span x-text="currentPage"></span> / <span x-text="totalPages"></span></span>
                     <button @click="loadPage(currentPage + 1)" 
-                        :disabled="currentPage >= totalPages"
+                        :disabled="!userSearch.trim() || currentPage >= totalPages"
                         class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
                         Next
                     </button>
@@ -212,7 +278,7 @@
                         <div
                             class="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-semibold">
                             <span
-                                x-text="conversation.participants && conversation.participants.length > 1 ? conversation.participants[0].participant_type.split('\\\\').pop().charAt(0).toUpperCase() : '?'"></span>
+                                x-text="getConversationInitial(conversation)"></span>
                         </div>
                         <template x-if="conversation.unread_count > 0">
                             <span
@@ -224,7 +290,7 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-center mb-1">
                             <span class="font-semibold text-gray-900 truncate"
-                                x-text="getOtherParticipantName(conversation.participants, userId, userTypeShort)"></span>
+                                x-text="getOtherParticipantName(conversation)"></span>
                             <span class="text-xs text-gray-400"
                                 x-text="conversation.last_message ? formatTime(conversation.last_message.created_at) : ''"></span>
                         </div>

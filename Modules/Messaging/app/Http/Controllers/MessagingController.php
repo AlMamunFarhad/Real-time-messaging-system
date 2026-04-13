@@ -10,6 +10,53 @@ use Modules\Messaging\Helpers\AuthParticipant;
 
 class MessagingController extends Controller
 {
+    protected function resolveParticipantType(?string $type): ?string
+    {
+        return match ($type) {
+            'admin' => \App\Models\Admin::class,
+            'user' => \App\Models\User::class,
+            default => $type,
+        };
+    }
+
+    protected function getParticipantDisplayName($participant): string
+    {
+        $participantType = $this->resolveParticipantType($participant->participant_type ?? null);
+
+        if (!$participantType || !class_exists($participantType)) {
+            return 'User #' . $participant->participant_id;
+        }
+
+        $model = $participantType::find($participant->participant_id);
+
+        return $model?->name ?? ($model?->email ?? 'User #' . $participant->participant_id);
+    }
+
+    protected function getUnreadCountForConversation(Conversation $conversation, int $userId, string $userType, string $userTypeShort): int
+    {
+        $participant = $conversation->participants->first(function ($participant) use ($userId, $userType, $userTypeShort) {
+            $participantType = $this->resolveParticipantType($participant->participant_type ?? null);
+            $participantTypeShort = strtolower(class_basename($participantType ?? ''));
+
+            return (int) $participant->participant_id === (int) $userId
+                && ($participantType === $userType || $participantTypeShort === $userTypeShort);
+        });
+
+        if (!$participant) {
+            return 0;
+        }
+
+        $lastReadAt = $participant->last_read_at;
+
+        return $conversation->messages()
+            ->when($lastReadAt, fn ($query) => $query->where('created_at', '>', $lastReadAt))
+            ->where(function ($query) use ($userId, $userType, $userTypeShort) {
+                $query->where('sender_id', '!=', $userId)
+                    ->orWhereNotIn('sender_type', [$userType, $userTypeShort]);
+            })
+            ->count();
+    }
+
     public function index()
     {
         return view('messaging::index');
@@ -135,37 +182,47 @@ class MessagingController extends Controller
             });
         }
 
-        $conversations = $query
+        $allConversations = $query
             ->with(['participants'])
             ->with(['messages' => function ($q) {
                 $q->orderBy('created_at', 'desc')->limit(1);
             }])
             ->orderBy('updated_at', 'desc')
-            ->limit(10)
             ->get();
 
         $unreadCount = 0;
-        foreach ($conversations as $conversation) {
-            $unread = $conversation->messages()
-                ->whereNull('read_at')
-                ->where('sender_id', '!=', $userId)
-                ->where('sender_type', '!=', $userType)
-                ->count();
+        foreach ($allConversations as $conversation) {
+            $unread = $this->getUnreadCountForConversation($conversation, $userId, $userType, $userTypeShort);
             $unreadCount += $unread;
             $conversation->unread_count = $unread;
 
             $conversation->last_message = $conversation->messages->first();
 
-            // Add participant names
+            $otherParticipant = null;
+
             foreach ($conversation->participants as $participant) {
-                if ($participant->participant_type && class_exists($participant->participant_type)) {
-                    $model = $participant->participant_type::find($participant->participant_id);
-                    if ($model) {
-                        $participant->participant_name = $model->name ?? ($model->email ?? 'User #' . $participant->participant_id);
-                    }
+                $participant->participant_name = $this->getParticipantDisplayName($participant);
+
+                $participantType = $this->resolveParticipantType($participant->participant_type ?? null);
+                $participantTypeShort = strtolower(class_basename($participantType ?? ''));
+                $isCurrentUser = (int) $participant->participant_id === (int) $userId
+                    && ($participantType === $userType || $participantTypeShort === $userTypeShort);
+
+                if (!$isCurrentUser && !$otherParticipant) {
+                    $otherParticipant = $participant;
                 }
             }
+
+            $conversation->other_participant_id = $otherParticipant?->participant_id;
+            $conversation->other_participant_type = $otherParticipant
+                ? strtolower(class_basename($this->resolveParticipantType($otherParticipant->participant_type ?? null) ?? ''))
+                : null;
+            $conversation->other_participant_name = $otherParticipant
+                ? $otherParticipant->participant_name
+                : 'User';
         }
+
+        $conversations = $allConversations->take(10)->values();
 
         return response()->json([
             'conversations' => $conversations,
