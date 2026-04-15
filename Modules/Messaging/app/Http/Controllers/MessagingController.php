@@ -34,12 +34,10 @@ class MessagingController extends Controller
 
     protected function getUnreadCountForConversation(Conversation $conversation, int $userId, string $userType, string $userTypeShort): int
     {
+        // Use the same matching logic as the MessageIcon component
         $participant = $conversation->participants->first(function ($participant) use ($userId, $userType, $userTypeShort) {
-            $participantType = $this->resolveParticipantType($participant->participant_type ?? null);
-            $participantTypeShort = strtolower(class_basename($participantType ?? ''));
-
             return (int) $participant->participant_id === (int) $userId
-                && ($participantType === $userType || $participantTypeShort === $userTypeShort);
+                && in_array($participant->participant_type, [$userType, $userTypeShort], true);
         });
 
         if (!$participant) {
@@ -178,7 +176,9 @@ class MessagingController extends Controller
         // Regular users can only see conversations with admin
         if ($userTypeShort === 'user') {
             $query->whereHas('participants', function ($q) {
-                $q->where('participant_type', 'App\Models\Admin');
+                $adminType = \App\Models\Admin::class;
+                $adminTypeShort = strtolower(class_basename($adminType));
+                $q->whereIn('participant_type', [$adminType, $adminTypeShort]);
             });
         }
 

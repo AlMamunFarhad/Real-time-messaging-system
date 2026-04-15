@@ -101,6 +101,12 @@
                                                     'text-slate-500'"
                                                 x-text="user.email"></div>
                                         </div>
+                                        <template x-if="Number(user.unseen_count || 0) > 0">
+                                            <span class="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full px-2 text-xs font-bold"
+                                                :class="Number(activeUserId) === Number(user.id) ? 'bg-white text-slate-900' :
+                                                    'bg-rose-500 text-white'"
+                                                x-text="Number(user.unseen_count) > 99 ? '99+' : user.unseen_count"></span>
+                                        </template>
                                     </div>
                                 </button>
                             </template>
@@ -123,8 +129,8 @@
                                         <div>
                                             <h3 class="text-base font-semibold text-slate-900"
                                                 x-text="activeUserName || 'User'"></h3>
-                                            <p class="text-xs text-slate-500">Conversation #<span
-                                                    x-text="activeConversationId"></span></p>
+                                            {{-- <p class="text-xs text-slate-500">Conversation #<span
+                                                    x-text="activeConversationId"></span></p> --}}
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-3">
@@ -280,7 +286,7 @@
                 return `
                     <div style="margin-top:10px;">
                         <img src="${fileUrl}" alt="${safeName}" style="max-width:220px; max-height:220px; border-radius:16px; border:1px solid rgba(148,163,184,.25); display:block;">
-                        <a href="${fileUrl}" download="${safeName}" style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:14px;background:${isMe ? 'rgba(255,255,255,0.14)' : '#f8fafc'};color:${isMe ? '#fff' : '#0f172a'};text-decoration:none;font-size:12px;">Download image</a>
+                        <a href="${fileUrl}" download="${safeName}" style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:14px;background:${isMe ? 'rgba(255,255,255,0.14)' : '#f8fafc'};color:${isMe ? '#fff' : '#0f172a'};text-decoration:none;font-size:12px;">Download</a>
                     </div>
                 `;
             }
@@ -303,11 +309,21 @@
                 draftMessage: '',
                 searchTimer: null,
                 pollTimer: null,
+                usersRefreshTimer: null,
                 lastMessageId: 0,
                 loadedMessageIds: new Set(),
                 lastMarkedReadAt: 0,
                 init() {
                     this.loadUsers();
+                    this.startUsersRefreshLoop();
+                    window.addEventListener('message-counter-sync', () => this.loadUsers(false));
+                    window.addEventListener('focus', () => this.loadUsers(false));
+                    window.addEventListener('storage', (event) => {
+                        if (event.key === 'message-counter-sync') this.loadUsers(false);
+                    });
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.visibilityState === 'visible') this.loadUsers(false);
+                    });
                     if (this.activeConversationId) {
                         this.loadMessages();
                         this.startPolling();
@@ -321,8 +337,28 @@
                     clearTimeout(this.searchTimer);
                     this.searchTimer = setTimeout(() => this.loadUsers(), 250);
                 },
-                async loadUsers() {
-                    this.loadingUsers = true;
+                startUsersRefreshLoop() {
+                    if (this.usersRefreshTimer) clearInterval(this.usersRefreshTimer);
+                    this.usersRefreshTimer = setInterval(() => this.loadUsers(false), 2000);
+                },
+                syncCounterState(reason = 'refresh') {
+                    try {
+                        const payload = JSON.stringify({
+                            reason,
+                            conversationId: this.activeConversationId || null,
+                            userId: this.activeUserId || null,
+                            at: Date.now(),
+                        });
+                        localStorage.setItem('message-counter-sync', payload);
+                        window.dispatchEvent(new CustomEvent('message-counter-sync', {
+                            detail: JSON.parse(payload)
+                        }));
+                    } catch (error) {
+                        console.error('Counter sync error:', error);
+                    }
+                },
+                async loadUsers(showLoader = true) {
+                    if (showLoader) this.loadingUsers = true;
                     try {
                         const response = await fetch(`/admin/users/list?q=${encodeURIComponent(this.search.trim())}`, {
                             credentials: 'include'
@@ -333,7 +369,7 @@
                         console.error(error);
                         this.users = [];
                     } finally {
-                        this.loadingUsers = false;
+                        if (showLoader) this.loadingUsers = false;
                     }
                 },
                 async selectUser(user) {
@@ -347,6 +383,7 @@
                         this.activeUserName = response.data.other_participant.name || user.name;
                         history.replaceState({}, '', `{{ route('admin.messages') }}?user=${user.id}`);
                         await this.loadMessages();
+                        await this.loadUsers(false);
                         this.startPolling();
                         this.checkOnlineStatus();
                     } catch (error) {
@@ -391,6 +428,7 @@
                         });
                         this.lastMessageId = messages.length ? messages[messages.length - 1].id : 0;
                         await this.markConversationAsRead(true);
+                        await this.loadUsers(false);
                     } catch (error) {
                         console.error('Messages load error:', error);
                     }
@@ -417,6 +455,8 @@
                         this.loadedMessageIds.add(response.data.id);
                         this.lastMessageId = Math.max(this.lastMessageId, response.data.id);
                         this.renderMessage(response.data);
+                        await this.loadUsers(false);
+                        this.syncCounterState('sent');
                     } catch (error) {
                         console.error('Send error:', error);
                     }
@@ -453,6 +493,8 @@
                             conversation_id: this.activeConversationId
                         });
                         this.lastMarkedReadAt = now;
+                        await this.loadUsers(false);
+                        this.syncCounterState('read');
                     } catch (error) {
                         console.error('Mark read error:', error);
                     }
@@ -476,6 +518,7 @@
                                 });
                                 this.lastMessageId = newestId;
                                 await this.markConversationAsRead();
+                                await this.loadUsers(false);
                             }
                         } catch (error) {
                             console.error('Poll error:', error);

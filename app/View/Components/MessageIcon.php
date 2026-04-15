@@ -40,26 +40,24 @@ class MessageIcon extends Component
                 $q->where('participant_id', $userId)
                   ->whereIn('participant_type', [$userType, $userTypeShort]);
             })
-            ->with(['participants', 'lastMessage'])
+            ->with('participants')
             ->orderBy('updated_at', 'desc')
             ->get();
 
         $unreadCount = 0;
         foreach ($conversations as $conversation) {
+            // Use the same matching logic as the user list endpoint (which works)
             $participant = $conversation->participants->first(function ($participant) use ($userId, $userType, $userTypeShort) {
-                $participantType = match ($participant->participant_type ?? null) {
-                    'admin' => \App\Models\Admin::class,
-                    'user' => \App\Models\User::class,
-                    default => $participant->participant_type,
-                };
-                $participantTypeShort = strtolower(class_basename($participantType ?? ''));
-
                 return (int) $participant->participant_id === (int) $userId
-                    && ($participantType === $userType || $participantTypeShort === $userTypeShort);
+                    && in_array($participant->participant_type, [$userType, $userTypeShort], true);
             });
 
+            if (!$participant) {
+                continue; // Skip if no matching participant found
+            }
+
             $unread = $conversation->messages()
-                ->when($participant?->last_read_at, fn ($query) => $query->where('created_at', '>', $participant->last_read_at))
+                ->when($participant->last_read_at, fn ($query) => $query->where('created_at', '>', $participant->last_read_at))
                 ->where(function ($query) use ($userId, $userType, $userTypeShort) {
                     $query->where('sender_id', '!=', $userId)
                         ->orWhereNotIn('sender_type', [$userType, $userTypeShort]);

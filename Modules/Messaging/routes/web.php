@@ -27,11 +27,9 @@ Route::middleware(['web', 'auth:admin,web'])->group(function () {
     Route::post('/mark-read', [MessageController::class, 'markRead'])
         ->name('messages.markRead');
 
-    Route::middleware(['web', 'auth:admin,web'])->group(function () {
-        // Get conversations for message icon
-        Route::get('/messages/conversations', [MessagingController::class, 'getConversations'])
-            ->name('messages.conversations');
-    });
+    // Get conversations for message icon
+    Route::get('/messages/conversations', [MessagingController::class, 'getConversations'])
+        ->name('messages.conversations');
 
     // Load messages for a conversation (web route - session auth works here)
     Route::get('/messages/{conversationId}', [MessagingController::class, 'messagesWeb'])

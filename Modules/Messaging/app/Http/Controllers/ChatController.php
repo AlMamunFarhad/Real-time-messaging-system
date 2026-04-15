@@ -302,7 +302,9 @@ class ChatController extends Controller
 
         // Regular users can only view conversations with admin
         if ($senderTypeShort === 'user') {
-            $hasAdmin = $conversation->participants()->where('participant_type', 'App\Models\Admin')->exists();
+            $adminType = \App\Models\Admin::class;
+            $adminTypeShort = strtolower(class_basename($adminType));
+            $hasAdmin = $conversation->participants()->whereIn('participant_type', [$adminType, $adminTypeShort])->exists();
             if (!$hasAdmin) {
                 abort(403, 'You can only view conversations with the admin');
             }
