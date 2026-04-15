@@ -239,7 +239,11 @@
                 async refreshConversations() {
                     try {
                         const response = await fetch(config.conversationsUrl + '?t=' + Date.now(), {
-                            credentials: 'include'
+                            credentials: 'include',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            }
                         });
                         if (!response.ok) return;
                         const data = await response.json();
@@ -287,8 +291,12 @@
                 lastMarkedReadAt: 0,
                 pollTimer: null,
                 refreshTimer: null,
+                onlineStatusTimer: null,
+                heartbeatTimer: null,
                 init() {
                     this.refreshConversations();
+                    this.sendHeartbeat();
+                    this.startHeartbeatLoop();
                     this.startRefreshLoop();
                     window.addEventListener('message-counter-sync', () => this.refreshConversations());
                     window.addEventListener('focus', () => this.refreshConversations());
@@ -306,7 +314,11 @@
                 async refreshConversations() {
                     try {
                         const response = await fetch('{{ route('messages.conversations') }}?t=' + Date.now(), {
-                            credentials: 'include'
+                            credentials: 'include',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            }
                         });
                         if (response.ok) {
                             const data = await response.json();
@@ -328,6 +340,7 @@
                         await this.loadMessages();
                         this.startPolling();
                         this.checkOnlineStatus();
+                        this.startOnlineStatusLoop();
                     } catch (error) {
                         console.error('Open chat error:', error);
                     } finally {
@@ -339,6 +352,10 @@
                     if (this.pollTimer) {
                         clearInterval(this.pollTimer);
                         this.pollTimer = null;
+                    }
+                    if (this.onlineStatusTimer) {
+                        clearInterval(this.onlineStatusTimer);
+                        this.onlineStatusTimer = null;
                     }
                 },
                 async markConversationAsRead(force = false) {
@@ -483,6 +500,21 @@
                             console.error(error);
                         }
                     }, 2000);
+                },
+                startHeartbeatLoop() {
+                    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+                    this.heartbeatTimer = setInterval(() => this.sendHeartbeat(), 8000);
+                },
+                startOnlineStatusLoop() {
+                    if (this.onlineStatusTimer) clearInterval(this.onlineStatusTimer);
+                    this.onlineStatusTimer = setInterval(() => this.checkOnlineStatus(), 5000);
+                },
+                async sendHeartbeat() {
+                    try {
+                        await axios.post('/online-heartbeat');
+                    } catch (error) {
+                        console.error(error);
+                    }
                 },
                 async checkOnlineStatus() {
                     if (!this.otherParticipantId || !this.otherParticipantType) return;

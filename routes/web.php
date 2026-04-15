@@ -108,6 +108,7 @@ Route::prefix('admin')->group(function () {
 
             $users->transform(function ($user) use ($unreadByUser) {
                 $user->unseen_count = (int) ($unreadByUser[$user->id] ?? 0);
+                $user->is_online = \Illuminate\Support\Facades\Cache::has('online_user_' . $user->id);
 
                 return $user;
             });

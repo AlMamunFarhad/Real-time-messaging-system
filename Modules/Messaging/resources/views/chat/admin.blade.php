@@ -95,11 +95,16 @@
                                                 'bg-slate-100 text-slate-700'"
                                             x-text="initialFor(user.name)"></div>
                                         <div class="min-w-0 flex-1">
-                                            <div class="truncate text-sm font-semibold" x-text="user.name"></div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="inline-flex h-2.5 w-2.5 shrink-0 rounded-full"
+                                                    :class="user.is_online ? 'bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.16)]' :
+                                                        'bg-slate-300'"></span>
+                                                <div class="truncate text-sm font-semibold" x-text="user.name"></div>
+                                            </div>
                                             <div class="truncate text-xs"
                                                 :class="Number(activeUserId) === Number(user.id) ? 'text-slate-300' :
                                                     'text-slate-500'"
-                                                x-text="user.email"></div>
+                                                x-text="user.is_online ? user.email + ' • Active now' : user.email"></div>
                                         </div>
                                         <template x-if="Number(user.unseen_count || 0) > 0">
                                             <span class="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full px-2 text-xs font-bold"
@@ -310,11 +315,15 @@
                 searchTimer: null,
                 pollTimer: null,
                 usersRefreshTimer: null,
+                onlineStatusTimer: null,
+                heartbeatTimer: null,
                 lastMessageId: 0,
                 loadedMessageIds: new Set(),
                 lastMarkedReadAt: 0,
                 init() {
                     this.loadUsers();
+                    this.sendHeartbeat();
+                    this.startHeartbeatLoop();
                     this.startUsersRefreshLoop();
                     window.addEventListener('message-counter-sync', () => this.loadUsers(false));
                     window.addEventListener('focus', () => this.loadUsers(false));
@@ -328,6 +337,7 @@
                         this.loadMessages();
                         this.startPolling();
                         this.checkOnlineStatus();
+                        this.startOnlineStatusLoop();
                     }
                 },
                 initialFor(name) {
@@ -361,7 +371,11 @@
                     if (showLoader) this.loadingUsers = true;
                     try {
                         const response = await fetch(`/admin/users/list?q=${encodeURIComponent(this.search.trim())}`, {
-                            credentials: 'include'
+                            credentials: 'include',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            }
                         });
                         const data = await response.json();
                         this.users = data.users || [];
@@ -386,6 +400,7 @@
                         await this.loadUsers(false);
                         this.startPolling();
                         this.checkOnlineStatus();
+                        this.startOnlineStatusLoop();
                     } catch (error) {
                         console.error('Conversation load error:', error);
                     }
@@ -524,6 +539,21 @@
                             console.error('Poll error:', error);
                         }
                     }, 2000);
+                },
+                startHeartbeatLoop() {
+                    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+                    this.heartbeatTimer = setInterval(() => this.sendHeartbeat(), 8000);
+                },
+                startOnlineStatusLoop() {
+                    if (this.onlineStatusTimer) clearInterval(this.onlineStatusTimer);
+                    this.onlineStatusTimer = setInterval(() => this.checkOnlineStatus(), 5000);
+                },
+                async sendHeartbeat() {
+                    try {
+                        await axios.post('/online-heartbeat');
+                    } catch (error) {
+                        console.error('Heartbeat error:', error);
+                    }
                 },
                 async checkOnlineStatus() {
                     if (!this.otherParticipantId || !this.otherParticipantType) return;

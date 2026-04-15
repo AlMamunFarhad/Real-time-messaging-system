@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -27,6 +28,7 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+        Cache::put('online_user_' . Auth::guard('web')->id(), true, now()->addSeconds(10));
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
@@ -36,7 +38,12 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $userId = Auth::guard('web')->id();
+
         Auth::guard('web')->logout();
+        if ($userId) {
+            Cache::forget('online_user_' . $userId);
+        }
 
         $request->session()->invalidate();
 
