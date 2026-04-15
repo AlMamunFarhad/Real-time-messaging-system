@@ -7,8 +7,9 @@ This project contains a **plug-and-play real-time messaging system** built on:
 - `nwidart/laravel-modules` (Messaging as a module)
 - Vite + Tailwind + Alpine + Laravel Echo
 
-## Developer Documentation (Bangla)
+## Developer Documentation
 
-To integrate this messaging system into **any Laravel project** (your project can keep its own login/auth system), follow the full guide:
+To integrate this messaging system into **any Laravel project** (your project can keep its own login/auth system), follow either guide:
 
-- `docs/DEVELOPER_GUIDE.md`
+- Bangla: `docs/DEVELOPER_GUIDE_BN.md`
+- English: `docs/DEVELOPER_GUIDE_EN.md`
