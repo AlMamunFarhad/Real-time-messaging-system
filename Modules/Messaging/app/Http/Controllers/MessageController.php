@@ -9,9 +9,14 @@ use Modules\Messaging\Models\Conversation;
 use Modules\Messaging\Models\ConversationParticipant;
 use Modules\Messaging\Models\Message;
 use Modules\Messaging\Events\MessageSent;
+use Modules\Messaging\Services\ConversationService;
 
 class MessageController extends Controller
 {
+    public function __construct(
+        protected ConversationService $conversationService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -55,7 +60,8 @@ class MessageController extends Controller
             $conversation = Conversation::where('id', $conversationId)
                 ->whereHas('participants', function ($q) use ($senderId, $senderType, $senderTypeShort) {
                     $q->where('participant_id', $senderId)
-                        ->whereIn('participant_type', [$senderType, $senderTypeShort]);
+                        ->whereIn('participant_type', [$senderType, $senderTypeShort])
+                        ->whereNull('left_at');
                 })
                 ->first();
 
@@ -105,6 +111,8 @@ class MessageController extends Controller
             $response = [
                 'id' => $message->id,
                 'conversation_id' => $message->conversation_id,
+                'conversation_name' => $conversation->name,
+                'is_group' => (bool) $conversation->is_group,
                 'sender_id' => $message->sender_id,
                 'sender_type' => $message->sender_type,
                 'sender_name' => $senderName,
@@ -153,6 +161,7 @@ class MessageController extends Controller
         $participant = ConversationParticipant::where('conversation_id', $conversationId)
             ->where('participant_id', $userId)
             ->whereIn('participant_type', [$userType, $userTypeShort])
+            ->whereNull('left_at')
             ->first();
 
         if (!$participant) {

@@ -146,19 +146,19 @@
                                             <span id="online-dot" class="h-2.5 w-2.5 rounded-full bg-slate-400"></span>
                                             <span id="online-text">Offline</span>
                                         </div>
-                                        <a href="{{ route('admin.dashboard') }}"
-                                            class="inline-flex items-center justify-center rounded-2xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900">
+                                        <button type="button" @click="closeChat()"
+                                            class="inline-flex items-center justify-center rounded-2xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900" title="Close chat">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M6 18L18 6M6 6l12 12" />
                                             </svg>
-                                        </a>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div id="chat-box" class="flex-1 max-h-[calc(80vh-180px)] overflow-y-auto px-6 py-6"></div>
+                            <div id="chat-box" class="flex-1 h-[calc(76vh-220px)] min-h-[300px] overflow-y-auto px-6 py-6 scroll-smooth"></div>
 
                             <div class="border-t border-slate-200 bg-white px-6 py-6">
                                 <div id="file-preview"
@@ -242,7 +242,7 @@
                                 </button>
                             </div>
 
-                            <div id="chat-box-modal" class="flex-1 overflow-y-auto px-6 py-6"></div>
+                            <div id="chat-box-modal" class="flex-1 h-[calc(100dvh-220px)] min-h-[300px] overflow-y-auto px-6 py-6 scroll-smooth"></div>
 
                             <div class="border-t border-slate-200 bg-white px-6 py-2">
                                 <div id="file-preview-modal"
@@ -397,6 +397,9 @@
                 lastMessageId: 0,
                 loadedMessageIds: new Set(),
                 lastMarkedReadAt: 0,
+                isLoadingMessages: false,
+                lastLoadTime: 0, loadDebounceMs: 2000,
+                lastUserLoadTime: 0, userLoadDebounceMs: 2500,
                 init() {
                     this.loadUsers();
                     this.sendHeartbeat();
@@ -427,7 +430,7 @@
                 },
                 startUsersRefreshLoop() {
                     if (this.usersRefreshTimer) clearInterval(this.usersRefreshTimer);
-                    this.usersRefreshTimer = setInterval(() => this.loadUsers(false), 2000);
+                    this.usersRefreshTimer = setInterval(() => { const now = Date.now(); if (now - this.lastUserLoadTime >= this.userLoadDebounceMs) this.loadUsers(false); }, 3000);
                 },
                 syncCounterState(reason = 'refresh') {
                     try {
@@ -447,6 +450,12 @@
                 },
                 async loadUsers(showLoader = true) {
                     if (showLoader) this.loadingUsers = true;
+                    const now = Date.now();
+                    if (now - this.lastUserLoadTime < this.userLoadDebounceMs) {
+                        if (showLoader) this.loadingUsers = false;
+                        return;
+                    }
+                    this.lastUserLoadTime = now;
                     try {
                         const response = await fetch(`/admin/users/list?q=${encodeURIComponent(this.search.trim())}`, {
                             credentials: 'include',
@@ -511,25 +520,37 @@
                     chatBox.appendChild(row);
                     chatBox.scrollTop = chatBox.scrollHeight;
                 },
-                async loadMessages() {
+async loadMessages() {
                     if (!this.activeConversationId) return;
+                    const now = Date.now();
+                    if (now - this.lastLoadTime < this.loadDebounceMs) return;
+                    this.lastLoadTime = now;
+                    this.isLoadingMessages = true;
                     try {
-                        const response = await axios.get(`/messages/${this.activeConversationId}?t=${Date.now()}`);
+                        const response = await axios.get(`/messages/${this.activeConversationId}?t=${now}`);
                         const messages = response.data.messages || [];
                         const chatBox = document.getElementById('chat-box');
                         const chatBoxModal = document.getElementById('chat-box-modal');
-                        if (chatBox) chatBox.innerHTML = '';
-                        if (chatBoxModal) chatBoxModal.innerHTML = '';
-                        this.loadedMessageIds = new Set();
+                        
+                        const isFirstLoad = this.loadedMessageIds.size === 0;
+                        if (isFirstLoad) {
+                            if (chatBox) chatBox.innerHTML = '';
+                            if (chatBoxModal) chatBox.innerHTML = '';
+                        }
+                        
                         messages.forEach((message) => {
-                            this.loadedMessageIds.add(message.id);
-                            this.renderMessage(message);
+                            if (!this.loadedMessageIds.has(message.id)) {
+                                this.loadedMessageIds.add(message.id);
+                                this.renderMessage(message);
+                            }
                         });
                         this.lastMessageId = messages.length ? messages[messages.length - 1].id : 0;
                         await this.markConversationAsRead(true);
                         await this.loadUsers(false);
                     } catch (error) {
                         console.error('Messages load error:', error);
+                    } finally {
+                        this.isLoadingMessages = false;
                     }
                 },
                 async sendMessage() {
@@ -618,11 +639,19 @@
                     if (this.pollTimer) clearInterval(this.pollTimer);
                     this.pollTimer = setInterval(async () => {
                         if (!this.activeConversationId) return;
+                        if (this.isLoadingMessages) return;
+                        const now = Date.now();
+                        if (now - this.lastLoadTime < this.loadDebounceMs) return;
+                        this.lastLoadTime = now;
+                        this.isLoadingMessages = true;
                         try {
                             const response = await axios.get(
                                 `/messages/${this.activeConversationId}?t=${Date.now()}`);
                             const messages = response.data.messages || [];
-                            if (!messages.length) return;
+                            if (!messages.length) {
+                                this.isLoadingMessages = false;
+                                return;
+                            }
                             const newestId = messages[messages.length - 1].id;
                             if (newestId > this.lastMessageId) {
                                 messages.forEach((message) => {
@@ -637,8 +666,10 @@
                             }
                         } catch (error) {
                             console.error('Poll error:', error);
+                        } finally {
+                            this.isLoadingMessages = false;
                         }
-                    }, 2000);
+                    }, 3000);
                 },
                 startHeartbeatLoop() {
                     if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
@@ -669,6 +700,19 @@
                     } catch (error) {
                         console.error('Online status error:', error);
                     }
+                },
+                closeChat() {
+                    this.activeConversationId = null;
+                    this.activeUserId = null;
+                    this.activeUserName = '';
+                    this.otherParticipantId = 0;
+                    this.otherParticipantType = '';
+                    this.loadedMessageIds = new Set();
+                    this.lastMessageId = 0;
+                    const chatBox = document.getElementById('chat-box');
+                    if (chatBox) chatBox.innerHTML = '';
+                    if (this.pollTimer) clearInterval(this.pollTimer);
+                    if (this.onlineStatusTimer) clearInterval(this.onlineStatusTimer);
                 }
             }
         }

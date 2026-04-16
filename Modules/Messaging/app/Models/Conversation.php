@@ -14,7 +14,18 @@ class Conversation extends Model
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = ['type']; // or group
+    protected $fillable = [
+        'type',
+        'name',
+        'description',
+        'is_group',
+        'created_by_id',
+        'created_by_type',
+    ];
+
+    protected $casts = [
+        'is_group' => 'boolean',
+    ];
 
     // protected static function newFactory(): ConversationFactory
     // {
@@ -35,5 +46,25 @@ class Conversation extends Model
     public function lastMessage()
     {
         return $this->hasOne(Message::class)->latestOfMany();
+    }
+
+    public function creator()
+    {
+        return $this->morphTo(__FUNCTION__, 'created_by_type', 'created_by_id');
+    }
+
+    public function scopeGroup($query)
+    {
+        return $query->where('is_group', true);
+    }
+
+    public function scopeDirect($query)
+    {
+        return $query->where('is_group', false);
+    }
+
+    public function isGroup(): bool
+    {
+        return (bool) $this->is_group;
     }
 }

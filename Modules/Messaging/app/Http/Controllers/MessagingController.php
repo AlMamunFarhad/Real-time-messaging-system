@@ -7,34 +7,16 @@ use Illuminate\Http\Request;
 use Modules\Messaging\Models\Conversation;
 use Modules\Messaging\Models\Message;
 use Modules\Messaging\Helpers\AuthParticipant;
+use Modules\Messaging\Services\ConversationService;
 
 class MessagingController extends Controller
 {
-    protected function resolveParticipantType(?string $type): ?string
-    {
-        return match ($type) {
-            'admin' => \App\Models\Admin::class,
-            'user' => \App\Models\User::class,
-            default => $type,
-        };
-    }
-
-    protected function getParticipantDisplayName($participant): string
-    {
-        $participantType = $this->resolveParticipantType($participant->participant_type ?? null);
-
-        if (!$participantType || !class_exists($participantType)) {
-            return 'User #' . $participant->participant_id;
-        }
-
-        $model = $participantType::find($participant->participant_id);
-
-        return $model?->name ?? ($model?->email ?? 'User #' . $participant->participant_id);
-    }
+    public function __construct(
+        protected ConversationService $conversationService
+    ) {}
 
     protected function getUnreadCountForConversation(Conversation $conversation, int $userId, string $userType, string $userTypeShort): int
     {
-        // Use the same matching logic as the MessageIcon component
         $participant = $conversation->participants->first(function ($participant) use ($userId, $userType, $userTypeShort) {
             return (int) $participant->participant_id === (int) $userId
                 && in_array($participant->participant_type, [$userType, $userTypeShort], true);
@@ -95,7 +77,8 @@ class MessagingController extends Controller
         $conversation = Conversation::where('id', $conversationId)
             ->whereHas('participants', function ($q) use ($userId, $userType, $userTypeShort) {
                 $q->where('participant_id', $userId)
-                    ->whereIn('participant_type', [$userType, $userTypeShort]);
+                    ->whereIn('participant_type', [$userType, $userTypeShort])
+                    ->whereNull('left_at');
             })
             ->first();
 
@@ -113,6 +96,12 @@ class MessagingController extends Controller
                 if ($msg->file_path) {
                     $msg->file_url = asset($msg->file_path);
                 }
+                $conversation = $msg->conversation()->first(['id', 'name', 'is_group']);
+                $msg->conversation_meta = [
+                    'id' => $conversation?->id,
+                    'name' => $conversation?->name,
+                    'is_group' => (bool) ($conversation?->is_group),
+                ];
                 return $msg;
             });
 
@@ -133,7 +122,8 @@ class MessagingController extends Controller
         $conversation = Conversation::where('id', $conversationId)
             ->whereHas('participants', function ($q) use ($userId, $userType, $userTypeShort) {
                 $q->where('participant_id', $userId)
-                    ->whereIn('participant_type', [$userType, $userTypeShort]);
+                    ->whereIn('participant_type', [$userType, $userTypeShort])
+                    ->whereNull('left_at');
             })
             ->first();
 
@@ -151,6 +141,12 @@ class MessagingController extends Controller
                 if ($msg->file_path) {
                     $msg->file_url = asset($msg->file_path);
                 }
+                $conversation = $msg->conversation()->first(['id', 'name', 'is_group']);
+                $msg->conversation_meta = [
+                    'id' => $conversation?->id,
+                    'name' => $conversation?->name,
+                    'is_group' => (bool) ($conversation?->is_group),
+                ];
                 return $msg;
             });
 
@@ -168,22 +164,24 @@ class MessagingController extends Controller
 
         $userTypeShort = strtolower(class_basename($userType));
 
-        $query = Conversation::whereHas('participants', function ($q) use ($userId, $userType, $userTypeShort) {
-            $q->where('participant_id', $userId)
-                ->whereIn('participant_type', [$userType, $userTypeShort]);
-        });
+        $query = $this->conversationService->conversationQueryForParticipant($userId, $userType);
 
-        // Regular users can only see conversations with admin
         if ($userTypeShort === 'user') {
-            $query->whereHas('participants', function ($q) {
+            $query->where(function ($conversationQuery) {
                 $adminType = \App\Models\Admin::class;
                 $adminTypeShort = strtolower(class_basename($adminType));
-                $q->whereIn('participant_type', [$adminType, $adminTypeShort]);
+                $conversationQuery->where('is_group', true)
+                    ->orWhereHas('participants', function ($q) use ($adminType, $adminTypeShort) {
+                        $q->whereIn('participant_type', [$adminType, $adminTypeShort])
+                            ->whereNull('left_at');
+                    });
             });
         }
 
         $allConversations = $query
-            ->with(['participants'])
+            ->with(['participants' => function ($q) {
+                $q->whereNull('left_at');
+            }])
             ->with(['messages' => function ($q) {
                 $q->orderBy('created_at', 'desc')->limit(1);
             }])
@@ -201,9 +199,12 @@ class MessagingController extends Controller
             $otherParticipant = null;
 
             foreach ($conversation->participants as $participant) {
-                $participant->participant_name = $this->getParticipantDisplayName($participant);
+                $participant->participant_name = $this->conversationService->getParticipantDisplayName(
+                    (int) $participant->participant_id,
+                    $participant->participant_type
+                );
 
-                $participantType = $this->resolveParticipantType($participant->participant_type ?? null);
+                $participantType = $this->conversationService->resolveParticipantType($participant->participant_type ?? null);
                 $participantTypeShort = strtolower(class_basename($participantType ?? ''));
                 $isCurrentUser = (int) $participant->participant_id === (int) $userId
                     && ($participantType === $userType || $participantTypeShort === $userTypeShort);
@@ -215,11 +216,18 @@ class MessagingController extends Controller
 
             $conversation->other_participant_id = $otherParticipant?->participant_id;
             $conversation->other_participant_type = $otherParticipant
-                ? strtolower(class_basename($this->resolveParticipantType($otherParticipant->participant_type ?? null) ?? ''))
+                ? strtolower(class_basename($this->conversationService->resolveParticipantType($otherParticipant->participant_type ?? null) ?? ''))
                 : null;
-            $conversation->other_participant_name = $otherParticipant
-                ? $otherParticipant->participant_name
-                : 'User';
+            $conversation->other_participant_name = $conversation->is_group
+                ? ($conversation->name ?: 'Untitled Group')
+                : ($otherParticipant ? $otherParticipant->participant_name : 'User');
+            $conversation->title = $conversation->is_group
+                ? ($conversation->name ?: 'Untitled Group')
+                : $conversation->other_participant_name;
+            $conversation->members_count = $conversation->participants->count();
+            $conversation->can_manage = $conversation->is_group
+                ? $this->conversationService->canManageGroup($conversation, $userId, $userType)
+                : false;
         }
 
         $conversations = $allConversations->values();

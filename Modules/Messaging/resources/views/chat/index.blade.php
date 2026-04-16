@@ -44,7 +44,7 @@
         </div>
 
         <!-- Chat Body -->
-        <div id="chat-box" style="height: 65vh; min-height: 450px; overflow-y: auto; padding: 1.5rem; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);">
+        <div id="chat-box" style="height: 65vh; min-height: 450px; max-height: 65vh; overflow-y: auto; padding: 1.5rem; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);">
             <div style="text-align: center; color: #64748b; padding: 2rem; font-size: 14px;">
                 <svg xmlns="http://www.w3.org/2000/svg" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4;" fill="none" viewBox="0 0 24 24" stroke="#94a3b8">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -213,6 +213,8 @@
         window.loadedMessageIds = new Set();
         window.lastMessageId = 0;
         window.lastMarkedReadAt = 0;
+        window.lastLoadTime = 0;
+        window.loadDebounceMs = 2000;
 
         function isImage(url) {
             if (!url) return false;
@@ -326,12 +328,21 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         };
 
+        window.isLoadingMessages = false;
+
         async function loadMessages() {
+            if (window.isLoadingMessages) return;
+            const now = Date.now();
+            if (now - window.lastLoadTime < window.loadDebounceMs) return;
+            window.lastLoadTime = now;
+            window.isLoadingMessages = true;
             try {
-                const response = await axios.get('/messages/' + window.conversationId + '?t=' + Date.now());
+                const response = await axios.get('/messages/' + window.conversationId + '?t=' + now);
                 console.log('Load messages response:', response.data);
                 const messages = response.data.messages || [];
                 messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                
+                const isFirstLoad = window.loadedMessageIds.size === 0;
                 messages.forEach(msg => {
                     if (!window.loadedMessageIds.has(msg.id)) {
                         window.loadedMessageIds.add(msg.id);
@@ -345,6 +356,8 @@
                 console.log('Loaded messages. Total loaded:', window.loadedMessageIds.size, 'Last ID:', window.lastMessageId);
             } catch (error) {
                 console.error('Load error:', error);
+            } finally {
+                window.isLoadingMessages = false;
             }
         }
 
@@ -421,9 +434,16 @@
 
         loadMessages();
 
-        // Poll every 2 seconds with cache buster
-        setInterval(async () => {
-            try {
+        // Poll every 3 seconds with debounce
+        let pollInterval;
+        const startPolling = () => {
+            pollInterval = setInterval(async () => {
+                if (window.isLoadingMessages) return;
+                const now = Date.now();
+                if (now - window.lastLoadTime < window.loadDebounceMs) return;
+                window.lastLoadTime = now;
+                window.isLoadingMessages = true;
+                try {
                 const response = await axios.get('/messages/' + window.conversationId + '?t=' + Date.now());
                 console.log('Poll response:', response.data);
                 const messages = response.data.messages || [];
@@ -450,8 +470,12 @@
                 }
             } catch (e) {
                 console.error('Poll error:', e);
+            } finally {
+                window.isLoadingMessages = false;
             }
-        }, 2000);
+        }, 3000);
+        };
+        startPolling();
 
         const input = document.getElementById('message-input');
         if (input) {
