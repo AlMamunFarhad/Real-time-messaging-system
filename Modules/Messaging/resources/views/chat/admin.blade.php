@@ -33,8 +33,9 @@
         initialOtherParticipantId: {{ $initialOtherParticipantId }},
         initialOtherParticipantType: '{{ $initialOtherParticipantType }}',
         initialOtherUserName: @js($initialOtherUserName),
-        initialActiveUserId: {{ $initialActiveUserId }}
-    })" x-init="init()" class="mx-auto max-w-7xl">
+        initialActiveUserId: {{ $initialActiveUserId }},
+        showChat: false
+    })" x-init="init()" class="-m-6 mx-auto max-w-7xl overflow-hidden">
         <div
             class="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.35)]">
             <div class="grid min-h-[76vh] lg:grid-cols-[340px_minmax(0,1fr)]">
@@ -97,17 +98,20 @@
                                         <div class="min-w-0 flex-1">
                                             <div class="flex items-center gap-2">
                                                 <span class="inline-flex h-2.5 w-2.5 shrink-0 rounded-full"
-                                                    :class="user.is_online ? 'bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.16)]' :
+                                                    :class="user.is_online ?
+                                                        'bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.16)]' :
                                                         'bg-slate-300'"></span>
                                                 <div class="truncate text-sm font-semibold" x-text="user.name"></div>
                                             </div>
                                             <div class="truncate text-xs"
                                                 :class="Number(activeUserId) === Number(user.id) ? 'text-slate-300' :
                                                     'text-slate-500'"
-                                                x-text="user.is_online ? user.email + ' • Active now' : user.email"></div>
+                                                x-text="user.is_online ? user.email + ' • Active now' : user.email">
+                                            </div>
                                         </div>
                                         <template x-if="Number(user.unseen_count || 0) > 0">
-                                            <span class="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full px-2 text-xs font-bold"
+                                            <span
+                                                class="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full px-2 text-xs font-bold"
                                                 :class="Number(activeUserId) === Number(user.id) ? 'bg-white text-slate-900' :
                                                     'bg-rose-500 text-white'"
                                                 x-text="Number(user.unseen_count) > 99 ? '99+' : user.unseen_count"></span>
@@ -120,7 +124,7 @@
                 </aside>
 
                 <section
-                    class="flex min-h-[76vh] flex-col bg-[radial-gradient(circle_at_top,#f8fafc_0%,#ffffff_42%,#f8fafc_100%)]">
+                    class="hidden min-h-[76vh] flex-col bg-[radial-gradient(circle_at_top,#f8fafc_0%,#ffffff_42%,#f8fafc_100%)] lg:flex">
                     <template x-if="activeConversationId">
                         <div class="flex h-full flex-col">
                             <div class="border-b border-slate-200 bg-white px-6 py-5">
@@ -134,8 +138,6 @@
                                         <div>
                                             <h3 class="text-base font-semibold text-slate-900"
                                                 x-text="activeUserName || 'User'"></h3>
-                                            {{-- <p class="text-xs text-slate-500">Conversation #<span
-                                                    x-text="activeConversationId"></span></p> --}}
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-3">
@@ -145,16 +147,20 @@
                                             <span id="online-text">Offline</span>
                                         </div>
                                         <a href="{{ route('admin.dashboard') }}"
-                                            class="inline-flex items-center rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900">
-                                            Close
+                                            class="inline-flex items-center justify-center rounded-2xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
                                         </a>
                                     </div>
                                 </div>
                             </div>
 
-                            <div id="chat-box" class="flex-1 overflow-y-auto px-6 py-6"></div>
+                            <div id="chat-box" class="flex-1 max-h-[calc(80vh-180px)] overflow-y-auto px-6 py-6"></div>
 
-                            <div class="border-t border-slate-200 bg-white px-6 py-4">
+                            <div class="border-t border-slate-200 bg-white px-6 py-6">
                                 <div id="file-preview"
                                     class="mb-3 hidden rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                                     <div class="flex items-center justify-between gap-3">
@@ -205,10 +211,80 @@
                     </template>
                 </section>
             </div>
+
+            <!-- Modal for medium and smaller screens -->
+            <div x-cloak x-show="showChat" x-transition.opacity class="fixed inset-x-0 bottom-0 top-0 z-50 lg:hidden">
+                <div class="fixed inset-x-0 bottom-0 top-0 mt-16 flex h-[calc(100dvh-4rem)] w-full flex-col overflow-hidden bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.35)]"
+                    @click.stop>
+                    <template x-if="activeConversationId">
+                        <div class="flex h-full flex-col">
+                            <div
+                                class="border-b border-slate-200 bg-white px-6 py-5 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-300 text-slate-900">
+                                        <span class="text-base font-semibold"
+                                            x-text="initialFor(activeUserName)"></span>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-base font-semibold text-slate-900"
+                                            x-text="activeUserName || 'User'"></h3>
+                                    </div>
+                                </div>
+                                <button type="button" @click="showChat = false"
+                                    class="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                                    aria-label="Close chat">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div id="chat-box-modal" class="flex-1 overflow-y-auto px-6 py-6"></div>
+
+                            <div class="border-t border-slate-200 bg-white px-6 py-2">
+                                <div id="file-preview-modal"
+                                    class="mb-3 hidden rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <span id="file-name-modal"
+                                            class="flex items-center gap-2 text-sm text-slate-600"></span>
+                                        <button type="button" @click="removeFile()"
+                                            class="text-xl leading-none text-slate-400 transition hover:text-slate-700">&times;</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-end gap-3">
+                                    <input type="file" id="file-input-modal" class="hidden"
+                                        @change="handleFileSelect($event)">
+                                    <button type="button" @click="openFilePicker()"
+                                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                        </svg>
+                                    </button>
+                                    <input type="text" id="message-input-modal" x-model="draftMessage"
+                                        @keydown.enter.prevent="sendMessage()"
+                                        class="h-12 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                                        placeholder="Write a message...">
+                                    <button type="button" @click="sendMessage()"
+                                        class="inline-flex h-12 shrink-0 items-center gap-2 rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800">Send</button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
         </div>
     </div>
 
     <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
         .message-row {
             display: flex;
             width: 100%;
@@ -312,6 +388,7 @@
                 otherParticipantId: config.initialOtherParticipantId || 0,
                 otherParticipantType: config.initialOtherParticipantType || '',
                 draftMessage: '',
+                showChat: Boolean(config.showChat),
                 searchTimer: null,
                 pollTimer: null,
                 usersRefreshTimer: null,
@@ -338,6 +415,7 @@
                         this.startPolling();
                         this.checkOnlineStatus();
                         this.startOnlineStatusLoop();
+                        this.showChat = true;
                     }
                 },
                 initialFor(name) {
@@ -387,6 +465,7 @@
                     }
                 },
                 async selectUser(user) {
+                    this.showChat = true;
                     this.activeUserId = user.id;
                     this.activeUserName = user.name;
                     try {
@@ -403,10 +482,13 @@
                         this.startOnlineStatusLoop();
                     } catch (error) {
                         console.error('Conversation load error:', error);
+                        this.showChat = false;
                     }
                 },
                 renderMessage(message) {
-                    const chatBox = document.getElementById('chat-box');
+                    const isLargeScreen = window.innerWidth >= 1024; // lg breakpoint
+                    const chatBox = isLargeScreen ? document.getElementById('chat-box') : document.getElementById(
+                        'chat-box-modal');
                     if (!chatBox) return;
                     const typeShort = message.sender_type ? message.sender_type.split('\\').pop().toLowerCase() : '';
                     const isMe = message.sender_id == config.userId && typeShort === config.userTypeShort;
@@ -435,7 +517,9 @@
                         const response = await axios.get(`/messages/${this.activeConversationId}?t=${Date.now()}`);
                         const messages = response.data.messages || [];
                         const chatBox = document.getElementById('chat-box');
+                        const chatBoxModal = document.getElementById('chat-box-modal');
                         if (chatBox) chatBox.innerHTML = '';
+                        if (chatBoxModal) chatBoxModal.innerHTML = '';
                         this.loadedMessageIds = new Set();
                         messages.forEach((message) => {
                             this.loadedMessageIds.add(message.id);
@@ -450,8 +534,10 @@
                 },
                 async sendMessage() {
                     if (!this.activeConversationId) return;
-                    const fileInput = document.getElementById('file-input');
-                    const file = fileInput.files[0];
+                    const isLargeScreen = window.innerWidth >= 1024;
+                    const fileInput = isLargeScreen ? document.getElementById('file-input') : document.getElementById(
+                        'file-input-modal');
+                    const file = fileInput ? fileInput.files[0] : null;
                     const message = this.draftMessage.trim();
                     if (!message && !file) return;
                     const formData = new FormData();
@@ -465,8 +551,10 @@
                             }
                         });
                         this.draftMessage = '';
-                        fileInput.value = '';
-                        document.getElementById('file-preview').style.display = 'none';
+                        if (fileInput) fileInput.value = '';
+                        const previewEl = isLargeScreen ? document.getElementById('file-preview') : document
+                            .getElementById('file-preview-modal');
+                        if (previewEl) previewEl.style.display = 'none';
                         this.loadedMessageIds.add(response.data.id);
                         this.lastMessageId = Math.max(this.lastMessageId, response.data.id);
                         this.renderMessage(response.data);
@@ -477,28 +565,40 @@
                     }
                 },
                 openFilePicker() {
-                    document.getElementById('file-input').click();
+                    const isLargeScreen = window.innerWidth >= 1024;
+                    const fileInput = isLargeScreen ? document.getElementById('file-input') : document.getElementById(
+                        'file-input-modal');
+                    if (fileInput) fileInput.click();
                 },
                 handleFileSelect(event) {
                     const file = event.target.files[0];
                     if (!file) return;
-                    const nameEl = document.getElementById('file-name');
-                    nameEl.innerHTML = '';
+                    const isLargeScreen = window.innerWidth >= 1024;
+                    const nameEl = isLargeScreen ? document.getElementById('file-name') : document.getElementById(
+                        'file-name-modal');
+                    const previewEl = isLargeScreen ? document.getElementById('file-preview') : document.getElementById(
+                        'file-preview-modal');
+                    if (nameEl) nameEl.innerHTML = '';
                     if (file.type.startsWith('image/')) {
                         const img = document.createElement('img');
                         img.src = URL.createObjectURL(file);
                         img.style.maxWidth = '96px';
                         img.style.maxHeight = '96px';
                         img.style.borderRadius = '14px';
-                        nameEl.appendChild(img);
+                        if (nameEl) nameEl.appendChild(img);
                     } else {
-                        nameEl.textContent = file.name;
+                        if (nameEl) nameEl.textContent = file.name;
                     }
-                    document.getElementById('file-preview').style.display = 'block';
+                    if (previewEl) previewEl.style.display = 'block';
                 },
                 removeFile() {
-                    document.getElementById('file-input').value = '';
-                    document.getElementById('file-preview').style.display = 'none';
+                    const isLargeScreen = window.innerWidth >= 1024;
+                    const fileInput = isLargeScreen ? document.getElementById('file-input') : document.getElementById(
+                        'file-input-modal');
+                    const previewEl = isLargeScreen ? document.getElementById('file-preview') : document.getElementById(
+                        'file-preview-modal');
+                    if (fileInput) fileInput.value = '';
+                    if (previewEl) previewEl.style.display = 'none';
                 },
                 async markConversationAsRead(force = false) {
                     const now = Date.now();
