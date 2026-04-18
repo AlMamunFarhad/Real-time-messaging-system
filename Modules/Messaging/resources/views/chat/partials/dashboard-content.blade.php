@@ -10,10 +10,11 @@
         direct: @js(route('messages.direct')),
         participants: @js(route('messages.participants')),
         groupStore: @js(route('messages.groups.store')),
-        groupsBase: @js(url('/messages/groups'))
+        groupsBase: @js(url('/messages/groups')),
+        exitRoute: @js(Auth::guard('admin')->check() ? route('admin.dashboard') : route('dashboard'))
     }
 })" x-init="init()" class="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
-    <div class="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.35)]">
+    <div x-show="isWorkspaceVisible" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.35)]">
         <div class="grid min-h-[78vh] lg:grid-cols-[320px_minmax(0,1fr)]">
             <aside class="border-b border-slate-200 bg-slate-50 lg:border-b-0 lg:border-r">
                 <div class="border-b border-slate-200 bg-white px-5 py-5">
@@ -22,9 +23,32 @@
                             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Workspace</p>
                             <h3 class="mt-1 text-lg font-semibold text-slate-900">Chats & Groups</h3>
                         </div>
-                        <button type="button" @click="openCreateGroup()" class="inline-flex items-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">New Group</button>
                     </div>
-                    <div class="mt-4">
+                    
+                    <div class="mt-6 flex items-center gap-1 rounded-[20px] bg-slate-100 p-1.5">
+                        <button type="button" 
+                            @click="activeTab = 'direct'" 
+                            :class="activeTab === 'direct' ? 'bg-white text-slate-900 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.12)]' : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'"
+                            class="flex flex-1 items-center justify-center gap-2 rounded-[14px] py-2.5 text-xs font-bold transition-all duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Direct
+                        </button>
+                        <button type="button" 
+                            @click="activeTab = 'groups'" 
+                            :class="activeTab === 'groups' ? 'bg-white text-slate-900 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.12)]' : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'"
+                            class="flex flex-1 items-center justify-center gap-2 rounded-[14px] py-2.5 text-xs font-bold transition-all duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            Groups
+                        </button>
+                    </div>
+                </div>
+
+                <div class="px-5 py-5">
+                    <div x-show="activeTab === 'direct'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
                         <div class="flex items-center justify-between">
                             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Direct</p>
                             <button type="button" @click="showDirectPicker = !showDirectPicker" class="text-xs font-medium text-slate-500 hover:text-slate-900">Start chat</button>
@@ -55,19 +79,40 @@
                             </template>
                         </div>
                     </div>
-                </div>
-                <div class="px-5 py-5">
-                    <div class="mb-3 flex items-center justify-between"><p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Groups</p><span class="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500" x-text="groupConversations.length + ' total'"></span></div>
-                    <div class="max-h-[40vh] space-y-2 overflow-y-auto pr-1">
-                        <template x-if="!groupConversations.length"><div class="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">Create your first group to start team messaging.</div></template>
-                        <template x-for="conversation in groupConversations" :key="conversation.id">
-                            <button type="button" @click="selectConversation(conversation)" class="block w-full rounded-2xl border px-4 py-3 text-left transition" :class="activeConversationId === conversation.id ? 'border-amber-300 bg-amber-50 text-slate-900' : 'border-transparent bg-white text-slate-800 hover:border-slate-200 hover:bg-slate-100'">
-                                <div class="flex items-center justify-between gap-3">
-                                    <div class="min-w-0"><div class="truncate text-sm font-semibold" x-text="conversation.title"></div><div class="truncate text-xs text-slate-500" x-text="(conversation.members_count || 0) + ' members � ' + (conversation.last_message?.body || 'No message yet')"></div></div>
-                                    <template x-if="Number(conversation.unread_count || 0) > 0"><span class="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-slate-900 px-2 text-xs font-bold text-white" x-text="conversation.unread_count"></span></template>
-                                </div>
+                    
+                    <div x-show="activeTab === 'groups'" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
+                        <div class="mb-5 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Your Groups</p>
+                                <p class="mt-0.5 text-[10px] text-slate-500" x-text="groupConversations.length + ' active groups'"></p>
+                            </div>
+                            <button type="button" @click="openCreateGroup()" class="inline-flex h-9 items-center rounded-xl bg-slate-900 px-3 text-xs font-bold text-white transition hover:bg-slate-800">
+                                <span>+ New</span>
                             </button>
-                        </template>
+                        </div>
+                        
+                        <div class="max-h-[40vh] space-y-2 overflow-y-auto pr-1">
+                            <template x-if="!groupConversations.length">
+                                <div class="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
+                                    Create your first group to start team messaging.
+                                </div>
+                            </template>
+                            <template x-for="conversation in groupConversations" :key="conversation.id">
+                                <button type="button" @click="selectConversation(conversation)" 
+                                    class="block w-full rounded-2xl border px-4 py-3 text-left transition" 
+                                    :class="activeConversationId === conversation.id ? 'border-amber-300 bg-amber-50 text-slate-900' : 'border-transparent bg-white text-slate-800 hover:border-slate-200 hover:bg-slate-100'">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <div class="truncate text-sm font-semibold" x-text="conversation.title"></div>
+                                            <div class="truncate text-xs text-slate-500" x-text="(conversation.members_count || 0) + ' members • ' + (conversation.last_message?.body || 'No message yet')"></div>
+                                        </div>
+                                        <template x-if="Number(conversation.unread_count || 0) > 0">
+                                            <span class="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-slate-900 px-2 text-xs font-bold text-white" x-text="conversation.unread_count"></span>
+                                        </template>
+                                    </div>
+                                </button>
+                            </template>
+                        </div>
                     </div>
                 </div>
             </aside>
@@ -81,7 +126,7 @@
                                     <template x-if="activeConversation.is_group && groupDetails.description"><p class="mt-3 max-w-2xl text-sm leading-6 text-slate-500" x-text="groupDetails.description"></p></template>
                                 </div>
 <div class="flex flex-wrap items-center gap-2">
-                                    <button type="button" @click="closeConversation()" class="rounded-2xl border border-slate-200 bg-white p-2 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900" title="Close">
+                                    <button type="button" @click="closeWorkspace()" class="rounded-2xl border border-slate-200 bg-white p-2 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900" title="Close Workspace">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                         </svg>
@@ -134,7 +179,7 @@ function messagingDashboard(config) {
     return {
 conversations: [], directConversations: [], groupConversations: [], directCandidates: [], groupCandidates: [], messages: [],
         activeConversationId: config.initialConversationId || null, activeConversation: null, groupDetails: { members: [] }, loadingMessages: false,
-        showDirectPicker: config.currentType === 'admin', directSearch: '', draftMessage: '', selectedFile: null, selectedFileName: '',
+        activeTab: 'direct', isWorkspaceVisible: true, exitRoute: config.routes.exitRoute || '/', showDirectPicker: config.currentType === 'admin', directSearch: '', draftMessage: '', selectedFile: null, selectedFileName: '',
         showCreateGroupModal: false, showManageMembersModal: false, groupMemberSearch: '', manageMemberSearch: '',
 groupForm: { name: '', description: '', participants: [] }, pollTimer: null, lastLoadTime: 0, loadDebounceMs: 2500, lastConversationLoadTime: 0, conversationLoadDebounceMs: 3000,
         init() { this.loadConversations(); this.loadDirectCandidates(); this.loadGroupCandidates(); this.startPolling(); },
@@ -240,8 +285,9 @@ async loadMessages() {
         },
         async addMembers(items) { await axios.post(`${config.routes.groupsBase}/${this.activeConversationId}/members`, { participants: items.map((item) => ({ id: item.id, type: item.type })) }); await this.loadConversations(); await this.loadGroupDetails(); },
 async removeMember(member) { await axios.delete(`${config.routes.groupsBase}/${this.activeConversationId}/members/${member.type}/${member.id}`); await this.loadConversations(); await this.loadGroupDetails(); },
-        closeConversation() { this.activeConversationId = null; this.activeConversation = null; this.messages = []; this.groupDetails = { members: [] }; },
-        async leaveGroup() { if (!this.activeConversation?.is_group) return; await axios.post(`${config.routes.groupsBase}/${this.activeConversationId}/leave`); this.closeConversation(); await this.loadConversations(); },
+        closeConversationUI() { this.activeConversationId = null; this.activeConversation = null; this.messages = []; this.groupDetails = { members: [] }; },
+        closeWorkspace() { window.location.href = this.exitRoute; },
+        async leaveGroup() { if (!this.activeConversation?.is_group) return; await axios.post(`${config.routes.groupsBase}/${this.activeConversationId}/leave`); this.closeConversationUI(); await this.loadConversations(); },
         startPolling() {
             if (this.pollTimer) clearInterval(this.pollTimer);
             this.pollTimer = setInterval(async () => { 
