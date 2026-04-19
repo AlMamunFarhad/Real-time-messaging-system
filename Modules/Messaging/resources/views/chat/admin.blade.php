@@ -34,7 +34,8 @@
         initialOtherParticipantType: '{{ $initialOtherParticipantType }}',
         initialOtherUserName: @js($initialOtherUserName),
         initialActiveUserId: {{ $initialActiveUserId }},
-        showChat: false
+        showChat: false,
+        isFileTooLarge: false
     })" x-init="init()" class="-m-6 mx-auto max-w-7xl overflow-hidden">
         <div
             class="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.35)]">
@@ -157,32 +158,65 @@
                             <div id="chat-box" class="flex-1 h-[calc(88vh-220px)] min-h-[400px] overflow-y-auto px-6 py-6 scroll-smooth"></div>
 
                             <div class="border-t border-slate-200 bg-white px-6 py-6">
-                                <div id="file-preview"
-                                    class="mb-3 hidden rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                <div id="file-preview" x-cloak
+                                    class="mb-3 hidden rounded-2xl border px-4 py-3"
+                                    :class="isFileTooLarge ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-slate-50'">
                                     <div class="flex items-center justify-between gap-3">
-                                        <span id="file-name"
-                                            class="flex items-center gap-2 text-sm text-slate-600"></span>
+                                        <div class="flex flex-col">
+                                            <span id="file-name" class="flex items-center gap-2 text-sm font-medium" :class="isFileTooLarge ? 'text-rose-600' : 'text-slate-600'"></span>
+                                            <template x-if="isFileTooLarge">
+                                                <span class="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-500">File too large! Maximum limit is 10MB</span>
+                                            </template>
+                                        </div>
                                         <button type="button" @click="removeFile()"
                                             class="text-xl leading-none text-slate-400 transition hover:text-slate-700">&times;</button>
                                     </div>
                                 </div>
                                 <div class="flex items-end gap-3">
+                                <div class="relative flex items-end gap-3" x-data="{ showEmojiPicker: false }">
+                                    <div x-show="showEmojiPicker" @click.away="showEmojiPicker = false" x-cloak x-transition
+                                        class="absolute bottom-16 left-0 z-50 w-64 rounded-[24px] border border-slate-200 bg-white/95 p-3 shadow-2xl backdrop-blur-md">
+                                        <div class="grid grid-cols-5 gap-1">
+                                            <template
+                                                x-for="emoji in ['😊','😂','❤️','👍','😍','🙌','✨','🔥','✅','🚀','💡','👏','🙏','🎉','😎','🤔','😮','😢','🤝','📍']"
+                                                :key="emoji">
+                                                <button type="button" @click="addEmoji(emoji); showEmojiPicker = false"
+                                                    class="flex h-10 w-10 items-center justify-center rounded-xl text-xl transition hover:bg-slate-100"
+                                                    x-text="emoji"></button>
+                                            </template>
+                                        </div>
+                                    </div>
+
                                     <input type="file" id="file-input" class="hidden"
                                         @change="handleFileSelect($event)">
                                     <button type="button" @click="openFilePicker()"
-                                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100">
+                                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100"
+                                        title="Attach file">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                         </svg>
                                     </button>
+
+                                    <button type="button" @click="showEmojiPicker = !showEmojiPicker"
+                                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:bg-slate-100"
+                                        title="Add emoji">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
+
                                     <input type="text" id="message-input" x-model="draftMessage"
                                         @keydown.enter.prevent="sendMessage()"
                                         class="h-12 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                                         placeholder="Write a message...">
                                     <button type="button" @click="sendMessage()"
-                                        class="inline-flex h-12 shrink-0 items-center gap-2 rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800">Send</button>
+                                        :disabled="isFileTooLarge || (!draftMessage.trim() && !document.getElementById('file-input')?.files[0])"
+                                        class="inline-flex h-12 shrink-0 items-center gap-2 rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed">Send</button>
+                                </div>
                                 </div>
                             </div>
                         </div>
@@ -241,32 +275,65 @@
                             <div id="chat-box-modal" class="flex-1 h-[calc(100dvh-220px)] min-h-[300px] overflow-y-auto px-6 py-6 scroll-smooth"></div>
 
                             <div class="border-t border-slate-200 bg-white px-6 py-2">
-                                <div id="file-preview-modal"
-                                    class="mb-3 hidden rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                <div id="file-preview-modal" x-cloak
+                                    class="mb-3 hidden rounded-2xl border px-4 py-3"
+                                    :class="isFileTooLarge ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-slate-50'">
                                     <div class="flex items-center justify-between gap-3">
-                                        <span id="file-name-modal"
-                                            class="flex items-center gap-2 text-sm text-slate-600"></span>
+                                        <div class="flex flex-col">
+                                            <span id="file-name-modal" class="flex items-center gap-2 text-sm font-medium" :class="isFileTooLarge ? 'text-rose-600' : 'text-slate-600'"></span>
+                                            <template x-if="isFileTooLarge">
+                                                <span class="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-500">File too large! Maximum limit is 10MB</span>
+                                            </template>
+                                        </div>
                                         <button type="button" @click="removeFile()"
                                             class="text-xl leading-none text-slate-400 transition hover:text-slate-700">&times;</button>
                                     </div>
                                 </div>
                                 <div class="flex items-end gap-3">
+                                <div class="relative flex items-end gap-3" x-data="{ showEmojiPicker: false }">
+                                    <div x-show="showEmojiPicker" @click.away="showEmojiPicker = false" x-cloak x-transition
+                                        class="absolute bottom-16 left-0 z-50 w-64 rounded-[24px] border border-slate-200 bg-white/95 p-3 shadow-2xl backdrop-blur-md">
+                                        <div class="grid grid-cols-5 gap-1">
+                                            <template
+                                                x-for="emoji in ['😊','😂','❤️','👍','😍','🙌','✨','🔥','✅','🚀','💡','👏','🙏','🎉','😎','🤔','😮','😢','🤝','📍']"
+                                                :key="emoji">
+                                                <button type="button" @click="addEmoji(emoji); showEmojiPicker = false"
+                                                    class="flex h-10 w-10 items-center justify-center rounded-xl text-xl transition hover:bg-slate-100"
+                                                    x-text="emoji"></button>
+                                            </template>
+                                        </div>
+                                    </div>
+
                                     <input type="file" id="file-input-modal" class="hidden"
                                         @change="handleFileSelect($event)">
                                     <button type="button" @click="openFilePicker()"
-                                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100">
+                                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100"
+                                        title="Attach file">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                         </svg>
                                     </button>
+
+                                    <button type="button" @click="showEmojiPicker = !showEmojiPicker"
+                                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:bg-slate-100"
+                                        title="Add emoji">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
+
                                     <input type="text" id="message-input-modal" x-model="draftMessage"
                                         @keydown.enter.prevent="sendMessage()"
                                         class="h-12 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                                         placeholder="Write a message...">
                                     <button type="button" @click="sendMessage()"
-                                        class="inline-flex h-12 shrink-0 items-center gap-2 rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800">Send</button>
+                                        :disabled="isFileTooLarge || (!draftMessage.trim() && !document.getElementById('file-input-modal')?.files[0])"
+                                        class="inline-flex h-12 shrink-0 items-center gap-2 rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed">Send</button>
+                                </div>
                                 </div>
                             </div>
                         </div>
@@ -590,6 +657,9 @@ async loadMessages() {
                 handleFileSelect(event) {
                     const file = event.target.files[0];
                     if (!file) return;
+
+                    this.isFileTooLarge = file.size > 10 * 1024 * 1024;
+                    
                     const isLargeScreen = window.innerWidth >= 1024;
                     const nameEl = isLargeScreen ? document.getElementById('file-name') : document.getElementById(
                         'file-name-modal');
@@ -599,13 +669,14 @@ async loadMessages() {
                     if (file.type.startsWith('image/')) {
                         const img = document.createElement('img');
                         img.src = URL.createObjectURL(file);
-                        img.style.maxWidth = '96px';
-                        img.style.maxHeight = '96px';
-                        img.style.borderRadius = '14px';
-                        if (nameEl) nameEl.appendChild(img);
-                    } else {
-                        if (nameEl) nameEl.textContent = file.name;
+                        img.className = 'h-10 w-10 rounded-lg border border-slate-200 object-cover';
+                        nameEl.appendChild(img);
                     }
+                    const text = document.createElement('span');
+                    text.textContent = file.name;
+                    text.className = 'text-sm font-medium';
+                    nameEl.appendChild(text);
+
                     if (previewEl) previewEl.style.display = 'block';
                 },
                 removeFile() {
@@ -616,6 +687,7 @@ async loadMessages() {
                         'file-preview-modal');
                     if (fileInput) fileInput.value = '';
                     if (previewEl) previewEl.style.display = 'none';
+                    this.isFileTooLarge = false;
                 },
                 async markConversationAsRead(force = false) {
                     const now = Date.now();
@@ -682,6 +754,12 @@ async loadMessages() {
                         console.error('Heartbeat error:', error);
                     }
                 },
+                addEmoji(emoji) {
+                    this.draftMessage += emoji;
+                    const isLargeScreen = window.innerWidth >= 1024;
+                    const input = isLargeScreen ? document.getElementById('message-input') : document.getElementById('message-input-modal');
+                    if (input) input.focus();
+                },
                 async checkOnlineStatus() {
                     if (!this.otherParticipantId || !this.otherParticipantType) return;
                     try {
@@ -711,6 +789,29 @@ async loadMessages() {
                     if (this.onlineStatusTimer) clearInterval(this.onlineStatusTimer);
                 }
             }
+        }
+
+        function buildAttachmentHtml(url, name, isMe) {
+            if (!url) return '';
+            const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+            if (isImage) {
+                return `
+                    <div class="group relative mt-2 inline-block overflow-hidden rounded-[20px] border border-black/5 bg-slate-100 shadow-sm transition-all duration-300 hover:shadow-md">
+                        <img src="${url}" class="max-h-52 max-w-[280px] w-full object-cover cursor-zoom-in transition-transform duration-500 hover:scale-105" onclick="window.open('${url}', '_blank')" alt="Attachment">
+                        <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                    </div>
+                `;
+            }
+            return `
+                <div class="mt-2">
+                    <a href="${url}" target="_blank" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium ${isMe ? 'bg-white/10 text-white' : 'bg-slate-50 text-slate-700'}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        ${name || 'View attachment'}
+                    </a>
+                </div>
+            `;
         }
     </script>
 </x-admin-layout>

@@ -203,13 +203,78 @@
                             <template x-if="!loadingMessages && !messages.length"><div class="rounded-[28px] border border-dashed border-slate-300 bg-white/80 px-6 py-12 text-center text-slate-500"><p class="text-base font-semibold text-slate-700">Conversation is empty</p><p class="mt-2 text-sm">Send the first message and start the discussion.</p></div></template>
                             <div class="space-y-4">
                                 <template x-for="message in messages" :key="message.id">
-                                    <div class="flex" :class="isMine(message) ? 'justify-end' : 'justify-start'"><div class="max-w-[80%]"><template x-if="!isMine(message)"><p class="mb-1 px-3 text-xs font-semibold text-slate-500" x-text="message.sender_name"></p></template><div class="rounded-[22px] px-4 py-3 shadow-sm" :class="isMine(message) ? 'bg-slate-900 text-white' : 'border border-slate-200 bg-white text-slate-800'"><template x-if="message.body"><p class="whitespace-pre-wrap text-sm leading-6" x-text="message.body"></p></template><template x-if="message.file_url"><a :href="message.file_url" target="_blank" class="mt-3 inline-flex rounded-2xl px-3 py-2 text-xs font-medium" :class="isMine(message) ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-700'">Open attachment</a></template></div><p class="mt-1 px-2 text-xs text-slate-400" x-text="formatTime(message.created_at)"></p></div></div>
+                                    <div class="flex" :class="isMine(message) ? 'justify-end' : 'justify-start'">
+                                        <div class="max-w-[80%]">
+                                            <template x-if="!isMine(message)">
+                                                <p class="mb-1 px-3 text-xs font-semibold text-slate-500" x-text="message.sender_name"></p>
+                                            </template>
+                                            <div class="rounded-[22px] px-4 py-3 shadow-sm" :class="isMine(message) ? 'bg-slate-900 text-white' : 'border border-slate-200 bg-white text-slate-800'">
+                                                <template x-if="message.body">
+                                                    <p class="whitespace-pre-wrap text-sm leading-6" x-text="message.body"></p>
+                                                </template>
+                                                <template x-if="message.file_url">
+                                                    <div class="mt-2">
+                                                        <template x-if="message.file_url && (message.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i))">
+                                                            <div class="group relative mt-2 inline-block overflow-hidden rounded-[20px] border border-black/5 bg-slate-100 shadow-sm transition-all duration-300 hover:shadow-md">
+                                                                <img :src="message.file_url" class="max-h-52 max-w-[280px] w-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-105" @click="window.open(message.file_url, '_blank')" alt="Attachment">
+                                                                <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                                                            </div>
+                                                        </template>
+                                                        <template x-if="!(message.file_url && (message.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i)))">
+                                                            <a :href="message.file_url" target="_blank" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium" :class="isMine(message) ? 'bg-white/10 text-white' : 'bg-slate-50 text-slate-700'">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                </svg>
+                                                                <span x-text="message.file_name || 'View attachment'"></span>
+                                                            </a>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            <p class="mt-1 px-2 text-xs text-slate-400" x-text="formatTime(message.created_at)"></p>
+                                        </div>
+                                    </div>
                                 </template>
                             </div>
                         </div>
                         <div class="border-t border-slate-200 bg-white px-6 py-5">
-                            <div x-show="selectedFileName" x-cloak class="mb-3 flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"><span class="text-sm text-slate-600" x-text="selectedFileName"></span><button type="button" @click="clearFile()" class="text-slate-400 hover:text-slate-700">&times;</button></div>
-                            <div class="flex items-end gap-3"><input type="file" x-ref="fileInput" class="hidden" @change="pickFile"><button type="button" @click="$refs.fileInput.click()" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100">+</button><textarea x-model="draftMessage" rows="1" class="min-h-[3rem] flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200" placeholder="Write a message..."></textarea><button type="button" @click="sendMessage()" class="inline-flex h-12 shrink-0 items-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800">Send</button></div>
+                            <div x-show="selectedFileName" x-cloak class="mb-3 flex items-center justify-between rounded-2xl border px-4 py-3" :class="isFileTooLarge ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-slate-50'">
+                                <div class="flex items-center gap-3">
+                                    <template x-if="selectedFilePreview">
+                                        <div class="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-slate-200">
+                                            <img :src="selectedFilePreview" class="h-full w-full object-cover" alt="Preview">
+                                        </div>
+                                    </template>
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-medium" :class="isFileTooLarge ? 'text-rose-600' : 'text-slate-600'" x-text="selectedFileName"></span>
+                                        <template x-if="isFileTooLarge">
+                                            <span class="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-500">File too large! Maximum limit is 10MB</span>
+                                        </template>
+                                    </div>
+                                </div>
+                                <button type="button" @click="clearFile()" class="text-slate-400 hover:text-slate-700">&times;</button>
+                            </div>
+                            <div class="relative flex items-end gap-3" x-data="{ showEmojiPicker: false }">
+                                <div x-show="showEmojiPicker" @click.away="showEmojiPicker = false" x-cloak x-transition class="absolute bottom-16 left-0 z-50 w-72 rounded-[24px] border border-slate-200 bg-white/95 p-3 shadow-2xl backdrop-blur-md">
+                                    <div class="grid grid-cols-6 gap-1 max-h-60 overflow-y-auto p-1 custom-scrollbar">
+                                        <template x-for="emoji in ['😊','😂','❤️','👍','😍','🙌','✨','🔥','✅','🚀','💡','👏','🙏','🎉','😎','🤔','😮','😢','🤝','📍','🤩','😇','🥳','🥺','🤫','🤯','😴','🧡','💛','💚','💙','💜','🖤','💔','❣️','🎈','🎁','💎','📱','💻','☕','🌍','⚡','💪','🌈','🌟','💯','🔥','✨','😀','😁','😆','😅','🤣','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾']" :key="emoji">
+                                            <button type="button" @click="addEmoji(emoji); showEmojiPicker = false" class="flex h-10 w-10 items-center justify-center rounded-xl text-xl transition hover:bg-slate-100" x-text="emoji"></button>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <input type="file" x-ref="fileInput" class="hidden" @change="pickFile">
+                                <button type="button" @click="$refs.fileInput.click()" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100" title="Attach file">+</button>
+                                
+                                <button type="button" @click="showEmojiPicker = !showEmojiPicker" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:bg-slate-100" title="Add emoji">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </button>
+
+                                <textarea x-model="draftMessage" x-ref="messageInput" @keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); sendMessage(); }" rows="1" class="min-h-[3rem] flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200" placeholder="Write a message..."></textarea>
+                                <button type="button" @click="sendMessage()" :disabled="isFileTooLarge || (!draftMessage.trim() && !selectedFile)" class="inline-flex h-12 shrink-0 items-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed">Send</button>
+                            </div>
                         </div>
                     </div>
                 </template>
@@ -221,7 +286,23 @@
     <div x-cloak x-show="showCreateGroupModal" class="fixed inset-0 z-50 bg-slate-950/40 p-4 backdrop-blur-sm">
         <div class="mx-auto mt-10 max-w-2xl rounded-[28px] bg-white p-6 shadow-2xl">
             <div class="flex items-center justify-between gap-4"><div><h3 class="text-xl font-semibold text-slate-900">Create Group</h3><p class="mt-1 text-sm text-slate-500">Admins and users can join the same group.</p></div><button type="button" @click="closeCreateGroup()" class="text-2xl text-slate-400 hover:text-slate-700">&times;</button></div>
-            <div class="mt-6 grid gap-4"><input x-model="groupForm.name" type="text" placeholder="Group name" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"><textarea x-model="groupForm.description" rows="3" placeholder="Short group description" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"></textarea><input x-model="groupMemberSearch" @input.debounce.250ms="loadGroupCandidates()" type="text" placeholder="Search users or admins" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"></div>
+            <div class="mt-6 grid gap-4">
+                <div>
+                    <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Group Name <span class="text-rose-500">*</span></label>
+                    <input x-model="groupForm.name" @input="groupNameError = false" type="text" placeholder="Enter group name..." class="w-full rounded-2xl border bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-all focus:border-slate-400 focus:ring-4 focus:ring-slate-200" :class="groupNameError ? 'border-rose-400 bg-rose-50' : 'border-slate-200'">
+                    <template x-if="groupNameError">
+                        <p class="mt-1.5 px-1 text-xs font-medium text-rose-500">Group name is required to create a group.</p>
+                    </template>
+                </div>
+                <div>
+                    <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Description</label>
+                    <textarea x-model="groupForm.description" rows="3" placeholder="What is this group about? (Optional)" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"></textarea>
+                </div>
+                <div>
+                    <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Search Members</label>
+                    <input x-model="groupMemberSearch" @input.debounce.250ms="loadGroupCandidates()" type="text" placeholder="Search by name or email" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200">
+                </div>
+            </div>
             <div class="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]"><div class="max-h-72 space-y-2 overflow-y-auto rounded-3xl border border-slate-200 bg-slate-50 p-3"><template x-for="item in groupCandidates" :key="item.type + '-' + item.id"><button type="button" @click="toggleMember(item)" class="flex w-full items-center justify-between rounded-2xl bg-white px-4 py-3 text-left transition hover:bg-slate-100"><div><div class="text-sm font-semibold text-slate-900" x-text="item.name"></div><div class="text-xs text-slate-500" x-text="item.subtitle + '  ' + item.email"></div></div><span class="rounded-full px-3 py-1 text-xs font-medium" :class="isSelectedMember(item) ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500'" x-text="isSelectedMember(item) ? 'Selected' : 'Add'"></span></button></template></div><div class="rounded-3xl border border-slate-200 bg-white p-4"><p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Selected</p><div class="mt-3 space-y-2"><template x-if="!groupForm.participants.length"><p class="text-sm text-slate-500">Choose at least one member besides you.</p></template><template x-for="item in groupForm.participants" :key="item.type + '-' + item.id"><div class="flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2"><div><div class="text-sm font-medium text-slate-800" x-text="item.name"></div><div class="text-xs text-slate-500" x-text="item.subtitle"></div></div><button type="button" @click="toggleMember(item)" class="text-sm text-rose-500">Remove</button></div></template></div></div></div>
             <div class="mt-6 flex justify-end gap-3"><button type="button" @click="closeCreateGroup()" class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600">Cancel</button><button type="button" @click="createGroup()" class="rounded-2xl bg-slate-900 px-5 py-2 text-sm font-semibold text-white">Create group</button></div>
         </div>
@@ -241,8 +322,8 @@ function messagingDashboard(config) {
     return {
         conversations: [], directConversations: [], groupConversations: [], directCandidates: [], groupCandidates: [], messages: [],
         activeConversationId: config.initialConversationId || null, activeConversation: null, groupDetails: { members: [] }, loadingMessages: false,
-        activeTab: localStorage.getItem('messaging_active_tab') || 'direct', isWorkspaceVisible: true, exitRoute: config.routes.exitRoute || '/', showDirectPicker: (localStorage.getItem('messaging_active_tab') === 'contacts'), directSearch: '', draftMessage: '', selectedFile: null, selectedFileName: '',
-        showCreateGroupModal: false, showManageMembersModal: false, groupMemberSearch: '', manageMemberSearch: '',
+        activeTab: localStorage.getItem('messaging_active_tab') || 'direct', isWorkspaceVisible: true, exitRoute: config.routes.exitRoute || '/', showDirectPicker: (localStorage.getItem('messaging_active_tab') === 'contacts'), directSearch: '', draftMessage: '', selectedFile: null, selectedFileName: '', isFileTooLarge: false, selectedFilePreview: null,
+        showCreateGroupModal: false, showManageMembersModal: false, groupMemberSearch: '', manageMemberSearch: '', groupNameError: false,
         groupForm: { name: '', description: '', participants: [] }, pollTimer: null, lastLoadTime: 0, loadDebounceMs: 2500, lastConversationLoadTime: 0, conversationLoadDebounceMs: 3000,
         init() { 
             this.loadConversations(); 
@@ -327,14 +408,38 @@ function messagingDashboard(config) {
             this.clearFile();
             await this.loadConversations(true);
             if (window.dispatchMessageCounterSync) window.dispatchMessageCounterSync('sent', { conversationId: this.activeConversationId });
-            this.$nextTick(() => { const panel = document.getElementById('messages-panel'); if (panel) panel.scrollTop = panel.scrollHeight; });
+            this.$nextTick(() => { 
+                const panel = document.getElementById('messages-panel'); 
+                if (panel) panel.scrollTop = panel.scrollHeight; 
+                this.$refs.messageInput?.focus();
+            });
         },
-        pickFile(event) { this.selectedFile = event.target.files[0] || null; this.selectedFileName = this.selectedFile ? this.selectedFile.name : ''; },
-        clearFile() { this.selectedFile = null; this.selectedFileName = ''; if (this.$refs.fileInput) this.$refs.fileInput.value = ''; },
+        pickFile(event) { 
+            const file = event.target.files[0] || null;
+            this.selectedFile = file;
+            this.selectedFileName = file ? file.name : '';
+            this.isFileTooLarge = file ? (file.size > 10 * 1024 * 1024) : false;
+            
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => this.selectedFilePreview = e.target.result;
+                reader.readAsDataURL(file);
+            } else {
+                this.selectedFilePreview = null;
+            }
+        },
+        clearFile() { 
+            this.selectedFile = null; 
+            this.selectedFileName = ''; 
+            this.isFileTooLarge = false;
+            this.selectedFilePreview = null;
+            if (this.$refs.fileInput) this.$refs.fileInput.value = ''; 
+        },
         isMine(message) { const senderType = String(message.sender_type || '').split('\\').pop().toLowerCase(); return Number(message.sender_id) === Number(config.currentId) && senderType === config.currentType; },
+        addEmoji(emoji) { this.draftMessage += emoji; if (this.$refs.messageInput) this.$refs.messageInput.focus(); },
         formatTime(value) { return value ? new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''; },
         initialFor(value) { return value ? String(value).charAt(0).toUpperCase() : '?'; },
-        openCreateGroup() { this.showCreateGroupModal = true; this.groupForm = { name: '', description: '', participants: [] }; this.groupMemberSearch = ''; this.loadGroupCandidates(); },
+        openCreateGroup() { this.showCreateGroupModal = true; this.groupForm = { name: '', description: '', participants: [] }; this.groupMemberSearch = ''; this.groupNameError = false; this.loadGroupCandidates(); },
         closeCreateGroup() { this.showCreateGroupModal = false; },
         toggleMember(item) {
             const key = `${item.type}-${item.id}`;
@@ -343,7 +448,10 @@ function messagingDashboard(config) {
         },
         isSelectedMember(item) { return this.groupForm.participants.some((entry) => Number(entry.id) === Number(item.id) && entry.type === item.type); },
         async createGroup() {
-            if (!this.groupForm.name.trim()) return;
+            if (!this.groupForm.name.trim()) {
+                this.groupNameError = true;
+                return;
+            }
             const response = await axios.post(config.routes.groupStore, { name: this.groupForm.name, description: this.groupForm.description, participants: this.groupForm.participants.map((item) => ({ id: item.id, type: item.type })) });
             this.showCreateGroupModal = false;
             await this.loadConversations(true);

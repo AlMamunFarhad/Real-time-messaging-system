@@ -37,7 +37,8 @@ class MessageController extends Controller
     {
         try {
             $request->validate([
-                'conversation_id' => 'required|integer'
+                'conversation_id' => 'required|integer',
+                'file' => 'nullable|file|max:10240'
             ]);
 
             $senderId = AuthParticipant::id();
