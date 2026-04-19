@@ -14,9 +14,13 @@ class ConversationService
 {
     public function resolveParticipantType(?string $type): ?string
     {
+        if (!$type) return null;
+
+        $type = strtolower($type);
+        
         return match ($type) {
-            'admin', Admin::class => Admin::class,
-            'user', User::class => User::class,
+            'admin', 'app\\models\\admin' => Admin::class,
+            'user', 'app\\models\\user' => User::class,
             default => $type,
         };
     }
@@ -245,57 +249,89 @@ class ConversationService
     public function conversationQueryForParticipant(int $participantId, string $participantType)
     {
         $participantType = $this->resolveParticipantType($participantType);
+        $typeShort = strtolower(class_basename($participantType));
 
         return Conversation::query()
-            ->whereHas('participants', function ($query) use ($participantId, $participantType) {
+            ->whereHas('participants', function ($query) use ($participantId, $participantType, $typeShort) {
                 $query->where('participant_id', $participantId)
-                    ->whereIn('participant_type', [$participantType, $this->participantTypeKey($participantType)])
+                    ->whereIn('participant_type', [$participantType, $typeShort])
                     ->whereNull('left_at');
             });
+    }
+
+    public function getUnreadCountForParticipant(int $participantId, string $participantType): int
+    {
+        $query = $this->conversationQueryForParticipant($participantId, $participantType);
+        $conversations = $query->with('participants')->get();
+        
+        $total = 0;
+        foreach ($conversations as $conversation) {
+            $total += $this->getUnreadCountForConversation($conversation, $participantId, $participantType);
+        }
+        return $total;
+    }
+
+    public function getUnreadCountForConversation(Conversation $conversation, int $participantId, string $participantType): int
+    {
+        $participantType = $this->resolveParticipantType($participantType);
+        $typeShort = strtolower(class_basename($participantType));
+        
+        $participant = $conversation->participants->first(function ($p) use ($participantId, $participantType, $typeShort) {
+            return (int) $p->participant_id === (int) $participantId
+                && in_array($p->participant_type, [$participantType, $typeShort], true);
+        });
+
+        if (!$participant) {
+            return 0;
+        }
+
+        return $conversation->messages()
+            ->when($participant->last_read_at, fn ($query) => $query->where('created_at', '>', $participant->last_read_at))
+            ->where(function ($query) use ($participantId, $participantType, $typeShort) {
+                $query->where('sender_id', '!=', $participantId)
+                    ->orWhereNotIn('sender_type', [$participantType, $typeShort]);
+            })
+            ->count();
     }
 
     public function availableParticipants(int $currentId, string $currentType, string $mode = 'group', ?string $search = null): Collection
     {
         $currentType = $this->resolveParticipantType($currentType);
         $search = trim((string) $search);
-        $items = collect();
 
-        $queryUsers = User::query()
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($subQuery) use ($search) {
-                    $subQuery->where('name', 'like', '%' . $search . '%')
-                        ->orWhere('email', 'like', '%' . $search . '%');
-                });
-            })
-            ->orderBy('name');
+        $queryUsers = User::query()->orderBy('name');
+        $queryAdmins = Admin::query()->orderBy('name');
 
-        $queryAdmins = Admin::query()
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($subQuery) use ($search) {
-                    $subQuery->where('name', 'like', '%' . $search . '%')
-                        ->orWhere('email', 'like', '%' . $search . '%');
-                });
-            })
-            ->orderBy('name');
+        if ($search !== '') {
+            $filter = function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%');
+            };
+            $queryUsers->where($filter);
+            $queryAdmins->where($filter);
+        }
 
         if ($mode === 'direct') {
             if ($this->participantTypeKey($currentType) === 'admin') {
-                return $queryUsers->get(['id', 'name', 'email'])->map(fn ($user) => $this->formatDirectoryItem($user, 'user'));
+                return $queryUsers->get(['id', 'name', 'email'])
+                    ->map(fn ($user) => $this->formatDirectoryItem($user, 'user'));
             }
 
-            return $queryAdmins->get(['id', 'name', 'email'])->map(fn ($admin) => $this->formatDirectoryItem($admin, 'admin'));
+            return $queryAdmins->get(['id', 'name', 'email'])
+                ->map(fn ($admin) => $this->formatDirectoryItem($admin, 'admin'));
         }
 
-        $items = $items
-            ->merge($queryUsers->get(['id', 'name', 'email'])->map(fn ($user) => $this->formatDirectoryItem($user, 'user')))
-            ->merge($queryAdmins->get(['id', 'name', 'email'])->map(fn ($admin) => $this->formatDirectoryItem($admin, 'admin')))
+        $users = $queryUsers->get(['id', 'name', 'email']);
+        $admins = $queryAdmins->get(['id', 'name', 'email']);
+
+        return collect()
+            ->merge($users->map(fn ($user) => $this->formatDirectoryItem($user, 'user')))
+            ->merge($admins->map(fn ($admin) => $this->formatDirectoryItem($admin, 'admin')))
             ->reject(function ($item) use ($currentId, $currentType) {
                 return (int) $item['id'] === (int) $currentId
                     && $item['type'] === $this->participantTypeKey($currentType);
             })
             ->values();
-
-        return $items;
     }
 
     protected function formatDirectoryItem(Model $model, string $type): array

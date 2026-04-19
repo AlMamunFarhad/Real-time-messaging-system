@@ -38,8 +38,8 @@
     })" x-init="init()" class="-m-6 mx-auto max-w-7xl overflow-hidden">
         <div
             class="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.35)]">
-            <div class="grid min-h-[76vh] lg:grid-cols-[340px_minmax(0,1fr)]">
-                <aside class="border-b border-slate-200 bg-slate-50 lg:border-b-0 lg:border-r">
+            <div class="grid min-h-[88vh] lg:grid-cols-[340px_minmax(0,1fr)]">
+                <aside class="flex flex-col border-b border-slate-200 bg-slate-50 lg:border-b-0 lg:border-r">
                     <div class="border-b border-slate-200 bg-white px-5 py-5">
                         <div class="flex items-center gap-3">
                             <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white">
@@ -67,7 +67,7 @@
                         </div>
                     </div>
 
-                    <div class="max-h-[calc(76vh-110px)] overflow-y-auto px-3 py-3">
+                    <div class="flex-1 max-h-[calc(88vh-110px)] overflow-y-auto px-3 py-3">
                         <template x-if="loadingUsers">
                             <div class="space-y-2">
                                 <div class="h-16 animate-pulse rounded-2xl bg-white"></div>
@@ -124,7 +124,7 @@
                 </aside>
 
                 <section
-                    class="hidden min-h-[76vh] flex-col bg-[radial-gradient(circle_at_top,#f8fafc_0%,#ffffff_42%,#f8fafc_100%)] lg:flex">
+                    class="hidden h-[88vh] flex-col bg-[radial-gradient(circle_at_top,#f8fafc_0%,#ffffff_42%,#f8fafc_100%)] lg:flex">
                     <template x-if="activeConversationId">
                         <div class="flex h-full flex-col">
                             <div class="border-b border-slate-200 bg-white px-6 py-5">
@@ -135,16 +135,12 @@
                                             <span class="text-base font-semibold"
                                                 x-text="initialFor(activeUserName)"></span>
                                         </div>
-                                        <div>
-                                            <h3 class="text-base font-semibold text-slate-900"
-                                                x-text="activeUserName || 'User'"></h3>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div id="online-status"
-                                            class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-500">
-                                            <span id="online-dot" class="h-2.5 w-2.5 rounded-full bg-slate-400"></span>
-                                            <span id="online-text">Offline</span>
+                                        <div class="flex flex-col">
+                                            <div class="flex items-center gap-2">
+                                                <div id="online-dot" class="h-2 w-2 rounded-full bg-slate-400 transition-colors duration-300"></div>
+                                                <h3 class="text-base font-semibold text-slate-900" x-text="activeUserName || 'User'"></h3>
+                                                <div id="online-text" class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Offline</div>
+                                            </div>
                                         </div>
                                         <button type="button" @click="closeChat()"
                                             class="inline-flex items-center justify-center rounded-2xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900" title="Close chat">
@@ -158,7 +154,7 @@
                                 </div>
                             </div>
 
-                            <div id="chat-box" class="flex-1 h-[calc(76vh-220px)] min-h-[300px] overflow-y-auto px-6 py-6 scroll-smooth"></div>
+                            <div id="chat-box" class="flex-1 h-[calc(88vh-220px)] min-h-[400px] overflow-y-auto px-6 py-6 scroll-smooth"></div>
 
                             <div class="border-t border-slate-200 bg-white px-6 py-6">
                                 <div id="file-preview"

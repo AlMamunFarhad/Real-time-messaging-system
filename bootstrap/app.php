@@ -12,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(append: [
+            \Modules\Messaging\Http\Middleware\TrackOnlineStatus::class,
+        ]);
         $middleware->alias([
             'admin' => AdminMiddleware::class,
         ]);

@@ -15,27 +15,7 @@ class MessagingController extends Controller
         protected ConversationService $conversationService
     ) {}
 
-    protected function getUnreadCountForConversation(Conversation $conversation, int $userId, string $userType, string $userTypeShort): int
-    {
-        $participant = $conversation->participants->first(function ($participant) use ($userId, $userType, $userTypeShort) {
-            return (int) $participant->participant_id === (int) $userId
-                && in_array($participant->participant_type, [$userType, $userTypeShort], true);
-        });
 
-        if (!$participant) {
-            return 0;
-        }
-
-        $lastReadAt = $participant->last_read_at;
-
-        return $conversation->messages()
-            ->when($lastReadAt, fn ($query) => $query->where('created_at', '>', $lastReadAt))
-            ->where(function ($query) use ($userId, $userType, $userTypeShort) {
-                $query->where('sender_id', '!=', $userId)
-                    ->orWhereNotIn('sender_type', [$userType, $userTypeShort]);
-            })
-            ->count();
-    }
 
     public function index()
     {
@@ -190,7 +170,7 @@ class MessagingController extends Controller
 
         $unreadCount = 0;
         foreach ($allConversations as $conversation) {
-            $unread = $this->getUnreadCountForConversation($conversation, $userId, $userType, $userTypeShort);
+            $unread = $this->conversationService->getUnreadCountForConversation($conversation, $userId, $userType);
             $unreadCount += $unread;
             $conversation->unread_count = $unread;
 
@@ -224,6 +204,7 @@ class MessagingController extends Controller
             $conversation->title = $conversation->is_group
                 ? ($conversation->name ?: 'Untitled Group')
                 : $conversation->other_participant_name;
+            $conversation->is_online = $conversation->is_group ? false : ($otherParticipant ? \Illuminate\Support\Facades\Cache::has("online_{$conversation->other_participant_type}_{$conversation->other_participant_id}") : false);
             $conversation->members_count = $conversation->participants->count();
             $conversation->can_manage = $conversation->is_group
                 ? $this->conversationService->canManageGroup($conversation, $userId, $userType)

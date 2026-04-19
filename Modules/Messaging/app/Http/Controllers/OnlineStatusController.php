@@ -21,7 +21,7 @@ class OnlineStatusController extends Controller
         // Use short type name to match what check() uses from URL params
         $typeShort = strtolower(class_basename($type)); // "user" or "admin"
         $key = "online_{$typeShort}_{$id}";
-        Cache::put($key, true, now()->addSeconds(10));
+        Cache::put($key, true, now()->addSeconds(60));
 
         return response()->json(['status' => 'ok']);
     }

@@ -353,7 +353,12 @@ async function initChat() {
         channel.listen('.message.sent', (e) => {
             console.log('Real-time message received!', e);
             console.log('Message data:', e.message);
-            console.log(' sender_id:', e.message?.sender_id, ' window.userId:', window.userId);
+
+            // SECURITY FIX: Ensure the message belongs to the current conversation
+            if (e.message && e.message.conversation_id != window.conversationId) {
+                console.log('[Echo] Message ignored - belongs to different conversation:', e.message.conversation_id);
+                return;
+            }
 
             // Always append incoming messages at bottom
             if (e.message && e.message.sender_id != window.userId) {

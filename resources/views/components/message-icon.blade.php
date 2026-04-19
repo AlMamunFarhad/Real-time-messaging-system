@@ -228,8 +228,12 @@
                 unreadCount: config.unreadCount || 0,
                 refreshTimer: null,
                 init() {
-                    this.refreshConversations();
+                    // Start refresh loop immediately
                     this.startRefreshLoop();
+                    
+                    // Delay initial refresh by 1s to allow dashboard markRead to settle
+                    setTimeout(() => this.refreshConversations(), 1000);
+                    
                     window.addEventListener('message-counter-sync', () => this.refreshConversations());
                     window.addEventListener('focus', () => this.refreshConversations());
                     document.addEventListener('visibilitychange', () => {
@@ -301,10 +305,13 @@
                 onlineStatusTimer: null,
                 heartbeatTimer: null,
                 init() {
-                    this.refreshConversations();
                     this.sendHeartbeat();
                     this.startHeartbeatLoop();
                     this.startRefreshLoop();
+                    
+                    // Delay initial refresh by 1s to allow dashboard markRead to settle
+                    setTimeout(() => this.refreshConversations(), 1000);
+                    
                     window.addEventListener('message-counter-sync', () => this.refreshConversations());
                     window.addEventListener('focus', () => this.refreshConversations());
                     document.addEventListener('visibilitychange', () => {
