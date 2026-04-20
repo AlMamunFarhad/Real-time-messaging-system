@@ -23,60 +23,85 @@
     <div style="width: 100%; max-width: 900px; margin: 1.5rem auto; background: #ffffff; border-radius: 24px; border: 1px solid rgba(15, 23, 42, 0.08); overflow: hidden; box-shadow: 0 20px 40px -12px rgba(15, 23, 42, 0.12);">
 
         <!-- Header -->
-        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 1.25rem 1.5rem;">
+        <div style="background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(251,146,60,0.15); color: #44403c; padding: 1.25rem 1.5rem;">
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div style="height: 48px; width: 48px; border-radius: 14px; background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);">
+                    <div style="height: 48px; width: 48px; border-radius: 16px; background: linear-gradient(135deg, #fb7185 0%, #fdba74 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(251, 113, 133, 0.25);">
                         <svg xmlns="http://www.w3.org/2000/svg" style="height: 1.5rem; width: 1.5rem; color: white;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
                     </div>
                     <div>
-                        <h3 style="font-weight: 700; font-size: 1.25rem; margin: 0;">{{ $otherUserName }}</h3>
-                        <p style="font-size: 0.8rem; color: #94a3b8; margin: 0;">Conversation #{{ $conversation->id }}</p>
+                        <h3 style="font-weight: 700; font-size: 1.15rem; margin: 0; color: #44403c; letter-spacing: -0.01em;">{{ $otherUserName }}</h3>
+                        <p style="font-size: 0.75rem; color: #a8a29e; margin: 0; margin-top: 2px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Conversation #{{ $conversation->id }}</p>
                     </div>
                 </div>
-                <div id="online-status" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 0.4rem 0.8rem; border-radius: 20px;">
-                    <span id="online-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #64748b; box-shadow: 0 0 8px rgba(100, 116, 139, 0.5);"></span>
-                    <span id="online-text" style="color: #cbd5e1;">Offline</span>
+                <div id="online-status" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(251,146,60,0.05); padding: 0.4rem 0.8rem; border-radius: 20px; border: 1px solid rgba(251,146,60,0.1);">
+                    <span id="online-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #d6d3d1; box-shadow: 0 0 8px rgba(214, 211, 209, 0.5); transition: background 0.3s ease;"></span>
+                    <span id="online-text" style="color: #a8a29e; transition: color 0.3s ease;">Offline</span>
                 </div>
             </div>
         </div>
 
         <!-- Chat Body -->
-        <div id="chat-box" style="height: 65vh; min-height: 450px; max-height: 65vh; overflow-y: auto; padding: 1.5rem; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);">
-            <div style="text-align: center; color: #64748b; padding: 2rem; font-size: 14px;">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4;" fill="none" viewBox="0 0 24 24" stroke="#94a3b8">
+        <div id="chat-box" style="height: 65vh; min-height: 450px; max-height: 65vh; overflow-y: auto; padding: 1.5rem; background: radial-gradient(ellipse at top right, rgba(255,237,213,0.5), #ffffff, rgba(255,228,230,0.3));">
+            <!-- Skeleton Loader -->
+            <div id="chat-skeleton" style="display: none;">
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div style="display: flex; justify-content: flex-start; animation: fadeInUp 0.4s ease-out;">
+                        <div style="width: 65%; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div style="height: 12px; width: 80px; background: rgba(255,237,213,0.8); border-radius: 4px; animation: pulse 2s infinite;"></div>
+                            <div style="height: 50px; width: 100%; background: white; border-radius: 20px; border-bottom-left-radius: 6px; box-shadow: 0 4px 20px -4px rgba(251,146,60,0.05); border: 1px solid rgba(255,237,213,0.5); animation: pulse 2s infinite;"></div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; animation: fadeInUp 0.5s ease-out;">
+                        <div style="width: 50%; display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                            <div style="height: 40px; width: 100%; background: linear-gradient(135deg, rgba(244,63,94,0.4) 0%, rgba(251,146,60,0.4) 100%); border-radius: 20px; border-bottom-right-radius: 6px; animation: pulse 2s infinite;"></div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: flex-start; animation: fadeInUp 0.6s ease-out;">
+                        <div style="width: 40%; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div style="height: 12px; width: 60px; background: rgba(255,237,213,0.8); border-radius: 4px; animation: pulse 2s infinite;"></div>
+                            <div style="height: 60px; width: 100%; background: white; border-radius: 20px; border-bottom-left-radius: 6px; box-shadow: 0 4px 20px -4px rgba(251,146,60,0.05); border: 1px solid rgba(255,237,213,0.5); animation: pulse 2s infinite;"></div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; animation: fadeInUp 0.7s ease-out;">
+                        <div style="width: 55%; display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                            <div style="height: 45px; width: 100%; background: linear-gradient(135deg, rgba(244,63,94,0.4) 0%, rgba(251,146,60,0.4) 100%); border-radius: 20px; border-bottom-right-radius: 6px; animation: pulse 2s infinite;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="empty-state" style="text-align: center; color: #fb923c; padding: 2rem; font-size: 14px;">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width: 56px; height: 56px; margin: 0 auto 16px auto; opacity: 0.3; color: #f43f5e;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                <p>Start your conversation</p>
+                <p style="font-weight: 500; font-size: 16px; color: #44403c;">Start your exciting conversation</p>
             </div>
         </div>
 
         <!-- Input -->
-        <div style="border-top: 1px solid #e2e8f0; background: white; padding: 1rem;">
+        <div style="border-top: 1px solid rgba(251,146,60,0.15); background: rgba(255,255,255,0.7); backdrop-filter: blur(16px); padding: 1.25rem 1.5rem; box-shadow: 0 -10px 40px -5px rgba(251,146,60,0.05);">
             <!-- File Preview -->
-            <div id="file-preview" style="display: none; margin-bottom: 0.5rem; padding: 0.5rem; background: #f3f4f6; border-radius: 8px;">
+            <div id="file-preview" style="display: none; margin-bottom: 0.75rem; padding: 0.75rem; background: rgba(251,146,60,0.05); border: 1px solid rgba(251,146,60,0.15); border-radius: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                 <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <span id="file-name" style="font-size: 0.875rem; color: #374151; display: flex; align-items: center; gap: 8px;"></span>
-                    <button type="button" onclick="removeFile()" style="background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 1.25rem;">&times;</button>
+                    <span id="file-name" style="font-size: 0.875rem; color: #44403c; font-weight: 600; display: flex; align-items: center; gap: 8px;"></span>
+                    <button type="button" onclick="removeFile()" style="background: white; border: none; color: #a8a29e; cursor: pointer; font-size: 1.25rem; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s;" onmouseover="this.style.color='#f43f5e'; this.style.background='#fff0f2'" onmouseout="this.style.color='#a8a29e'; this.style.background='white'">&times;</button>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 0.75rem;">
                 <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(event)">
-                <button type="button" onclick="document.getElementById('file-input').click()" style="background: #f3f4f6; color: #6b7280; padding: 0.75rem; border-radius: 50%; border: none; cursor: pointer;">
-                    <svg xmlns="http://www.w3.org/2000/svg" style="height: 1.25rem; width: 1.25rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <button type="button" onclick="document.getElementById('file-input').click()" style="background: #fff7ed; color: #f97316; width: 52px; height: 52px; border-radius: 20px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(251,146,60,0.1); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.05)'; this.style.background='#ffedd5'" onmouseout="this.style.transform='scale(1)'; this.style.background='#fff7ed'">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="height: 1.5rem; width: 1.5rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                     </svg>
                 </button>
-                <input type="text" id="message-input" style="flex: 1; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 9999px; padding: 0.75rem 1rem; color: #374151; font-size: 0.9375rem; outline: none;" placeholder="Type your message..." autocomplete="off">
-                <button type="button" onclick="sendMessage()" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 0.75rem 1rem; border-radius: 9999px; border: none; cursor: pointer; transition: background 0.2s; white-space: nowrap;">
-                    <span style="display: flex; align-items: center; gap: 0.25rem;">
-                        Send
-                        <svg xmlns="http://www.w3.org/2000/svg" style="height: 1rem; width: 1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                        </svg>
-                    </span>
+                <input type="text" id="message-input" style="flex: 1; background: white; border: 1px solid rgba(251,146,60,0.2); border-radius: 24px; padding: 0 1.25rem; height: 52px; color: #44403c; font-size: 0.9375rem; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s;" placeholder="Type your message..." autocomplete="off" onfocus="this.style.borderColor='#fda4af'; this.style.boxShadow='0 0 0 4px rgba(254,205,211,0.5)'" onblur="this.style.borderColor='rgba(251,146,60,0.2)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.02)'">
+                <button type="button" onclick="sendMessage()" style="background: linear-gradient(135deg, #fb7185 0%, #fdba74 100%); color: white; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 20px; border: none; cursor: pointer; box-shadow: 0 4px 14px 0 rgba(251,113,133,0.39); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(251,113,133,0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 14px 0 rgba(251,113,133,0.39)'">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="height: 1.25rem; width: 1.25rem; transform: translateX(2px);" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>
                 </button>
             </div>
         </div>
@@ -105,7 +130,11 @@
 
     <style>
         #chat-box {
-            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            background: radial-gradient(ellipse at top right, rgba(255,237,213,0.5), #ffffff, rgba(255,228,230,0.3));
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.99); }
         }
         .message-row {
             display: flex;
@@ -142,70 +171,52 @@
             align-items: flex-start;
         }
         .sender-name {
-            font-size: 12px;
-            color: #f59e0b;
-            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #fb7185;
+            font-weight: 700;
             margin-bottom: 6px;
             margin-left: 12px;
         }
         .message-bubble {
             padding: 14px 18px;
-            border-radius: 20px;
+            border-radius: 24px;
             word-wrap: break-word;
-            font-size: 14px;
-            line-height: 1.5;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+            font-size: 14.5px;
+            line-height: 1.6;
+            transition: transform 0.3s ease;
         }
-        /* User's message - Dark slate theme */
+        .message-row:hover .message-bubble {
+            transform: translateY(-2px);
+        }
+        
+        /* User's message - Sunset theme */
         .my-message .message-bubble {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background: linear-gradient(135deg, #f43f5e 0%, #fb923c 100%);
             color: white;
             border-bottom-right-radius: 6px;
-            position: relative;
+            box-shadow: 0 4px 14px 0 rgba(251, 113, 133, 0.39);
         }
-        .my-message .message-bubble::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: -8px;
-            width: 0;
-            height: 0;
-            border: 8px solid transparent;
-            border-top: 0;
-            border-bottom: 12px solid #1e293b;
-            border-left: 0;
-            border-right: 0;
-            transform: rotate(-45deg);
-        }
+
         /* Admin/Other message - Clean white style */
         .their-message .message-bubble {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            color: #1e293b;
-            border: 1px solid rgba(15, 23, 42, 0.08);
+            background: #ffffff;
+            color: #44403c;
+            border: 1px solid #fff7ed;
             border-bottom-left-radius: 6px;
-            position: relative;
+            box-shadow: 0 4px 20px -4px rgba(251, 146, 60, 0.08);
         }
-        .their-message .message-bubble::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: -8px;
-            width: 0;
-            height: 0;
-            border: 8px solid transparent;
-            border-top: 0;
-            border-bottom: 12px solid #f1f5f9;
-            border-right: 0;
-            transform: rotate(45deg);
-        }
+        
         .message-time {
             font-size: 11px;
-            color: #64748b;
+            color: #fda4af;
             margin-top: 6px;
             padding: 0 4px;
+            font-weight: 500;
         }
         .my-message .message-time {
-            color: #64748b;
+            color: #fda4af;
         }
     </style>
 
@@ -336,6 +347,16 @@
             if (now - window.lastLoadTime < window.loadDebounceMs) return;
             window.lastLoadTime = now;
             window.isLoadingMessages = true;
+
+            const chatSkeleton = document.getElementById('chat-skeleton');
+            const emptyState = document.getElementById('empty-state');
+            const chatBox = document.getElementById('chat-box');
+
+            if (window.loadedMessageIds.size === 0) {
+                if (chatSkeleton) chatSkeleton.style.display = 'block';
+                if (emptyState) emptyState.style.display = 'none';
+            }
+
             try {
                 const response = await axios.get('/messages/' + window.conversationId + '?t=' + now);
                 console.log('Load messages response:', response.data);
@@ -343,12 +364,33 @@
                 messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
                 
                 const isFirstLoad = window.loadedMessageIds.size === 0;
-                messages.forEach(msg => {
-                    if (!window.loadedMessageIds.has(msg.id)) {
-                        window.loadedMessageIds.add(msg.id);
-                        window.appendMessage(msg);
+                
+                if (isFirstLoad && messages.length > 0) {
+                    // Smooth transition: hide skeleton after a tiny delay to ensure feel
+                    setTimeout(() => {
+                        if (chatSkeleton) chatSkeleton.style.display = 'none';
+                        messages.forEach(msg => {
+                            if (!window.loadedMessageIds.has(msg.id)) {
+                                window.loadedMessageIds.add(msg.id);
+                                window.appendMessage(msg);
+                            }
+                        });
+                    }, 300);
+                } else {
+                    if (chatSkeleton) chatSkeleton.style.display = 'none';
+                    if (messages.length === 0) {
+                        if (emptyState) emptyState.style.display = 'block';
+                    } else {
+                        if (emptyState) emptyState.style.display = 'none';
+                        messages.forEach(msg => {
+                            if (!window.loadedMessageIds.has(msg.id)) {
+                                window.loadedMessageIds.add(msg.id);
+                                window.appendMessage(msg);
+                            }
+                        });
                     }
-                });
+                }
+
                 if (window.loadedMessageIds.size > 0) {
                     window.lastMessageId = Math.max(...Array.from(window.loadedMessageIds));
                 }
@@ -356,6 +398,7 @@
                 console.log('Loaded messages. Total loaded:', window.loadedMessageIds.size, 'Last ID:', window.lastMessageId);
             } catch (error) {
                 console.error('Load error:', error);
+                if (chatSkeleton) chatSkeleton.style.display = 'none';
             } finally {
                 window.isLoadingMessages = false;
             }

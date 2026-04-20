@@ -37,84 +37,87 @@
         showChat: false,
         isFileTooLarge: false
     })" x-init="init()" class="-m-6 mx-auto max-w-7xl overflow-hidden">
-        <div
-            class="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.35)]">
-            <div class="grid min-h-[88vh] lg:grid-cols-[340px_minmax(0,1fr)]">
-                <aside class="flex flex-col border-b border-slate-200 bg-slate-50 lg:border-b-0 lg:border-r">
-                    <div class="border-b border-slate-200 bg-white px-5 py-5">
-                        <div class="flex items-center gap-3">
-                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+        <div class="mx-3 my-3 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.35)] md:mx-4 md:my-4 lg:mx-0 lg:my-0 lg:rounded-[28px]">
+            <div class="relative flex h-[88vh] overflow-hidden md:grid md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[340px_minmax(0,1fr)]">
+                <aside class="flex h-full w-full flex-col overflow-hidden border-b border-stone-200 bg-[#fafafa] md:w-auto md:border-b-0 md:border-r">
+                    <div class="shrink-0 border-b border-stone-200/60 bg-white/80 backdrop-blur-xl px-6 py-5">
+                        <div class="flex items-center gap-4">
+                            <div class="flex h-[46px] w-[46px] items-center justify-center rounded-[16px] bg-stone-100 text-stone-700 shadow-sm border border-stone-200/50">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-3 3-3-3z" />
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-base font-semibold text-slate-900">Users</h3>
-                                <p class="text-sm text-slate-500">Search and select a user</p>
+                                <h3 class="text-[17px] font-bold text-stone-800 tracking-tight">Conversations</h3>
+                                <p class="text-[11px] font-semibold text-stone-400 uppercase tracking-widest mt-0.5">Manage Users</p>
                             </div>
                         </div>
-                        <div class="relative mt-4">
+                        <div class="relative mt-5">
                             <input x-model="search" @input="debouncedLoadUsers()" type="text"
-                                placeholder="Search by name or email"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-10 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200">
+                                placeholder="Search here..."
+                                class="w-full rounded-[16px] border border-transparent bg-stone-100/80 px-5 py-3 pr-11 text-[13.5px] font-medium text-stone-700 outline-none transition-all duration-300 placeholder:text-stone-400 focus:border-stone-300/60 focus:bg-white focus:ring-4 focus:ring-stone-100/50 focus:shadow-sm">
                             <svg xmlns="http://www.w3.org/2000/svg"
-                                class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+                                class="pointer-events-none absolute right-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-stone-400 transition-colors"
                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                     d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z" />
                             </svg>
                         </div>
                     </div>
 
-                    <div class="flex-1 max-h-[calc(88vh-110px)] overflow-y-auto px-3 py-3">
+                    <div class="flex-1 overflow-y-auto px-4 py-4 space-y-1.5 custom-scrollbar">
                         <template x-if="loadingUsers">
-                            <div class="space-y-2">
-                                <div class="h-16 animate-pulse rounded-2xl bg-white"></div>
-                                <div class="h-16 animate-pulse rounded-2xl bg-white"></div>
-                                <div class="h-16 animate-pulse rounded-2xl bg-white"></div>
+                            <div class="space-y-3">
+                                <div class="h-[72px] animate-pulse rounded-[20px] bg-white border border-stone-100 shadow-sm"></div>
+                                <div class="h-[72px] animate-pulse rounded-[20px] bg-white border border-stone-100 shadow-sm"></div>
+                                <div class="h-[72px] animate-pulse rounded-[20px] bg-white border border-stone-100 shadow-sm"></div>
                             </div>
                         </template>
 
                         <template x-if="!loadingUsers && users.length === 0">
-                            <div
-                                class="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-10 text-center">
-                                <p class="text-sm font-medium text-slate-600">No user found</p>
+                            <div class="rounded-[20px] border border-dashed border-stone-200 bg-stone-50 px-4 py-12 text-center mt-2">
+                                <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white text-stone-400 mb-3 shadow-sm border border-stone-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </span>
+                                <p class="text-[13px] font-semibold text-stone-500">No users found</p>
                             </div>
                         </template>
 
-                        <div class="space-y-2" x-show="!loadingUsers && users.length">
+                        <div class="space-y-1.5 pointer-events-auto" x-show="!loadingUsers && users.length">
                             <template x-for="user in users" :key="user.id">
                                 <button type="button" @click="selectUser(user)"
-                                    class="block w-full rounded-2xl border px-4 py-3 text-left transition"
+                                    class="group block w-full rounded-[20px] px-3.5 py-3 text-left transition-all duration-300"
                                     :class="Number(activeUserId) === Number(user.id) ?
-                                        'border-slate-900 bg-slate-900 text-white' :
-                                        'border-transparent bg-white text-slate-800 hover:border-slate-200 hover:bg-slate-100'">
-                                    <div class="flex items-center gap-3">
-                                        <div class="flex h-11 w-11 items-center justify-center rounded-2xl text-sm font-semibold"
-                                            :class="Number(activeUserId) === Number(user.id) ? 'bg-white/15 text-white' :
-                                                'bg-slate-100 text-slate-700'"
+                                        'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-stone-200/60 scale-[1.01] z-10 relative' :
+                                        'bg-transparent hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] text-stone-800'">
+                                    <div class="flex items-center gap-3.5">
+                                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] text-[14px] font-bold shadow-sm transition-all duration-300"
+                                            :class="Number(activeUserId) === Number(user.id) ? 'bg-gradient-to-br from-rose-400 to-orange-300 text-white shadow-md shadow-rose-200' :
+                                                'bg-[#f4efe8] text-stone-600 group-hover:bg-[#f0ece5]'"
                                             x-text="initialFor(user.name)"></div>
                                         <div class="min-w-0 flex-1">
-                                            <div class="flex items-center gap-2">
-                                                <span class="inline-flex h-2.5 w-2.5 shrink-0 rounded-full"
+                                            <div class="flex items-center gap-1.5">
+                                                <div class="truncate text-[14.5px] font-bold text-stone-800 tracking-tight" x-text="user.name"></div>
+                                                <span class="inline-flex h-2 w-2 shrink-0 rounded-full transition-colors ml-1"
                                                     :class="user.is_online ?
-                                                        'bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.16)]' :
-                                                        'bg-slate-300'"></span>
-                                                <div class="truncate text-sm font-semibold" x-text="user.name"></div>
+                                                        'bg-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.12)]' :
+                                                        'bg-stone-200'"></span>
                                             </div>
-                                            <div class="truncate text-xs"
-                                                :class="Number(activeUserId) === Number(user.id) ? 'text-slate-300' :
-                                                    'text-slate-500'"
-                                                x-text="user.is_online ? user.email + ' • Active now' : user.email">
+                                            <div class="truncate text-[12px] mt-0.5 font-medium transition-colors"
+                                                :class="Number(activeUserId) === Number(user.id) ? 'text-rose-500' :
+                                                    'text-stone-400'"
+                                                x-text="user.is_online ? 'Active now' : 'Offline'">
                                             </div>
                                         </div>
                                         <template x-if="Number(user.unseen_count || 0) > 0">
                                             <span
-                                                class="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full px-2 text-xs font-bold"
-                                                :class="Number(activeUserId) === Number(user.id) ? 'bg-white text-slate-900' :
-                                                    'bg-rose-500 text-white'"
+                                                class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10px] font-bold shadow-sm transition-transform group-hover:scale-110"
+                                                :class="Number(activeUserId) === Number(user.id) ? 'bg-rose-100 text-rose-600' :
+                                                    'bg-gradient-to-br from-rose-500 to-orange-400 text-white'"
                                                 x-text="Number(user.unseen_count) > 99 ? '99+' : user.unseen_count"></span>
                                         </template>
                                     </div>
@@ -125,63 +128,96 @@
                 </aside>
 
                 <section
-                    class="hidden h-[88vh] flex-col bg-[radial-gradient(circle_at_top,#f8fafc_0%,#ffffff_42%,#f8fafc_100%)] lg:flex">
+                    class="absolute inset-0 z-10 flex h-full w-full flex-col overflow-hidden bg-[#fcfbf9] transition-transform duration-300 ease-in-out md:static md:transform-none md:transition-none"
+                    :class="(isMobileChatOpen || window.innerWidth >= 768) && activeConversationId ? 'translate-x-0' : 'translate-x-full md:translate-x-0'">
                     <template x-if="activeConversationId">
-                        <div class="flex h-full flex-col">
-                            <div class="border-b border-slate-200 bg-white px-6 py-5">
+                        <div class="flex h-full flex-col overflow-hidden bg-[#fcfbf9]">
+                            <div class="border-b border-orange-100 bg-white/80 backdrop-blur-md px-6 py-[18px]">
                                 <div class="flex items-center justify-between gap-4">
-                                    <div class="flex items-center gap-3">
-                                        <div
-                                            class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-300 text-slate-900">
-                                            <span class="text-base font-semibold"
-                                                x-text="initialFor(activeUserName)"></span>
-                                        </div>
-                                        <div class="flex flex-col">
-                                            <div class="flex items-center gap-2">
-                                                <div id="online-dot" class="h-2 w-2 rounded-full bg-slate-400 transition-colors duration-300"></div>
-                                                <h3 class="text-base font-semibold text-slate-900" x-text="activeUserName || 'User'"></h3>
-                                                <div id="online-text" class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Offline</div>
-                                            </div>
-                                        </div>
-                                        <button type="button" @click="closeChat()"
-                                            class="inline-flex items-center justify-center rounded-2xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900" title="Close chat">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M6 18L18 6M6 6l12 12" />
+                                    <div class="flex items-center">
+                                        <button type="button" @click="isMobileChatOpen = false" class="mr-3 flex h-10 w-10 items-center justify-center rounded-[14px] bg-stone-50 text-stone-500 transition hover:bg-stone-100 hover:text-stone-800 md:hidden" title="Back to list">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                                             </svg>
                                         </button>
+                                        <div class="flex items-center gap-4">
+                                            <div
+                                                class="flex h-12 w-12 items-center justify-center rounded-[20px] bg-gradient-to-br from-rose-400 to-orange-300 text-white shadow-sm ring-[3px] ring-rose-50">
+                                                <span class="text-[16px] font-bold tracking-tight"
+                                                    x-text="initialFor(activeUserName)"></span>
+                                            </div>
+                                            <div class="flex flex-col">
+                                                <div class="flex items-center gap-2">
+                                                    <div id="online-dot" class="h-2.5 w-2.5 rounded-full bg-stone-300 transition-colors duration-300 shadow-[0_0_0_3px_rgba(214,211,209,0.2)] ml-0.5"></div>
+                                                    <h3 class="text-[17.5px] font-bold text-stone-800 tracking-tight" x-text="activeUserName || 'User'"></h3>
+                                                    <div id="online-text" class="text-[11px] font-bold uppercase tracking-widest text-stone-400 ml-1">Offline</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
+                                    <button type="button" @click="closeChat()"
+                                        class="hidden md:flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-stone-400 transition hover:bg-stone-50 hover:text-stone-800 shadow-sm" title="Close chat">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
 
-                            <div id="chat-box" class="flex-1 h-[calc(88vh-220px)] min-h-[400px] overflow-y-auto px-6 py-6 scroll-smooth"></div>
+                            <div id="chat-box" class="flex-1 overflow-y-auto bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-50/50 via-white to-rose-50/30 px-4 py-4 md:px-6 md:py-6 transition-opacity duration-300" style="opacity: 0;">
+                                <!-- messages injected by JS -->
+                                <template x-if="isLoadingMessages">
+                                    <div class="space-y-6 pr-4">
+                                        <div class="flex items-start gap-4">
+                                            <div class="h-11 w-11 flex-shrink-0 animate-pulse rounded-2xl bg-orange-100/60"></div>
+                                            <div class="flex flex-col gap-2.5 w-full">
+                                                <div class="h-3 w-24 animate-pulse rounded-full bg-orange-100/60"></div>
+                                                <div class="h-16 w-[65%] animate-pulse rounded-[22px] bg-white border border-rose-100/50 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.05)]"></div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-end justify-end">
+                                             <div class="h-14 w-[50%] animate-pulse rounded-[22px] bg-gradient-to-r from-rose-200 to-orange-200 opacity-60"></div>
+                                        </div>
+                                        <div class="flex items-start gap-4 pt-2">
+                                            <div class="h-11 w-11 flex-shrink-0 animate-pulse rounded-2xl bg-orange-100/60"></div>
+                                            <div class="flex flex-col gap-2.5 w-full">
+                                                <div class="h-3 w-20 animate-pulse rounded-full bg-orange-100/60"></div>
+                                                <div class="h-14 w-[40%] animate-pulse rounded-[22px] bg-white border border-rose-100/50 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.05)]"></div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-end justify-end">
+                                             <div class="h-12 w-[60%] animate-pulse rounded-[22px] bg-gradient-to-r from-rose-200 to-orange-200 opacity-60"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
 
-                            <div class="border-t border-slate-200 bg-white px-6 py-6">
+                            <div class="shrink-0 border-t border-rose-100 bg-white/80 backdrop-blur-md px-4 py-4 md:px-6 md:py-5 shadow-[0_-10px_40px_-5px_rgba(251,146,60,0.05)]">
                                 <div id="file-preview" x-cloak
-                                    class="mb-3 hidden rounded-2xl border px-4 py-3"
-                                    :class="isFileTooLarge ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-slate-50'">
-                                    <div class="flex items-center justify-between gap-3">
+                                    class="mb-3 hidden items-center justify-between rounded-2xl border px-4 py-3 shadow-sm"
+                                    :class="isFileTooLarge ? 'border-rose-200 bg-rose-50' : 'border-orange-100 bg-orange-50/50'">
+                                    <div class="flex items-center gap-3">
                                         <div class="flex flex-col">
-                                            <span id="file-name" class="flex items-center gap-2 text-sm font-medium" :class="isFileTooLarge ? 'text-rose-600' : 'text-slate-600'"></span>
+                                            <span id="file-name" class="flex items-center gap-2 text-sm font-semibold" :class="isFileTooLarge ? 'text-rose-600' : 'text-stone-700'"></span>
                                             <template x-if="isFileTooLarge">
                                                 <span class="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-500">File too large! Maximum limit is 10MB</span>
                                             </template>
                                         </div>
-                                        <button type="button" @click="removeFile()"
-                                            class="text-xl leading-none text-slate-400 transition hover:text-slate-700">&times;</button>
                                     </div>
+                                    <button type="button" @click="removeFile()"
+                                        class="flex h-8 w-8 items-center justify-center rounded-full bg-white text-stone-400 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm">&times;</button>
                                 </div>
-                                <div class="flex items-end gap-3">
                                 <div class="relative flex items-end gap-3" x-data="{ showEmojiPicker: false }">
                                     <div x-show="showEmojiPicker" @click.away="showEmojiPicker = false" x-cloak x-transition
-                                        class="absolute bottom-16 left-0 z-50 w-64 rounded-[24px] border border-slate-200 bg-white/95 p-3 shadow-2xl backdrop-blur-md">
-                                        <div class="grid grid-cols-5 gap-1">
+                                        class="absolute bottom-16 left-0 z-50 w-72 rounded-[24px] border border-orange-100 bg-white/95 p-3 shadow-2xl backdrop-blur-xl">
+                                        <div class="grid grid-cols-6 gap-1 max-h-60 overflow-y-auto p-1 custom-scrollbar">
                                             <template
-                                                x-for="emoji in ['😊','😂','❤️','👍','😍','🙌','✨','🔥','✅','🚀','💡','👏','🙏','🎉','😎','🤔','😮','😢','🤝','📍']"
+                                                x-for="emoji in ['😊','😂','❤️','👍','😍','🙌','✨','🔥','✅','🚀','💡','👏','🙏','🎉','😎','🤔','😮','😢','🤝','📍','🤩','😇','🥳','🥺']"
                                                 :key="emoji">
                                                 <button type="button" @click="addEmoji(emoji); showEmojiPicker = false"
-                                                    class="flex h-10 w-10 items-center justify-center rounded-xl text-xl transition hover:bg-slate-100"
+                                                    class="flex h-10 w-10 items-center justify-center rounded-xl text-xl transition hover:bg-orange-100 hover:scale-110 active:scale-95"
                                                     x-text="emoji"></button>
                                             </template>
                                         </div>
@@ -190,9 +226,9 @@
                                     <input type="file" id="file-input" class="hidden"
                                         @change="handleFileSelect($event)">
                                     <button type="button" @click="openFilePicker()"
-                                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100"
+                                        class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-orange-50 text-orange-500 shadow-sm transition-all hover:bg-orange-100 hover:text-orange-600 hover:shadow-md active:scale-95"
                                         title="Attach file">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -200,7 +236,7 @@
                                     </button>
 
                                     <button type="button" @click="showEmojiPicker = !showEmojiPicker"
-                                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:bg-slate-100"
+                                        class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-rose-50 text-rose-400 shadow-sm transition-all hover:bg-rose-100 hover:text-rose-500 hover:shadow-md active:scale-95"
                                         title="Add emoji">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
@@ -209,14 +245,19 @@
                                         </svg>
                                     </button>
 
-                                    <input type="text" id="message-input" x-model="draftMessage"
-                                        @keydown.enter.prevent="sendMessage()"
-                                        class="h-12 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
-                                        placeholder="Write a message...">
+                                    <div class="relative flex-1 group">
+                                        <textarea id="message-input" x-model="draftMessage"
+                                            @keydown.enter.prevent="sendMessage()" rows="1"
+                                            class="min-h-[52px] w-full rounded-[24px] border border-orange-100 bg-white px-5 py-3.5 text-[15px] text-stone-700 shadow-sm outline-none transition-all focus:border-rose-300 focus:bg-white focus:ring-4 focus:ring-rose-100/50 resize-none"
+                                            placeholder="Type your message..."></textarea>
+                                    </div>
                                     <button type="button" @click="sendMessage()"
                                         :disabled="isFileTooLarge || (!draftMessage.trim() && !document.getElementById('file-input')?.files[0])"
-                                        class="inline-flex h-12 shrink-0 items-center gap-2 rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed">Send</button>
-                                </div>
+                                        class="group relative flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-[0_4px_14px_0_rgba(251,113,133,0.39)] transition-all hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(251,113,133,0.5)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -226,15 +267,15 @@
                         <div class="flex flex-1 items-center justify-center px-6 py-10">
                             <div class="max-w-md text-center">
                                 <div
-                                    class="mx-auto flex h-20 w-20 items-center justify-center rounded-[28px] bg-slate-100 text-slate-500">
+                                    class="mx-auto flex h-20 w-20 items-center justify-center rounded-[28px] bg-stone-50 border border-stone-100 text-stone-400">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"
                                             d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-3 3-3-3z" />
                                     </svg>
                                 </div>
-                                <h3 class="mt-6 text-xl font-semibold text-slate-900">Message box blank</h3>
-                                <p class="mt-2 text-sm leading-6 text-slate-500">Select a user from the left sidebar to
+                                <h3 class="mt-6 text-xl font-bold tracking-tight text-stone-800">Message box blank</h3>
+                                <p class="mt-2 text-[14px] font-medium leading-6 text-stone-500">Select a user from the left sidebar to
                                     open chat here.</p>
                             </div>
                         </div>
@@ -272,7 +313,23 @@
                                 </button>
                             </div>
 
-                            <div id="chat-box-modal" class="flex-1 h-[calc(100dvh-220px)] min-h-[300px] overflow-y-auto px-6 py-6 scroll-smooth"></div>
+                            <div id="chat-box-modal" class="flex-1 h-[calc(100dvh-220px)] min-h-[300px] overflow-y-auto px-6 py-6 transition-opacity duration-300" style="opacity: 0;">
+                                <template x-if="isLoadingMessages">
+                                    <div class="space-y-5">
+                                        <div class="flex items-start gap-2">
+                                            <div class="h-8 w-8 flex-shrink-0 animate-pulse rounded-xl bg-slate-200"></div>
+                                            <div class="h-12 w-[70%] animate-pulse rounded-2xl bg-white border border-slate-200"></div>
+                                        </div>
+                                        <div class="flex justify-end">
+                                            <div class="h-10 w-[50%] animate-pulse rounded-2xl bg-slate-800"></div>
+                                        </div>
+                                        <div class="flex items-start gap-2">
+                                            <div class="h-8 w-8 flex-shrink-0 animate-pulse rounded-xl bg-slate-200"></div>
+                                            <div class="h-14 w-[40%] animate-pulse rounded-2xl bg-white border border-slate-200"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
 
                             <div class="border-t border-slate-200 bg-white px-6 py-2">
                                 <div id="file-preview-modal" x-cloak
@@ -429,7 +486,7 @@
             if (isImage) {
                 return `
                     <div style="margin-top:10px;">
-                        <img src="${fileUrl}" alt="${safeName}" style="max-width:220px; max-height:220px; border-radius:16px; border:1px solid rgba(148,163,184,.25); display:block;">
+                        <img src="${fileUrl}" alt="${safeName}" onload="const cb = this.closest('.flex-1'); if(cb) cb.scrollTop = cb.scrollHeight" style="max-width:220px; max-height:220px; border-radius:16px; border:1px solid rgba(148,163,184,.25); display:block;">
                         <a href="${fileUrl}" download="${safeName}" style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:14px;background:${isMe ? 'rgba(255,255,255,0.14)' : '#f8fafc'};color:${isMe ? '#fff' : '#0f172a'};text-decoration:none;font-size:12px;">Download</a>
                     </div>
                 `;
@@ -445,13 +502,14 @@
                 users: [],
                 search: '',
                 loadingUsers: true,
-                activeUserId: config.initialActiveUserId || 0,
-                activeConversationId: config.initialConversationId || 0,
-                activeUserName: config.initialOtherUserName || '',
-                otherParticipantId: config.initialOtherParticipantId || 0,
-                otherParticipantType: config.initialOtherParticipantType || '',
+                activeUserId: Number(localStorage.getItem('admin_active_user_id')) || config.initialActiveUserId || 0,
+                activeConversationId: Number(localStorage.getItem('admin_active_conversation_id')) || config.initialConversationId || 0,
+                activeUserName: localStorage.getItem('admin_active_user_name') || config.initialOtherUserName || '',
+                otherParticipantId: Number(localStorage.getItem('admin_other_participant_id')) || config.initialOtherParticipantId || 0,
+                otherParticipantType: localStorage.getItem('admin_other_participant_type') || config.initialOtherParticipantType || '',
                 draftMessage: '',
-                showChat: Boolean(config.showChat),
+                isMobileChatOpen: false,
+                showChat: Boolean(localStorage.getItem('admin_active_user_id')) || Boolean(config.showChat),
                 searchTimer: null,
                 pollTimer: null,
                 usersRefreshTimer: null,
@@ -463,6 +521,22 @@
                 isLoadingMessages: false,
                 lastLoadTime: 0, loadDebounceMs: 2000,
                 lastUserLoadTime: 0, userLoadDebounceMs: 2500,
+                scrollToBottom(el, smooth = false) {
+                    if (!el) return;
+                    const doScroll = () => {
+                        if (smooth) {
+                            el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+                        } else {
+                            el.scrollTop = el.scrollHeight;
+                        }
+                    };
+                    // Immediate
+                    doScroll();
+                    // After paint
+                    requestAnimationFrame(() => {
+                        doScroll();
+                    });
+                },
                 init() {
                     this.loadUsers();
                     this.sendHeartbeat();
@@ -477,7 +551,12 @@
                         if (document.visibilityState === 'visible') this.loadUsers(false);
                     });
                     if (this.activeConversationId) {
-                        this.loadMessages();
+                        this.loadMessages().then(() => {
+                            const chatBox = document.getElementById('chat-box');
+                            const chatBoxModal = document.getElementById('chat-box-modal');
+                            this.scrollToBottom(chatBox);
+                            this.scrollToBottom(chatBoxModal);
+                        });
                         this.startPolling();
                         this.checkOnlineStatus();
                         this.startOnlineStatusLoop();
@@ -538,15 +617,29 @@
                 },
                 async selectUser(user) {
                     this.showChat = true;
+                    this.isMobileChatOpen = true;
                     this.activeUserId = user.id;
                     this.activeUserName = user.name;
+                    localStorage.setItem('admin_active_user_id', user.id);
+                    localStorage.setItem('admin_active_user_name', user.name);
                     try {
                         const response = await axios.get(`{{ route('admin.messages.conversation') }}?user=${user.id}`);
                         this.activeConversationId = response.data.conversation.id;
                         this.otherParticipantId = response.data.other_participant.id || 0;
                         this.otherParticipantType = response.data.other_participant.type || '';
                         this.activeUserName = response.data.other_participant.name || user.name;
+                        
+                        localStorage.setItem('admin_active_conversation_id', this.activeConversationId);
+                        localStorage.setItem('admin_other_participant_id', this.otherParticipantId);
+                        localStorage.setItem('admin_other_participant_type', this.otherParticipantType);
+                        
                         history.replaceState({}, '', `{{ route('admin.messages') }}?user=${user.id}`);
+                        
+                        const chatBox = document.getElementById('chat-box');
+                        const chatBoxModal = document.getElementById('chat-box-modal');
+                        if (chatBox) chatBox.style.opacity = '0';
+                        if (chatBoxModal) chatBoxModal.style.opacity = '0';
+                        
                         await this.loadMessages();
                         await this.loadUsers(false);
                         this.startPolling();
@@ -557,7 +650,7 @@
                         this.showChat = false;
                     }
                 },
-                renderMessage(message) {
+                renderMessage(message, autoScroll = true) {
                     const isLargeScreen = window.innerWidth >= 1024; // lg breakpoint
                     const chatBox = isLargeScreen ? document.getElementById('chat-box') : document.getElementById(
                         'chat-box-modal');
@@ -565,10 +658,14 @@
                     const typeShort = message.sender_type ? message.sender_type.split('\\').pop().toLowerCase() : '';
                     const isMe = message.sender_id == config.userId && typeShort === config.userTypeShort;
                     const row = document.createElement('div');
-                    row.className = isMe ? 'message-row my-message' : 'message-row their-message';
+                    const rowClass = isMe ? 'flex justify-end mb-4' : 'flex justify-start mb-4';
+                    row.className = `w-full ${rowClass}`;
                     const container = document.createElement('div');
-                    container.className = 'message-container';
+                    container.className = 'max-w-[80%] flex flex-col animate-[fadeInUp_0.3s_ease-out_forwards]';
                     let content = message.body || '';
+                    if (content) {
+                        content = `<p class="whitespace-pre-wrap text-[14.5px] leading-relaxed font-medium">${content}</p>`;
+                    }
                     const fileUrl = message.file_url || '';
                     const fileName = message.file_name || 'Attachment';
                     content += buildAttachmentHtml(fileUrl, fileName, isMe);
@@ -576,12 +673,20 @@
                         hour: '2-digit',
                         minute: '2-digit'
                     }) : '';
-                    container.innerHTML = isMe ?
-                        `<div class="message-bubble">${content}</div><div class="message-time">${time}</div>` :
-                        `<div class="sender-name">${message.sender_name || this.activeUserName}</div><div class="message-bubble">${content}</div><div class="message-time">${time}</div>`;
+                    
+                    const bubbleClasses = isMe 
+                        ? 'rounded-[24px] px-5 py-3.5 shadow-sm transform transition-all duration-300 hover:-translate-y-0.5 bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-[0_4px_14px_0_rgba(251,113,133,0.39)] rounded-br-md border border-rose-400/20'
+                        : 'rounded-[24px] px-5 py-3.5 shadow-sm transform transition-all duration-300 hover:-translate-y-0.5 bg-white text-stone-800 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.08)] rounded-bl-md border border-orange-50';
+
+                    const timeClass = isMe ? 'mt-1.5 px-2 text-[11px] font-medium text-rose-300 text-right' : 'mt-1.5 px-2 text-[11px] font-medium text-rose-300 text-left';
+                    const senderHtml = isMe ? '' : `<p class="mb-1 px-3 text-[11px] uppercase tracking-wider font-bold text-rose-400">${message.sender_name || this.activeUserName}</p>`;
+
+                    container.innerHTML = `${senderHtml}<div class="${bubbleClasses}">${content}</div><p class="${timeClass}">${time}</p>`;
                     row.appendChild(container);
                     chatBox.appendChild(row);
-                    chatBox.scrollTop = chatBox.scrollHeight;
+                    if (autoScroll) {
+                        this.scrollToBottom(chatBox, true);
+                    }
                 },
 async loadMessages() {
                     if (!this.activeConversationId) return;
@@ -601,12 +706,28 @@ async loadMessages() {
                             if (chatBoxModal) chatBox.innerHTML = '';
                         }
                         
+                        let newMessagesCount = 0;
                         messages.forEach((message) => {
                             if (!this.loadedMessageIds.has(message.id)) {
                                 this.loadedMessageIds.add(message.id);
-                                this.renderMessage(message);
+                                this.renderMessage(message, false);
+                                newMessagesCount++;
                             }
                         });
+                        
+                        // Scroll to bottom after rendering
+                        if (isFirstLoad || newMessagesCount > 0) {
+                            this.scrollToBottom(chatBox, !isFirstLoad);
+                            this.scrollToBottom(chatBoxModal, !isFirstLoad);
+                        }
+                        
+                        if (isFirstLoad || newMessagesCount > 0) {
+                            setTimeout(() => {
+                                if (chatBox) chatBox.style.opacity = '1';
+                                if (chatBoxModal) chatBoxModal.style.opacity = '1';
+                            }, 50);
+                        }
+
                         this.lastMessageId = messages.length ? messages[messages.length - 1].id : 0;
                         await this.markConversationAsRead(true);
                         await this.loadUsers(false);
@@ -781,6 +902,7 @@ async loadMessages() {
                     this.activeUserName = '';
                     this.otherParticipantId = 0;
                     this.otherParticipantType = '';
+                    ['admin_active_user_id', 'admin_active_user_name', 'admin_active_conversation_id', 'admin_other_participant_id', 'admin_other_participant_type'].forEach(k => localStorage.removeItem(k));
                     this.loadedMessageIds = new Set();
                     this.lastMessageId = 0;
                     const chatBox = document.getElementById('chat-box');
@@ -795,16 +917,20 @@ async loadMessages() {
             if (!url) return '';
             const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
             if (isImage) {
+                const borderClass = isMe ? 'border-white/20' : 'border-rose-100';
                 return `
-                    <div class="group relative mt-2 inline-block overflow-hidden rounded-[20px] border border-black/5 bg-slate-100 shadow-sm transition-all duration-300 hover:shadow-md">
-                        <img src="${url}" class="max-h-52 max-w-[280px] w-full object-cover cursor-zoom-in transition-transform duration-500 hover:scale-105" onclick="window.open('${url}', '_blank')" alt="Attachment">
-                        <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                    <div class="mt-2 text-left">
+                        <div class="group relative inline-block overflow-hidden rounded-[20px] shadow-sm transition-all duration-300 hover:shadow-md border ${borderClass}">
+                            <img src="${url}" class="max-h-52 max-w-[280px] w-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-105" onclick="window.open('${url}', '_blank')" alt="Attachment">
+                            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                        </div>
                     </div>
                 `;
             }
+            const btnClass = isMe ? 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm' : 'bg-orange-50 text-orange-700 hover:bg-orange-100';
             return `
-                <div class="mt-2">
-                    <a href="${url}" target="_blank" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium ${isMe ? 'bg-white/10 text-white' : 'bg-slate-50 text-slate-700'}">
+                <div class="mt-2 text-left">
+                    <a href="${url}" target="_blank" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold shadow-sm transition-transform hover:scale-105 ${btnClass}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>

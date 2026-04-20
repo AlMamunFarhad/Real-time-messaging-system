@@ -49,18 +49,34 @@
                     Settings
                 </a>
             </div>
+
         </nav>
 
         <!-- Main Content -->
         <div class="flex-1">
             <!-- Header -->
-            @if ($header)
-                <header class="bg-white shadow-sm border-b border-gray-200">
-                    <div class="px-6 py-4">
+            <header class="bg-white shadow-sm border-b border-gray-200">
+                <div class="px-6 py-3 flex justify-between items-center min-h-[64px]">
+                    <div class="flex-1">
                         {{ $header }}
                     </div>
-                </header>
-            @endif
+                    <div class="flex items-center gap-4">
+                        <!-- Redesigned Premium Logout Button -->
+                        <form method="POST" action="{{ route('admin.logout') }}">
+                            @csrf
+                            <button type="submit" 
+                                class="group flex items-center gap-2.5 rounded-full bg-slate-900 px-5 py-2.5 text-xs font-bold text-white shadow-lg transition-all duration-300 hover:bg-rose-600 hover:shadow-rose-200 hover:-translate-y-0.5 active:scale-95">
+                                <span class="tracking-wider uppercase">Logout</span>
+                                <div class="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 transition-transform group-hover:rotate-12">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                    </svg>
+                                </div>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </header>
 
             <!-- Page Content -->
             <main class="p-6">

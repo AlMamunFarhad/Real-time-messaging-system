@@ -2,7 +2,6 @@
     <x-slot name="header">
         <div class="flex justify-between items-center w-full">
             <div class="flex items-center gap-4">
-                <h2 class="text-xl font-semibold text-white">Admin Dashboard</h2>
                 <a href="{{ route('admin.logout') }}"
                     onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
                     class="text-white dark:text-gray-50 flex items-end space-x-1 btn bg-gray-400 hover:bg-neutral-500 transition p-2 rounded-lg">
