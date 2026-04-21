@@ -7,6 +7,7 @@ use Modules\Messaging\Http\Controllers\MessagingController;
 use Modules\Messaging\Http\Controllers\ParticipantDirectoryController;
 use Modules\Messaging\Http\Controllers\ChatController;
 use Modules\Messaging\Http\Controllers\OnlineStatusController;
+use Modules\Messaging\Http\Controllers\SummaryController;
 
 // Online status routes
 Route::post('/online-heartbeat', [OnlineStatusController::class, 'heartbeat'])
@@ -59,6 +60,10 @@ Route::middleware(['web', 'auth:admin,web'])->group(function () {
     // Load messages for a conversation (web route - session auth works here)
     Route::get('/messages/{conversationId}', [MessagingController::class, 'messagesWeb'])
         ->name('messages.load');
+
+    // AI Summary and PDF Download
+    Route::get('/messages/{conversationId}/summary', [SummaryController::class, 'generate'])
+        ->name('messages.summary');
 
     // Chat with specific user - /chat/{userId}/{type} (e.g., /chat/1/admin)
     Route::get('/chat/{userId}/{type}', [ChatController::class, 'dashboard'])

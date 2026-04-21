@@ -78,15 +78,23 @@ class MessageSent implements ShouldBroadcast
     public function broadcastWith()
     {
         $sender = $this->message->sender;
-
-        return [
+        
+        $data = [
             'id' => $this->message->id,
             'conversation_id' => $this->message->conversation_id,
             'sender_id' => $this->message->sender_id,
             'sender_type' => $this->message->sender_type,
             'sender_name' => $sender?->name ?? ($sender?->email ?? 'Unknown'),
             'body' => $this->message->body,
+            'type' => $this->message->type,
             'created_at' => $this->message->created_at->toISOString(),
         ];
+
+        if ($this->message->file_path) {
+            $data['file_url'] = asset($this->message->file_path);
+            $data['file_name'] = basename($this->message->file_path);
+        }
+
+        return $data;
     }
 }

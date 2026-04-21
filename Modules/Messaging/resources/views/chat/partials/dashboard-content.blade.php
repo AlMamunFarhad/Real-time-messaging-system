@@ -11,6 +11,7 @@
         participants: @js(route('messages.participants')),
         groupStore: @js(route('messages.groups.store')),
         groupsBase: @js(url('/messages/groups')),
+        summaryBase: @js(url('/messages')),
         exitRoute: @js(Auth::guard('admin')->check() ? route('admin.dashboard') : route('dashboard'))
     }
 })" x-init="init()" class="-m-6 mt-6 mx-auto max-w-7xl overflow-hidden">
@@ -201,6 +202,27 @@
                                     </template>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-2 justify-end w-full sm:w-auto">
+                                    <button type="button" @click="toggleSummary()" :disabled="isFetchingSummary" 
+                                            class="flex items-center justify-center gap-2 rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm disabled:opacity-50" 
+                                            title="View Conversation Summary">
+                                        <template x-if="!isFetchingSummary">
+                                            <div class="flex items-center gap-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                                <span x-text="showSummary ? 'Hide Summary' : 'Summary'"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="isFetchingSummary">
+                                            <div class="flex items-center gap-2">
+                                                <svg class="h-4 w-4 animate-spin text-rose-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                <span>Processing...</span>
+                                            </div>
+                                        </template>
+                                    </button>
                                     <button type="button" @click="closeWorkspace()" class="hidden md:flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-stone-400 transition hover:bg-stone-50 hover:text-stone-800 shadow-sm" title="Close Workspace">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -237,7 +259,7 @@
                                 </div>
                             </template>
                             <template x-if="!loadingMessages && !messages.length"><div class="rounded-[28px] border border-dashed border-slate-300 bg-white/80 px-6 py-12 text-center text-slate-500"><p class="text-base font-semibold text-slate-700">Conversation is empty</p><p class="mt-2 text-sm">Send the first message and start the discussion.</p></div></template>
-                            <div id="messages-list" class="space-y-4 opacity-0 transition-opacity duration-300" x-show="!loadingMessages">
+                            <div id="messages-list" class="space-y-4" x-show="!loadingMessages" x-cloak>
                                 <template x-for="message in messages" :key="message.id">
                                     <div class="flex" :class="isMine(message) ? 'justify-end' : 'justify-start'">
                                         <div class="max-w-[80%]">
@@ -246,8 +268,8 @@
                                             </template>
                                             <div class="rounded-[24px] px-5 py-3.5 shadow-sm transform transition-all duration-300 hover:-translate-y-0.5" 
                                                  :class="isMine(message) 
-                                                    ? 'bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-[0_4px_14px_0_rgba(251,113,133,0.39)] rounded-br-md border border-rose-400/20' 
-                                                    : 'bg-white text-stone-800 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.08)] rounded-bl-md border border-orange-50'">
+                                                    ? 'bg-blue-50 text-blue-800 shadow-[0_4px_12px_rgba(37,99,235,0.05)] rounded-br-md border border-blue-100' 
+                                                    : 'bg-white text-stone-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-bl-md border border-stone-100'">
                                                 <template x-if="message.body">
                                                     <p class="whitespace-pre-wrap text-[14.5px] leading-relaxed font-medium" x-text="message.body"></p>
                                                 </template>
@@ -271,7 +293,54 @@
                                                     </div>
                                                 </template>
                                             </div>
-                                            <p class="mt-1.5 px-2 text-[11px] font-medium text-rose-300" :class="isMine(message) ? 'text-right' : 'text-left'" x-text="formatTime(message.created_at)"></p>
+                                            <p class="mt-1.5 px-2 text-[11px] font-medium" :class="isMine(message) ? 'text-right text-blue-400' : 'text-left text-stone-400'" x-text="formatTime(message.created_at)"></p>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <!-- Conversation Summary Panel -->
+                                <template x-if="showSummary && chatSummary">
+                                    <div x-transition:enter="transition ease-out duration-300" 
+                                         x-transition:enter-start="opacity-0 translate-y-4 transform scale-95" 
+                                         x-transition:enter-end="opacity-100 translate-y-0 transform scale-100"
+                                         x-transition:leave="transition ease-in duration-200"
+                                         x-transition:leave-start="opacity-100 translate-y-0 transform scale-100"
+                                         x-transition:leave-end="opacity-0 translate-y-4 transform scale-95"
+                                         class="relative mt-8 mb-4 overflow-hidden rounded-[28px] border border-orange-100 bg-white p-6 shadow-[0_20px_50px_rgba(251,146,60,0.12)] ring-1 ring-orange-50/50">
+                                        <div class="flex items-start justify-between gap-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-md shadow-rose-200">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h4 class="text-[15px] font-bold tracking-tight text-stone-800">Conversation Summary</h4>
+                                                </div>
+                                            </div>
+                                            <button @click="showSummary = false" class="group flex h-8 w-8 items-center justify-center rounded-full hover:bg-rose-50 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-stone-400 group-hover:text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="mt-5 rounded-[20px] bg-gradient-to-br from-orange-50/30 to-rose-50/20 p-5 shadow-inner">
+                                            <div class="prose prose-sm prose-stone max-w-none">
+                                                <div class="text-[14px] leading-relaxed text-stone-700 space-y-3" x-html="parseSummary(chatSummary)"></div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4 flex items-center justify-between px-2">
+                                            <div class="flex items-center gap-3">
+                                                <p class="text-[11px] font-bold text-stone-400" x-text="'Refreshed on ' + new Date().toLocaleTimeString()"></p>
+                                                <button @click="navigator.clipboard.writeText(chatSummary); $el.textContent = 'Copied!'; setTimeout(() => $el.textContent = 'Copy', 2000)" 
+                                                        class="text-[11px] font-bold text-rose-500 hover:text-rose-600 underline decoration-rose-200 underline-offset-4">
+                                                    Copy
+                                                </button>
+                                            </div>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+                                                <span class="text-[11px] font-black tracking-tighter text-orange-500 uppercase">Live Summary</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </template>
@@ -343,8 +412,8 @@
         </div>
     </div>
 
-    <div x-cloak x-show="showCreateGroupModal" class="fixed inset-0 z-50 bg-slate-950/40 p-4 backdrop-blur-sm">
-        <div class="mx-auto mt-10 max-w-2xl rounded-[28px] bg-white p-6 shadow-2xl">
+    <div x-cloak x-show="showCreateGroupModal" class="fixed inset-0 z-50 flex items-start justify-center bg-slate-950/40 p-4 backdrop-blur-sm overflow-y-auto custom-scrollbar">
+        <div class="my-auto w-full max-w-2xl rounded-[28px] bg-white p-6 shadow-2xl transition-all">
             <div class="flex items-center justify-between gap-4"><div><h3 class="text-xl font-semibold text-slate-900">Create Group</h3><p class="mt-1 text-sm text-slate-500">Admins and users can join the same group.</p></div><button type="button" @click="closeCreateGroup()" class="text-2xl text-slate-400 hover:text-slate-700">&times;</button></div>
             <div class="mt-6 grid gap-4">
                 <div>
@@ -368,8 +437,8 @@
         </div>
     </div>
 
-    <div x-cloak x-show="showManageMembersModal && activeConversation?.is_group" class="fixed inset-0 z-50 bg-slate-950/40 p-4 backdrop-blur-sm">
-        <div class="mx-auto mt-10 max-w-2xl rounded-[28px] bg-white p-6 shadow-2xl">
+    <div x-cloak x-show="showManageMembersModal && activeConversation?.is_group" class="fixed inset-0 z-50 flex items-start justify-center bg-slate-950/40 p-4 backdrop-blur-sm overflow-y-auto custom-scrollbar">
+        <div class="my-auto w-full max-w-2xl rounded-[28px] bg-white p-6 shadow-2xl transition-all">
             <div class="flex items-center justify-between gap-4"><div><h3 class="text-xl font-semibold text-slate-900">Manage Members</h3><p class="mt-1 text-sm text-slate-500" x-text="activeConversation?.title"></p></div><button type="button" @click="showManageMembersModal = false" class="text-2xl text-slate-400 hover:text-slate-700">&times;</button></div>
             <div class="mt-5"><input x-model="manageMemberSearch" @input.debounce.250ms="loadGroupCandidates()" type="text" placeholder="Search users or admins to add" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"></div>
             <div class="mt-4 grid gap-4 lg:grid-cols-2"><div class="max-h-80 space-y-2 overflow-y-auto rounded-3xl border border-slate-200 bg-slate-50 p-3"><template x-for="member in groupDetails.members || []" :key="member.type + '-' + member.id"><div class="flex items-center justify-between rounded-2xl bg-white px-4 py-3"><div><div class="text-sm font-semibold text-slate-900" x-text="member.name"></div><div class="text-xs text-slate-500" x-text="member.type + '  ' + member.role"></div></div><button type="button" @click="removeMember(member)" class="text-sm text-rose-500">Remove</button></div></template></div><div class="max-h-80 space-y-2 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-3"><template x-for="item in availableNewMembers()" :key="item.type + '-' + item.id"><button type="button" @click="addMembers([item])" class="flex w-full items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-left transition hover:bg-slate-100"><div><div class="text-sm font-semibold text-slate-900" x-text="item.name"></div><div class="text-xs text-slate-500" x-text="item.subtitle + '  ' + item.email"></div></div><span class="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500">Add</span></button></template></div></div>
@@ -381,19 +450,29 @@
 function messagingDashboard(config) {
     return {
         conversations: [], directConversations: [], groupConversations: [], directCandidates: [], groupCandidates: [], messages: [],
-        activeConversationId: Number(localStorage.getItem('user_active_conversation_id')) || config.initialConversationId || null, activeConversation: null, groupDetails: { members: [] }, loadingMessages: false, isMobileChatOpen: false,
+        activeConversationId: localStorage.getItem('user_active_conversation_id') && localStorage.getItem('user_active_conversation_id') !== 'null' ? localStorage.getItem('user_active_conversation_id') : (config.initialConversationId || null),
+        activeConversation: null,
+        groupDetails: { members: [] }, loadingMessages: false, isMobileChatOpen: false,
         activeTab: localStorage.getItem('messaging_active_tab') || 'direct', isWorkspaceVisible: true, exitRoute: config.routes.exitRoute || '/', showDirectPicker: (localStorage.getItem('messaging_active_tab') === 'contacts'), directSearch: '', draftMessage: '', selectedFile: null, selectedFileName: '', isFileTooLarge: false, selectedFilePreview: null,
-        showCreateGroupModal: false, showManageMembersModal: false, groupMemberSearch: '', manageMemberSearch: '', groupNameError: false,
+        showCreateGroupModal: false, showManageMembersModal: false, groupMemberSearch: '', manageMemberSearch: '', groupNameError: false, isFetchingSummary: false,
+        chatSummary: '', showSummary: false,
         groupForm: { name: '', description: '', participants: [] }, pollTimer: null, lastLoadTime: 0, loadDebounceMs: 2500, lastConversationLoadTime: 0, conversationLoadDebounceMs: 3000,
-        scrollToBottom() {
+        scrollToBottom(delay = 60, force = false) {
             this.$nextTick(() => {
                 setTimeout(() => {
                     const panel = document.getElementById('messages-panel');
-                    if (panel) { panel.scrollTop = panel.scrollHeight; }
-                    const list = document.getElementById('messages-list');
-                    if (list) list.classList.remove('opacity-0');
-                    if (list) list.style.opacity = '1';
-                }, 60);
+                    if (panel) { 
+                        const threshold = 50; // strictly at the very bottom
+                        const isAtBottom = panel.scrollHeight - panel.scrollTop - panel.clientHeight < threshold;
+                        
+                        if (force || isAtBottom) {
+                            panel.scrollTo({
+                                top: panel.scrollHeight,
+                                behavior: 'smooth' 
+                            });
+                        }
+                    }
+                }, delay);
             });
         },
         init() { 
@@ -402,9 +481,48 @@ function messagingDashboard(config) {
             this.loadGroupCandidates(); 
             this.startPolling();
             this.$watch('activeTab', value => localStorage.setItem('messaging_active_tab', value));
-            this.$watch('messages', () => this.scrollToBottom());
             this.sendHeartbeat();
             setInterval(() => this.sendHeartbeat(), 30000);
+
+            // Real-time listener using Laravel Echo
+            if (window.Echo) {
+                this.$watch('activeConversationId', (newId, oldId) => {
+                    if (oldId) {
+                        console.log('Leaving conversation channel:', oldId);
+                        window.Echo.leave(`conversation.${oldId}`);
+                    }
+                    if (!newId) return;
+                    
+                    localStorage.setItem('user_active_conversation_id', newId);
+                    
+                    console.log('Joining conversation channel:', newId);
+                    window.Echo.private(`conversation.${newId}`)
+                        .listen('.message.sent', (message) => {
+                            if (!message || String(message.conversation_id) !== String(this.activeConversationId)) return;
+                            
+                            const exists = this.messages.some(m => String(m.id) === String(message.id));
+                            if (!exists) {
+                                this.messages = [...this.messages, message];
+                                this.scrollToBottom(150, false); // Only scroll if near bottom
+                                axios.post(config.routes.read, { conversation_id: this.activeConversationId });
+                                if (window.dispatchMessageCounterSync) window.dispatchMessageCounterSync('read', { conversationId: this.activeConversationId });
+                            }
+                        });
+                });
+
+                if (this.activeConversationId) {
+                    window.Echo.private(`conversation.${this.activeConversationId}`)
+                        .listen('.message.sent', (message) => {
+                            if (!message || String(message.conversation_id) !== String(this.activeConversationId)) return;
+                            const exists = this.messages.some(m => String(m.id) === String(message.id));
+                            if (!exists) {
+                                this.messages = [...this.messages, message];
+                                this.scrollToBottom(150, false); // Only scroll if near bottom
+                                axios.post(config.routes.read, { conversation_id: this.activeConversationId });
+                            }
+                        });
+                }
+            }
         },
         async sendHeartbeat() {
             try { await axios.post('/online-heartbeat'); } catch (e) { console.error('Heartbeat failed', e); }
@@ -420,11 +538,11 @@ function messagingDashboard(config) {
             this.groupConversations = this.conversations.filter((item) => item.is_group);
             if (!this.activeConversationId && this.conversations.length) { await this.selectConversation(this.conversations[0]); return; }
             if (this.activeConversationId) {
-                this.activeConversation = this.conversations.find((item) => Number(item.id) === Number(this.activeConversationId)) || null;
+                this.activeConversation = this.conversations.find((item) => item.id == this.activeConversationId) || null;
                 if (this.activeConversation && this.messages.length === 0) {
-                    await this.loadMessages();
-                } else {
-                    this.scrollToBottom(150);
+                    await this.loadMessages(false);
+                } else if (force) {
+                    this.scrollToBottom(150, true); 
                 }
             }
         },
@@ -440,7 +558,7 @@ function messagingDashboard(config) {
         async startDirectChat(item) {
             const response = await axios.get(config.routes.direct, { params: { target_id: item.id, target_type: item.type } });
             await this.loadConversations(true);
-            const conversation = this.conversations.find((entry) => Number(entry.id) === Number(response.data.conversation.id));
+            const conversation = this.conversations.find((entry) => entry.id == response.data.conversation.id);
             if (conversation) await this.selectConversation(conversation);
             this.showDirectPicker = false;
         },
@@ -450,52 +568,81 @@ function messagingDashboard(config) {
             localStorage.setItem('user_active_conversation_id', conversation.id);
             this.activeConversation = conversation;
             this.messages = []; // Clear messages for the new conversation
-            const list = document.getElementById('messages-list');
-            if (list) list.style.opacity = '0';
+            this.chatSummary = ''; // Reset summary for the new conversation
+            this.showSummary = false; // Hide summary for the new conversation
             this.lastLoadTime = 0; // Force immediate load for the new conversation
             this.groupDetails = { members: [] };
-            await this.loadMessages();
+            await this.loadMessages(false);
             if (conversation.is_group) await this.loadGroupDetails();
         },
-        async loadMessages() {
+        async loadMessages(silent = false) {
             if (!this.activeConversationId) return;
             if (this.loadingMessages) return;
             const now = Date.now();
+            
             // Allow immediate load if messages are empty (i.e. we just switched conversations)
-            if (this.messages.length > 0 && (now - this.lastLoadTime < this.loadDebounceMs)) return;
+            if (!silent && this.messages.length > 0 && (now - this.lastLoadTime < this.loadDebounceMs)) return;
+            
+            if (!silent) {
+                this.loadingMessages = true;
+            }
+            
             this.lastLoadTime = now;
-            this.loadingMessages = true;
             try {
                 const response = await axios.get(`${config.routes.messagesBase}/${this.activeConversationId}?t=${now}`);
-                const newMessages = (response.data.messages || []).filter(m => Number(m.conversation_id) === Number(this.activeConversationId));
-                const existingIds = new Set(this.messages.map(m => m.id));
-                const uniqueNewMessages = newMessages.filter(m => !existingIds.has(m.id));
-                let shouldScroll = uniqueNewMessages.length > 0;
+                const newMessages = (response.data.messages || []).filter(m => String(m.conversation_id) === String(this.activeConversationId));
+                const existingIds = new Set(this.messages.map(m => String(m.id)));
+                const uniqueNewMessages = newMessages.filter(m => !existingIds.has(String(m.id)));
+                
                 if (uniqueNewMessages.length > 0) {
                     this.messages = [...this.messages, ...uniqueNewMessages];
+                    this.scrollToBottom(100, !silent); // Force scroll ONLY if not a silent background load
                 }
-                await axios.post(config.routes.read, { conversation_id: this.activeConversationId });
+                
+                axios.post(config.routes.read, { conversation_id: this.activeConversationId });
                 if (window.dispatchMessageCounterSync) window.dispatchMessageCounterSync('read', { conversationId: this.activeConversationId });
-                if (shouldScroll) {
-                    this.scrollToBottom(100);
+            } finally { 
+                if (!silent) {
+                    this.loadingMessages = false; 
                 }
-            } finally { this.loadingMessages = false; }
+            }
         },
         async sendMessage() {
             if (!this.activeConversationId) return;
             if (!this.draftMessage.trim() && !this.selectedFile) return;
+            
             const formData = new FormData();
             formData.append('conversation_id', this.activeConversationId);
             if (this.draftMessage.trim()) formData.append('message', this.draftMessage.trim());
             if (this.selectedFile) formData.append('file', this.selectedFile);
-            const response = await axios.post(config.routes.send, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-            this.messages.push(response.data);
-            this.draftMessage = '';
-            this.clearFile();
-            await this.loadConversations(true);
-            if (window.dispatchMessageCounterSync) window.dispatchMessageCounterSync('sent', { conversationId: this.activeConversationId });
-            this.scrollToBottom(50);
-            this.$nextTick(() => { this.$refs.messageInput?.focus(); });
+            
+            try {
+                const response = await axios.post(config.routes.send, formData, { 
+                    headers: { 'Content-Type': 'multipart/form-data' } 
+                });
+                
+                console.log('Message sent successfully!', response.data);
+
+                // Use spread operator for guaranteed Alpine reactivity
+                this.messages = [...this.messages, response.data];
+                this.draftMessage = '';
+                this.clearFile();
+                
+                // Update polling timer to prevent immediate override
+                this.lastLoadTime = Date.now();
+                
+                await this.loadConversations(true);
+                
+                if (window.dispatchMessageCounterSync) {
+                    window.dispatchMessageCounterSync('sent', { conversationId: this.activeConversationId });
+                }
+                
+                this.scrollToBottom(50, true); // Force scroll after sending a message
+                this.$nextTick(() => { this.$refs.messageInput?.focus(); });
+            } catch (error) {
+                console.error('Send failed', error);
+                alert('Failed to send message. Please try again.');
+            }
         },
         pickFile(event) { 
             const file = event.target.files[0] || null;
@@ -518,10 +665,23 @@ function messagingDashboard(config) {
             this.selectedFilePreview = null;
             if (this.$refs.fileInput) this.$refs.fileInput.value = ''; 
         },
-        isMine(message) { const senderType = String(message.sender_type || '').split('\\').pop().toLowerCase(); return Number(message.sender_id) === Number(config.currentId) && senderType === config.currentType; },
+        isMine(message) { 
+            const senderType = String(message.sender_type || '').split('\\').pop().toLowerCase(); 
+            return String(message.sender_id) === String(config.currentId) && senderType === config.currentType; 
+        },
         addEmoji(emoji) { this.draftMessage += emoji; if (this.$refs.messageInput) this.$refs.messageInput.focus(); },
         formatTime(value) { return value ? new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''; },
         initialFor(value) { return value ? String(value).charAt(0).toUpperCase() : '?'; },
+        parseSummary(text) {
+            if (!text) return '';
+            // Simple markdown parser for headings, bold, and lists
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-stone-900 font-bold">$1</strong>') // Bold text
+                .replace(/^(\d+\.\s.*)$/gm, '<h5 class="text-sm font-bold text-stone-800 mt-4 mb-2">$1</h5>') // Numbered headings
+                .replace(/^[-*]\s(.*)$/gm, '<div class="flex items-start gap-2 ml-2 my-1.5"><span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400"></span><span class="text-stone-700">$1</span></div>') // Bullet points
+                .replace(/\n\n/g, '</div><div class="space-y-3">') // Paragraph breaks
+                .replace(/\n/g, '<br>'); // Line breaks
+        },
         openCreateGroup() { this.showCreateGroupModal = true; this.groupForm = { name: '', description: '', participants: [] }; this.groupMemberSearch = ''; this.groupNameError = false; this.loadGroupCandidates(); },
         closeCreateGroup() { this.showCreateGroupModal = false; },
         toggleMember(item) {
@@ -556,19 +716,43 @@ function messagingDashboard(config) {
         closeConversationUI() { this.activeConversationId = null; this.activeConversation = null; this.messages = []; this.groupDetails = { members: [] }; },
         closeWorkspace() { window.location.href = this.exitRoute; },
         async leaveGroup() { if (!this.activeConversation?.is_group) return; await axios.post(`${config.routes.groupsBase}/${this.activeConversationId}/leave`); this.closeConversationUI(); await this.loadConversations(); },
+        async toggleSummary() {
+            if (this.showSummary) {
+                this.showSummary = false;
+                return;
+            }
+            await this.fetchSummary();
+        },
+        async fetchSummary() {
+            if (!this.activeConversationId) return;
+            this.isFetchingSummary = true;
+            try {
+                const response = await axios.get(`${config.routes.summaryBase}/${this.activeConversationId}/summary`);
+                this.chatSummary = response.data.summary;
+                this.showSummary = true;
+                
+                // Scroll to bottom to show the summary panel
+                this.scrollToBottom(150, true);
+            } catch (error) {
+                console.error('Fetch summary failed', error);
+                alert('Failed to generate summary. Please check your connection.');
+            } finally {
+                this.isFetchingSummary = false;
+            }
+        },
         startPolling() {
             if (this.pollTimer) clearInterval(this.pollTimer);
             this.pollTimer = setInterval(async () => { 
-                if (this.loadingMessages) return;
                 const now = Date.now();
                 if (now - this.lastLoadTime < this.loadDebounceMs) return;
+                
                 this.lastLoadTime = now;
                 await this.loadConversations(); 
                 if (this.activeTab === 'contacts') {
                     await this.loadDirectCandidates();
                 }
                 if (this.activeConversationId) { 
-                    await this.loadMessages(); 
+                    await this.loadMessages(true); // Call silently in the background
                     if (this.activeConversation?.is_group) await this.loadGroupDetails(); 
                 } 
             }, 5000);
