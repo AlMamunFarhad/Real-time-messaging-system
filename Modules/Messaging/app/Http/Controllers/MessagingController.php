@@ -153,7 +153,7 @@ class MessagingController extends Controller
                 $conversationQuery->where('is_group', true)
                     ->orWhereHas('participants', function ($q) use ($adminType, $adminTypeShort) {
                         $q->whereIn('participant_type', [$adminType, $adminTypeShort])
-                            ->whereNull('left_at');
+                            ->whereNull('left_at');                                                                                         
                     });
             });
         }

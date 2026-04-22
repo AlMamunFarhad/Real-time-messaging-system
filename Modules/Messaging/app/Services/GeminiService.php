@@ -26,12 +26,12 @@ class GeminiService
             return "$sender: $body";
         })->implode("\n");
 
-        $prompt = "Please provide a highly structured and professional summary of the following " . ($isGroup ? "group " : "direct ") . "chat conversation.\n\n" .
+        $prompt = "Please provide a highly structured and professional summary of the following " . ($isGroup ? "group " : "direct ") . "chat conversation.\n" .
                   "Use the following format:\n" .
                   "1. **Overview**: A 1-2 sentence summary of the conversation's purpose.\n" .
                   "2. **Key Highlights**: Use bullet points for the main topics discussed.\n" .
-                  "3. **Decisions & Action Items**: List any concrete conclusions or tasks mentioned.\n\n" .
-                  "Keep it concise, professional, and in English.\n\n" .
+                  "3. **Decisions & Action Items**: List any concrete conclusions or tasks mentioned.\n" .
+                  "Keep it concise, professional, and in English.\n" .
                   "### Chat History:\n" . $formattedMessages;
 
         try {

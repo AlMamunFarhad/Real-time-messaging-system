@@ -89,7 +89,8 @@
                                                 <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm transition-transform group-hover:scale-110" x-text="conversation.unread_count"></span>
                                             </template>
                                         </div>
-                                        <div class="mt-0.5 truncate text-[12px] font-medium transition-colors" :class="activeConversationId === conversation.id ? 'text-rose-500' : 'text-stone-400'" x-text="conversation.last_message?.body || (conversation.last_message?.file_path ? 'Photo' : 'No message yet')"></div>
+                                        <div class="mt-0.5 truncate text-[12px] font-medium transition-colors" :class="activeConversationId === conversation.id ? 'text-rose-500' : 'text-stone-400'" 
+                                            x-text="conversation.last_message?.body || (conversation.last_message?.file_path ? (conversation.last_message.file_path.match(/\.(webm|mp3|wav|ogg|m4a)$/i) ? 'Voice Message' : 'Photo') : 'No message yet')"></div>
                                     </div>
                                 </button>
                             </template>
@@ -281,7 +282,18 @@
                                                                 <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                                                             </div>
                                                         </template>
-                                                        <template x-if="!(message.file_url && (message.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i)))">
+                                                        <template x-if="message.file_url && (message.file_url.match(/\.(webm|mp3|wav|ogg|m4a)$/i))">
+                                                            <div class="mt-2 flex flex-col gap-2 p-2 rounded-2xl bg-white/40 border border-white/20">
+                                                                <div class="flex items-center gap-2 px-1">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                                                    </svg>
+                                                                    <span class="text-[11px] font-bold uppercase tracking-widest text-rose-500">Voice Message</span>
+                                                                </div>
+                                                                <audio controls class="h-8 max-w-[240px] w-full" :src="message.file_url"></audio>
+                                                            </div>
+                                                        </template>
+                                                        <template x-if="!(message.file_url && (message.file_url.match(/\.(jpg|jpeg|png|gif|webp|webm|mp3|wav|ogg|m4a)$/i)))">
                                                             <a :href="message.file_url" target="_blank" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold shadow-sm transition-transform hover:scale-105" 
                                                                :class="isMine(message) ? 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm' : 'bg-orange-50 text-orange-700 hover:bg-orange-100'">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -389,6 +401,20 @@
                                     <textarea x-model="draftMessage" x-ref="messageInput" @keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); sendMessage(); }" rows="1" class="min-h-[52px] w-full rounded-[24px] border border-orange-100 bg-white px-5 py-3.5 text-[15px] text-stone-700 shadow-sm outline-none transition-all focus:border-rose-300 focus:bg-white focus:ring-4 focus:ring-rose-100/50 resize-none" placeholder="Type your message..."></textarea>
                                 </div>
                                 
+                                <button type="button" @click="toggleVoiceRecord()"
+                                    class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] shadow-[0_2px_8px_rgba(225,29,72,0.1)] border transition-all hover:scale-105 active:scale-95"
+                                    :class="isRecordingVoice ? 'border-rose-200 bg-rose-100 text-rose-600' : 'border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600'"
+                                    title="Record Voice Message">
+                                    <template x-if="!isRecordingVoice">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                        </svg>
+                                    </template>
+                                    <template x-if="isRecordingVoice">
+                                        <span class="block h-3.5 w-3.5 rounded-sm bg-rose-600 animate-pulse"></span>
+                                    </template>
+                                </button>
+                                
                                 <button type="button" @click="sendMessage()" :disabled="isFileTooLarge || (!draftMessage.trim() && !selectedFile)" 
                                         class="group relative flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-[0_4px_14px_0_rgba(251,113,133,0.39)] transition-all hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(251,113,133,0.5)] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform" viewBox="0 0 20 20" fill="currentColor">
@@ -454,6 +480,7 @@ function messagingDashboard(config) {
         activeConversation: null,
         groupDetails: { members: [] }, loadingMessages: false, isMobileChatOpen: false,
         activeTab: localStorage.getItem('messaging_active_tab') || 'direct', isWorkspaceVisible: true, exitRoute: config.routes.exitRoute || '/', showDirectPicker: (localStorage.getItem('messaging_active_tab') === 'contacts'), directSearch: '', draftMessage: '', selectedFile: null, selectedFileName: '', isFileTooLarge: false, selectedFilePreview: null,
+        isRecordingVoice: false,
         showCreateGroupModal: false, showManageMembersModal: false, groupMemberSearch: '', manageMemberSearch: '', groupNameError: false, isFetchingSummary: false,
         chatSummary: '', showSummary: false,
         groupForm: { name: '', description: '', participants: [] }, pollTimer: null, lastLoadTime: 0, loadDebounceMs: 2500, lastConversationLoadTime: 0, conversationLoadDebounceMs: 3000,
@@ -483,6 +510,16 @@ function messagingDashboard(config) {
             this.$watch('activeTab', value => localStorage.setItem('messaging_active_tab', value));
             this.sendHeartbeat();
             setInterval(() => this.sendHeartbeat(), 30000);
+
+            // Ensure only one audio plays at a time
+            document.addEventListener('play', (event) => {
+                const audios = document.getElementsByTagName('audio');
+                for (let i = 0, len = audios.length; i < len; i++) {
+                    if (audios[i] != event.target) {
+                        audios[i].pause();
+                    }
+                }
+            }, true);
 
             // Real-time listener using Laravel Echo
             if (window.Echo) {
@@ -664,6 +701,38 @@ function messagingDashboard(config) {
             this.isFileTooLarge = false;
             this.selectedFilePreview = null;
             if (this.$refs.fileInput) this.$refs.fileInput.value = ''; 
+        },
+        async toggleVoiceRecord() {
+            if (this.isRecordingVoice) {
+                if (window._voiceMediaRecorder) {
+                    window._voiceMediaRecorder.stop();
+                }
+                this.isRecordingVoice = false;
+                return;
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                window._voiceMediaRecorder = new MediaRecorder(stream);
+                window._voiceAudioChunks = [];
+                window._voiceMediaRecorder.ondataavailable = e => {
+                    if (e.data.size > 0) window._voiceAudioChunks.push(e.data);
+                };
+                window._voiceMediaRecorder.onstop = () => {
+                    stream.getTracks().forEach(track => track.stop());
+                    if (window._voiceAudioChunks.length === 0) return;
+                    const audioBlob = new Blob(window._voiceAudioChunks, { type: 'audio/webm' });
+                    const file = new File([audioBlob], `voice_message_${Date.now()}.webm`, { type: 'audio/webm' });
+                    this.selectedFile = file;
+                    this.selectedFileName = 'Voice Message (' + new Date().toLocaleTimeString() + ')';
+                    this.isFileTooLarge = false;
+                    this.selectedFilePreview = null;
+                };
+                window._voiceMediaRecorder.start();
+                this.isRecordingVoice = true;
+            } catch (error) {
+                console.error("Error accessing microphone:", error);
+                alert("Please allow microphone access to record voice messages.");
+            }
         },
         isMine(message) { 
             const senderType = String(message.sender_type || '').split('\\').pop().toLowerCase(); 

@@ -324,18 +324,39 @@ class ConversationService
         $users = $queryUsers->get(['id', 'name', 'email']);
         $admins = $queryAdmins->get(['id', 'name', 'email']);
 
+        $currentIdInt = (int) $currentId;
+        $currentTypeKey = $this->participantTypeKey($currentType);
+
         return collect()
-            ->merge($users->map(fn ($user) => $this->formatDirectoryItem($user, 'user')))
-            ->merge($admins->map(fn ($admin) => $this->formatDirectoryItem($admin, 'admin')))
-            ->reject(function ($item) use ($currentId, $currentType) {
-                return (int) $item['id'] === (int) $currentId
-                    && $item['type'] === $this->participantTypeKey($currentType);
+            ->merge($users->map(fn ($user) => $this->formatDirectoryItem($user, 'user', $currentIdInt, $currentTypeKey)))
+            ->merge($admins->map(fn ($admin) => $this->formatDirectoryItem($admin, 'admin', $currentIdInt, $currentTypeKey)))
+            ->reject(function ($item) use ($currentIdInt, $currentTypeKey) {
+                return (int) $item['id'] === $currentIdInt
+                    && $item['type'] === $currentTypeKey;
             })
             ->values();
     }
 
-    protected function formatDirectoryItem(Model $model, string $type): array
+    protected function formatDirectoryItem(Model $model, string $type, ?int $currentId = null, ?string $currentType = null): array
     {
+        $lastMessage = null;
+        if ($currentId && $currentType) {
+            $conversation = \Modules\Messaging\Models\Conversation::query()
+                ->direct()
+                ->whereHas('participants', fn($q) => $q->where('participant_id', $currentId)->where('participant_type', $currentType))
+                ->whereHas('participants', fn($q) => $q->where('participant_id', $model->id)->where('participant_type', $type))
+                ->with('lastMessage')
+                ->first();
+            
+            if ($conversation && $conversation->lastMessage) {
+                $lastMessage = [
+                    'body' => $conversation->lastMessage->body,
+                    'file_path' => $conversation->lastMessage->file_path,
+                    'created_at' => $conversation->lastMessage->created_at,
+                ];
+            }
+        }
+
         return [
             'id' => $model->id,
             'type' => $type,
@@ -343,6 +364,7 @@ class ConversationService
             'email' => $model->email,
             'subtitle' => $type === 'admin' ? 'Admin' : 'User',
             'is_online' => cache()->has('online_' . $type . '_' . $model->id),
+            'last_message' => $lastMessage,
         ];
     }
 }

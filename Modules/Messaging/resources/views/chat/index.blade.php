@@ -36,9 +36,11 @@
                         <p style="font-size: 0.75rem; color: #a8a29e; margin: 0; margin-top: 2px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Conversation #{{ $conversation->id }}</p>
                     </div>
                 </div>
-                <div id="online-status" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(251,146,60,0.05); padding: 0.4rem 0.8rem; border-radius: 20px; border: 1px solid rgba(251,146,60,0.1);">
-                    <span id="online-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #d6d3d1; box-shadow: 0 0 8px rgba(214, 211, 209, 0.5); transition: background 0.3s ease;"></span>
-                    <span id="online-text" style="color: #a8a29e; transition: color 0.3s ease;">Offline</span>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div id="online-status" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(251,146,60,0.05); padding: 0.4rem 0.8rem; border-radius: 20px; border: 1px solid rgba(251,146,60,0.1);">
+                        <span id="online-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #d6d3d1; box-shadow: 0 0 8px rgba(214, 211, 209, 0.5); transition: background 0.3s ease;"></span>
+                        <span id="online-text" style="color: #a8a29e; transition: color 0.3s ease;">Offline</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -98,6 +100,11 @@
                     </svg>
                 </button>
                 <input type="text" id="message-input" style="flex: 1; background: white; border: 1px solid rgba(251,146,60,0.2); border-radius: 24px; padding: 0 1.25rem; height: 52px; color: #44403c; font-size: 0.9375rem; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s;" placeholder="Type your message..." autocomplete="off" onfocus="this.style.borderColor='#fda4af'; this.style.boxShadow='0 0 0 4px rgba(254,205,211,0.5)'" onblur="this.style.borderColor='rgba(251,146,60,0.2)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.02)'">
+                <button type="button" id="voice-record-btn" onclick="toggleVoiceRecording()" title="Record Voice Message" style="background: #fff1f2; color: #e11d48; width: 52px; height: 52px; flex-shrink: 0; border-radius: 20px; border: 1px solid #fecdd3; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(225,29,72,0.1); transition: all 0.2s;" onmouseover="if(!window.isRecordingVoice) { this.style.transform='scale(1.05)'; this.style.background='#ffe4e6' }" onmouseout="if(!window.isRecordingVoice) { this.style.transform='scale(1)'; this.style.background='#fff1f2' }">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="height: 1.5rem; width: 1.5rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                </button>
                 <button type="button" onclick="sendMessage()" style="background: linear-gradient(135deg, #fb7185 0%, #fdba74 100%); color: white; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 20px; border: none; cursor: pointer; box-shadow: 0 4px 14px 0 rgba(251,113,133,0.39); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(251,113,133,0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 14px 0 rgba(251,113,133,0.39)'">
                     <svg xmlns="http://www.w3.org/2000/svg" style="height: 1.25rem; width: 1.25rem; transform: translateX(2px);" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
@@ -105,7 +112,6 @@
                 </button>
             </div>
         </div>
-
     </div>
 
     <script>
@@ -218,7 +224,13 @@
         .my-message .message-time {
             color: #fda4af;
         }
+        @keyframes vcPulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
     </style>
+
 
     <script>
         window.loadedMessageIds = new Set();
@@ -288,6 +300,7 @@
 
             let fileUrl = message.file_url || message.fileUrl || '';
             let hasImage = fileUrl && (fileUrl.endsWith('.jpg') || fileUrl.endsWith('.jpeg') || fileUrl.endsWith('.png') || fileUrl.endsWith('.gif') || fileUrl.endsWith('.webp'));
+            let isAudio = fileUrl && (fileUrl.endsWith('.webm') || fileUrl.endsWith('.mp3') || fileUrl.endsWith('.wav') || fileUrl.endsWith('.ogg') || fileUrl.endsWith('.m4a') || fileUrl.endsWith('.aac'));
 
             if (isMe) {
                 let content = message.body || '';
@@ -299,6 +312,17 @@
                         </svg>
                         Download
                     </a>`;
+                } else if (isAudio) {
+                    content += `
+                    <div style="margin-top: 8px; padding: 10px; background: rgba(255,255,255,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px; color: white;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                            </svg>
+                            <span style="color: white; font-size: 11px; font-weight: bold; text-transform: uppercase;">Voice Message</span>
+                        </div>
+                        <audio controls src="${fileUrl}" style="height: 38px; max-width: 240px; width: 100%; border-radius: 20px;"></audio>
+                    </div>`;
                 } else if (fileUrl) {
                     content += `<a href="${fileUrl}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(255,255,255,0.2); border-radius: 8px; text-decoration: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -320,6 +344,17 @@
                         </svg>
                         Download
                     </a>`;
+                } else if (isAudio) {
+                    content += `
+                    <div style="margin-top: 8px; padding: 10px; background: #f1f5f9; border-radius: 12px; border: 1px solid #e2e8f0;">
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px; color: #64748b;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                            </svg>
+                            <span style="color: #64748b; font-size: 11px; font-weight: bold; text-transform: uppercase;">Voice Message</span>
+                        </div>
+                        <audio controls src="${fileUrl}" style="height: 38px; max-width: 240px; width: 100%; border-radius: 20px;"></audio>
+                    </div>`;
                 } else if (fileUrl) {
                     content += `<a href="${fileUrl}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #e5e7eb; border-radius: 8px; text-decoration: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; color: #6b7280;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -569,6 +604,88 @@
                 markConversationAsRead(true);
             }
         });
+
+
+        window.isRecordingVoice = false;
+        window.voiceMediaRecorder = null;
+        window.voiceAudioChunks = [];
+
+        window.toggleVoiceRecording = async function() {
+            const btn = document.getElementById('voice-record-btn');
+            
+            if (window.isRecordingVoice) {
+                if(window.voiceMediaRecorder) {
+                    window.voiceMediaRecorder.stop();
+                }
+                window.isRecordingVoice = false;
+                btn.style.background = '#fff1f2';
+                btn.style.color = '#e11d48';
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" style="height: 1.5rem; width: 1.5rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>`;
+                return;
+            }
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                window.voiceMediaRecorder = new MediaRecorder(stream);
+                window.voiceAudioChunks = [];
+                
+                window.voiceMediaRecorder.ondataavailable = e => {
+                    if (e.data.size > 0) window.voiceAudioChunks.push(e.data);
+                };
+                
+                window.voiceMediaRecorder.onstop = () => {
+                    stream.getTracks().forEach(track => track.stop());
+                    if (window.voiceAudioChunks.length === 0) return;
+                    
+                    const audioBlob = new Blob(window.voiceAudioChunks, { type: 'audio/webm' });
+                    const file = new File([audioBlob], `voice_${Date.now()}.webm`, { type: 'audio/webm' });
+                    
+                    window.sendAudioFile(file);
+                };
+                
+                window.voiceMediaRecorder.start();
+                window.isRecordingVoice = true;
+                btn.style.background = '#fee2e2';
+                btn.style.color = '#dc2626';
+                btn.innerHTML = `<span style="display:block; width:14px; height:14px; background:#dc2626; border-radius:4px; animation: vcPulse 1s infinite;"></span>`;
+            } catch (err) {
+                alert('Microphone access is required to send voice messages.');
+                console.error(err);
+            }
+        };
+
+        window.sendAudioFile = async function(file) {
+            let formData = new FormData();
+            formData.append('file', file);
+            formData.append('conversation_id', window.conversationId);
+            
+            try {
+                const response = await window.axios.post('/send-message', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                if (response.data && response.data.id) {
+                    window.loadedMessageIds.add(response.data.id);
+                    window.lastMessageId = Math.max(window.lastMessageId, response.data.id);
+                    window.appendMessage(response.data);
+                    if (typeof window.syncMessageCounter === 'function') window.syncMessageCounter('sent');
+                }
+            } catch (error) {
+                console.error('Record send error:', error);
+            }
+        };
+
+        // Ensure messages auto scroll
+
+        // Ensure only one audio plays at a time
+        document.addEventListener('play', (event) => {
+            const audios = document.getElementsByTagName('audio');
+            for (let i = 0, len = audios.length; i < len; i++) {
+                if (audios[i] != event.target) {
+                    audios[i].pause();
+                }
+            }
+        }, true);
     </script>
+
 
 </x-messaging::layouts.master>

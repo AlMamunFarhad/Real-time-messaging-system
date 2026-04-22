@@ -8,6 +8,8 @@ use Modules\Messaging\Http\Controllers\ParticipantDirectoryController;
 use Modules\Messaging\Http\Controllers\ChatController;
 use Modules\Messaging\Http\Controllers\OnlineStatusController;
 use Modules\Messaging\Http\Controllers\SummaryController;
+use Modules\Messaging\Http\Controllers\VoiceCallController;
+
 
 // Online status routes
 Route::post('/online-heartbeat', [OnlineStatusController::class, 'heartbeat'])
@@ -72,4 +74,18 @@ Route::middleware(['web', 'auth:admin,web'])->group(function () {
     // Chat by conversation ID - /chat/{conversationId}
     Route::get('/chat/{conversationId}', [ChatController::class, 'dashboard'])
         ->name('chat.show');
+
+    // Voice Call Signaling Routes
+    Route::post('/voice-call/initiate', [VoiceCallController::class, 'initiateCall'])
+        ->name('voice.initiate');
+    Route::post('/voice-call/answer', [VoiceCallController::class, 'answerCall'])
+        ->name('voice.answer');
+    Route::post('/voice-call/reject', [VoiceCallController::class, 'rejectCall'])
+        ->name('voice.reject');
+    Route::post('/voice-call/ice-candidate', [VoiceCallController::class, 'sendIceCandidate'])
+        ->name('voice.ice');
+    Route::post('/voice-call/hangup', [VoiceCallController::class, 'hangupCall'])
+        ->name('voice.hangup');
+    Route::get('/voice-call/poll', [VoiceCallController::class, 'pollSignals'])
+        ->name('voice.poll');
 });

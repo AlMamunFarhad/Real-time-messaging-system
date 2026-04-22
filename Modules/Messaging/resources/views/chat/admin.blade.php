@@ -110,7 +110,7 @@
                                             <div class="truncate text-[12px] mt-0.5 font-medium transition-colors"
                                                 :class="Number(activeUserId) === Number(user.id) ? 'text-rose-500' :
                                                     'text-stone-400'"
-                                                x-text="user.is_online ? 'Active now' : 'Offline'">
+                                                x-text="user.last_message?.body || (user.last_message?.file_path ? (user.last_message.file_path.match(/\.(webm|mp3|wav|ogg|m4a)$/i) ? 'Voice Message' : 'Photo') : (user.is_online ? 'Active now' : 'Offline'))">
                                             </div>
                                         </div>
                                         <template x-if="Number(user.unseen_count || 0) > 0">
@@ -155,14 +155,15 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="button" @click="closeChat()"
-                                        class="hidden md:flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-stone-400 transition hover:bg-stone-50 hover:text-stone-800 shadow-sm" title="Close chat">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
+                                    <div class="flex items-center gap-2">
+                                            class="hidden md:flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-stone-400 transition hover:bg-stone-50 hover:text-stone-800 shadow-sm" title="Close chat">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -251,6 +252,19 @@
                                             class="min-h-[52px] w-full rounded-[24px] border border-orange-100 bg-white px-5 py-3.5 text-[15px] text-stone-700 shadow-sm outline-none transition-all focus:border-rose-300 focus:bg-white focus:ring-4 focus:ring-rose-100/50 resize-none"
                                             placeholder="Type your message..."></textarea>
                                     </div>
+                                    <button type="button" @click="toggleVoiceRecord()"
+                                        class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] shadow-[0_2px_8px_rgba(225,29,72,0.1)] border transition-all hover:scale-105 active:scale-95"
+                                        :class="isRecordingVoice ? 'border-rose-200 bg-rose-100 text-rose-600' : 'border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600'"
+                                        title="Record Voice Message">
+                                        <template x-if="!isRecordingVoice">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                            </svg>
+                                        </template>
+                                        <template x-if="isRecordingVoice">
+                                            <span class="block h-3.5 w-3.5 rounded-sm bg-rose-600 animate-pulse"></span>
+                                        </template>
+                                    </button>
                                     <button type="button" @click="sendMessage()"
                                         :disabled="isFileTooLarge || (!draftMessage.trim() && !document.getElementById('file-input')?.files[0])"
                                         class="group relative flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-[0_4px_14px_0_rgba(251,113,133,0.39)] transition-all hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(251,113,133,0.5)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:pointer-events-none">
@@ -302,15 +316,16 @@
                                             x-text="activeUserName || 'User'"></h3>
                                     </div>
                                 </div>
-                                <button type="button" @click="showChat = false"
-                                    class="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-                                    aria-label="Close chat">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
+                                <div class="flex items-center gap-2">
+                                        class="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                                        aria-label="Close chat">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
                             <div id="chat-box-modal" class="flex-1 h-[calc(100dvh-220px)] min-h-[300px] overflow-y-auto px-6 py-6 transition-opacity duration-300" style="opacity: 0;">
@@ -382,11 +397,24 @@
                                                 d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </button>
-
                                     <input type="text" id="message-input-modal" x-model="draftMessage"
                                         @keydown.enter.prevent="sendMessage()"
                                         class="h-12 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                                         placeholder="Write a message...">
+                                    
+                                    <button type="button" @click="toggleVoiceRecord()"
+                                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition shadow-sm"
+                                        :class="isRecordingVoice ? 'border-rose-300 bg-rose-100 text-rose-600' : 'border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600'"
+                                        title="Record Voice Message">
+                                        <template x-if="!isRecordingVoice">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                            </svg>
+                                        </template>
+                                        <template x-if="isRecordingVoice">
+                                            <span class="block h-3.5 w-3.5 rounded-sm bg-rose-600 animate-pulse"></span>
+                                        </template>
+                                    </button>
                                     <button type="button" @click="sendMessage()"
                                         :disabled="isFileTooLarge || (!draftMessage.trim() && !document.getElementById('file-input-modal')?.files[0])"
                                         class="inline-flex h-12 shrink-0 items-center gap-2 rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed">Send</button>
@@ -481,6 +509,7 @@
             const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
             const ext = fileUrl.split('.').pop().toLowerCase().split('?')[0];
             const isImage = imageExts.includes(ext);
+            const isAudio = ['webm', 'mp3', 'wav', 'ogg', 'm4a', 'aac'].includes(ext);
             const safeName = fileName || 'Download file';
 
             if (isImage) {
@@ -488,6 +517,20 @@
                     <div style="margin-top:10px;">
                         <img src="${fileUrl}" alt="${safeName}" onload="const cb = this.closest('.flex-1'); if(cb) cb.scrollTop = cb.scrollHeight" style="max-width:220px; max-height:220px; border-radius:16px; border:1px solid rgba(148,163,184,.25); display:block;">
                         <a href="${fileUrl}" download="${safeName}" style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:14px;background:${isMe ? 'rgba(255,255,255,0.14)' : '#f8fafc'};color:${isMe ? '#fff' : '#0f172a'};text-decoration:none;font-size:12px;">Download</a>
+                    </div>
+                `;
+            }
+
+            if (isAudio) {
+                return `
+                    <div style="margin-top: 8px; padding: 12px; background: ${isMe ? 'rgba(255,255,255,0.12)' : '#f1f5f9'}; border-radius: 16px; border: 1px solid ${isMe ? 'rgba(255,255,255,0.2)' : '#e2e8f0'};">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px; color: ${isMe ? '#fff' : '#64748b'};" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                            </svg>
+                            <span style="color: ${isMe ? '#fff' : '#64748b'}; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">Voice Message</span>
+                        </div>
+                        <audio controls src="${fileUrl}" style="height: 36px; max-width: 240px; width: 100%; border-radius: 18px; outline: none;"></audio>
                     </div>
                 `;
             }
@@ -521,6 +564,10 @@
                 isLoadingMessages: false,
                 lastLoadTime: 0, loadDebounceMs: 2000,
                 lastUserLoadTime: 0, userLoadDebounceMs: 2500,
+                isFileTooLarge: false,
+                isRecordingVoice: false,
+                voiceMediaRecorder: null,
+                voiceAudioChunks: [],
                 scrollToBottom(el, smooth = false) {
                     if (!el) return;
                     const doScroll = () => {
@@ -550,6 +597,17 @@
                     document.addEventListener('visibilitychange', () => {
                         if (document.visibilityState === 'visible') this.loadUsers(false);
                     });
+
+                    // Ensure only one audio plays at a time
+                    document.addEventListener('play', (event) => {
+                        const audios = document.getElementsByTagName('audio');
+                        for (let i = 0, len = audios.length; i < len; i++) {
+                            if (audios[i] != event.target) {
+                                audios[i].pause();
+                            }
+                        }
+                    }, true);
+
                     if (this.activeConversationId) {
                         this.loadMessages().then(() => {
                             const chatBox = document.getElementById('chat-box');
@@ -824,6 +882,68 @@ async loadMessages() {
                         console.error('Mark read error:', error);
                     }
                 },
+                async toggleVoiceRecord() {
+                    if (this.isRecordingVoice) {
+                        if (this.voiceMediaRecorder) {
+                            this.voiceMediaRecorder.stop();
+                        }
+                        this.isRecordingVoice = false;
+                        return;
+                    }
+
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        this.voiceMediaRecorder = new MediaRecorder(stream);
+                        this.voiceAudioChunks = [];
+
+                        this.voiceMediaRecorder.ondataavailable = e => {
+                            if (e.data.size > 0) this.voiceAudioChunks.push(e.data);
+                        };
+
+                        this.voiceMediaRecorder.onstop = () => {
+                            stream.getTracks().forEach(track => track.stop());
+                            if (this.voiceAudioChunks.length === 0) return;
+
+                            const audioBlob = new Blob(this.voiceAudioChunks, { type: 'audio/webm' });
+                            const file = new File([audioBlob], `voice_${Date.now()}.webm`, { type: 'audio/webm' });
+
+                            this.sendVoiceFile(file);
+                        };
+
+                        this.voiceMediaRecorder.start();
+                        this.isRecordingVoice = true;
+                    } catch (err) {
+                        alert('Microphone access is required to send voice messages.');
+                        console.error(err);
+                    }
+                },
+                async sendVoiceFile(file) {
+                    if (!this.activeConversationId) return;
+                    let formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('conversation_id', this.activeConversationId);
+
+                    try {
+                        const response = await axios.post('/send-message', formData, {
+                            headers: { 'Content-Type': 'multipart/form-data' }
+                        });
+                        if (response.data && response.data.id) {
+                            this.loadedMessageIds.add(response.data.id);
+                            this.lastMessageId = Math.max(this.lastMessageId, response.data.id);
+                            this.renderMessage(response.data);
+                            this.syncCounterState('sent');
+                            await this.loadUsers(false);
+                            setTimeout(() => {
+                                const chatBox = document.getElementById('chat-box');
+                                if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+                                const modalChat = document.getElementById('chat-box-modal');
+                                if (modalChat) modalChat.scrollTop = modalChat.scrollHeight;
+                            }, 50);
+                        }
+                    } catch (error) {
+                        console.error('Record send error:', error);
+                    }
+                },
                 startPolling() {
                     if (this.pollTimer) clearInterval(this.pollTimer);
                     this.pollTimer = setInterval(async () => {
@@ -916,6 +1036,7 @@ async loadMessages() {
         function buildAttachmentHtml(url, name, isMe) {
             if (!url) return '';
             const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+            const isAudio = /\.(webm|mp3|wav|ogg|m4a|aac)$/i.test(url);
             if (isImage) {
                 const borderClass = isMe ? 'border-white/20' : 'border-rose-100';
                 return `
@@ -924,6 +1045,13 @@ async loadMessages() {
                             <img src="${url}" class="max-h-52 max-w-[280px] w-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-105" onclick="window.open('${url}', '_blank')" alt="Attachment">
                             <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                         </div>
+                    </div>
+                `;
+            }
+            if (isAudio) {
+                return `
+                    <div class="mt-2 text-left">
+                        <audio controls src="${url}" style="height: 44px; max-width: 240px; outline: none; border-radius: 22px;"></audio>
                     </div>
                 `;
             }
@@ -939,5 +1067,12 @@ async loadMessages() {
                 </div>
             `;
         }
+    </script>
+    <script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('adminMessagesApp', (config) => ({
+            ...adminMessagesApp(config)
+        }));
+    });
     </script>
 </x-admin-layout>

@@ -13,8 +13,7 @@
 @else
     @component('layouts.app')
         @slot('header')
-            <div>
-            </div>
+            <div></div>
         @endslot
 
         @include('messaging::chat.partials.dashboard-content')

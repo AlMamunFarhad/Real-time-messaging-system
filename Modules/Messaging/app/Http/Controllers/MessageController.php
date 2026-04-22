@@ -74,7 +74,7 @@ class MessageController extends Controller
             $filePath = null;
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip', 'rar'];
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip', 'rar', 'webm', 'mp3', 'wav', 'ogg', 'm4a', 'aac'];
                 $extension = $file->getClientOriginalExtension();
 
                 if (in_array(strtolower($extension), $allowedExtensions)) {
