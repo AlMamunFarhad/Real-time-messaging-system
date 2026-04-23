@@ -10,9 +10,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/debug-login', function () {
-    return (new \App\Http\Controllers\Auth\AuthenticatedSessionController())->create();
-});
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
