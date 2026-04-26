@@ -162,9 +162,7 @@ class MessagingController extends Controller
             ->with(['participants' => function ($q) {
                 $q->whereNull('left_at');
             }])
-            ->with(['messages' => function ($q) {
-                $q->orderBy('created_at', 'desc')->limit(1);
-            }])
+            ->with('lastMessage')
             ->orderBy('updated_at', 'desc')
             ->get();
 
@@ -174,7 +172,7 @@ class MessagingController extends Controller
             $unreadCount += $unread;
             $conversation->unread_count = $unread;
 
-            $conversation->last_message = $conversation->messages->first();
+            $conversation->last_message = $conversation->lastMessage;
 
             $otherParticipant = null;
 
@@ -194,6 +192,13 @@ class MessagingController extends Controller
                 }
             }
 
+            $currentUserParticipant = $conversation->participants->first(function ($p) use ($userId, $userType, $userTypeShort) {
+                $typeFull = 'App\\Models\\' . ucfirst($userTypeShort);
+                return (int) $p->participant_id === (int) $userId
+                    && in_array($p->participant_type, [$userType, $userTypeShort, $typeFull]);
+            });
+            $conversation->is_pinned = (bool) ($currentUserParticipant?->is_pinned ?? false);
+
             $conversation->other_participant_id = $otherParticipant?->participant_id;
             $conversation->other_participant_type = $otherParticipant
                 ? strtolower(class_basename($this->conversationService->resolveParticipantType($otherParticipant->participant_type ?? null) ?? ''))
@@ -209,9 +214,19 @@ class MessagingController extends Controller
             $conversation->can_manage = $conversation->is_group
                 ? $this->conversationService->canManageGroup($conversation, $userId, $userType)
                 : false;
+            $conversation->preview_text = $this->conversationService->buildMessagePreview(
+                $conversation->last_message?->body,
+                $conversation->last_message?->file_path,
+                $conversation->is_group ? 'Start a discussion' : 'No message yet'
+            );
         }
 
-        $conversations = $allConversations->values();
+        $conversations = $allConversations->sort(function ($a, $b) {
+            if ($a->is_pinned === $b->is_pinned) {
+                return $b->updated_at <=> $a->updated_at;
+            }
+            return $b->is_pinned <=> $a->is_pinned;
+        })->values();
 
         return response()->json([
             'conversations' => $conversations,

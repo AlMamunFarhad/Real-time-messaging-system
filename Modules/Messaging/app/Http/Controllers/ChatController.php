@@ -110,4 +110,43 @@ class ChatController extends Controller
 
         return $this->directConversation(request());
     }
+
+    public function togglePin(Request $request)
+    {
+        $request->validate([
+            'conversation_id' => 'required|integer',
+        ]);
+
+        $participantId = AuthParticipant::id();
+        $participantType = AuthParticipant::type();
+
+        if (!$participantId || !$participantType) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $conversation = $this->conversationService->getConversationForParticipant(
+            $request->integer('conversation_id'),
+            $participantId,
+            $participantType
+        );
+
+        if (!$conversation) {
+            return response()->json(['error' => 'Conversation not found'], 404);
+        }
+
+        $participant = $this->conversationService->findParticipantRecord($conversation, $participantId, $participantType);
+
+        if (!$participant) {
+            return response()->json(['error' => 'Participant record not found'], 404);
+        }
+
+        $participant->update([
+            'is_pinned' => !$participant->is_pinned,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'is_pinned' => $participant->is_pinned,
+        ]);
+    }
 }

@@ -88,4 +88,7 @@ Route::middleware(['web', 'auth:admin,web'])->group(function () {
         ->name('voice.hangup');
     Route::get('/voice-call/poll', [VoiceCallController::class, 'pollSignals'])
         ->name('voice.poll');
+
+    Route::post('/messages/toggle-pin', [ChatController::class, 'togglePin'])
+        ->name('messages.toggle-pin');
 });

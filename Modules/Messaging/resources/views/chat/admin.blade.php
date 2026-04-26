@@ -88,7 +88,51 @@
                         </template>
 
                         <div class="space-y-1.5 pointer-events-auto" x-show="!loadingUsers && users.length">
-                            <template x-for="user in users" :key="user.id">
+                            <template x-if="pinnedUsers.length">
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center justify-between px-1 pt-1">
+                                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">Pinned</p>
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-600">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z"/>
+                                            </svg>
+                                            Saved
+                                        </span>
+                                    </div>
+                                    <template x-for="user in pinnedUsers" :key="'pinned-user-' + user.id">
+                                        <button type="button" @click="selectUser(user)"
+                                            class="group block w-full rounded-[20px] border border-amber-100 bg-amber-50/60 px-3.5 py-3 text-left transition-all duration-300 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]"
+                                            :class="Number(activeUserId) === Number(user.id) ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-amber-200/80 scale-[1.01] z-10 relative' : 'text-stone-800'">
+                                            <div class="flex items-center gap-3.5">
+                                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] text-[14px] font-bold shadow-sm transition-all duration-300"
+                                                    :class="Number(activeUserId) === Number(user.id) ? 'bg-gradient-to-br from-amber-400 to-orange-300 text-white shadow-md shadow-amber-200' : 'bg-amber-100 text-amber-600'"
+                                                    x-text="initialFor(user.name)"></div>
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <div class="truncate text-[14.5px] font-bold text-stone-800 tracking-tight" x-text="user.name"></div>
+                                                        <span class="inline-flex h-2 w-2 shrink-0 rounded-full transition-colors ml-1" :class="user.is_online ? 'bg-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.12)]' : 'bg-stone-200'"></span>
+                                                    </div>
+                                                    <div class="truncate text-[12px] mt-0.5 font-medium transition-colors" :class="Number(activeUserId) === Number(user.id) ? 'text-amber-600' : 'text-stone-500'" x-text="userPreview(user)"></div>
+                                                </div>
+                                                <div class="flex-shrink-0 flex items-center gap-2">
+                                                    <template x-if="Number(user.unseen_count || 0) > 0">
+                                                        <span class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-bold text-white shadow-sm" x-text="Number(user.unseen_count) > 99 ? '99+' : user.unseen_count"></span>
+                                                    </template>
+                                                    <button @click.stop="togglePin(user)" type="button" class="p-1.5 rounded-lg text-amber-500 transition-all duration-200 hover:bg-amber-100" title="Unpin conversation">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                                                            <path d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </template>
+                                </div>
+                            </template>
+                            <template x-if="otherUsers.length && pinnedUsers.length">
+                                <p class="px-1 pt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">All Conversations</p>
+                            </template>
+                            <template x-for="user in (pinnedUsers.length ? otherUsers : users)" :key="user.id">
                                 <button type="button" @click="selectUser(user)"
                                     class="group block w-full rounded-[20px] px-3.5 py-3 text-left transition-all duration-300"
                                     :class="Number(activeUserId) === Number(user.id) ?
@@ -110,16 +154,26 @@
                                             <div class="truncate text-[12px] mt-0.5 font-medium transition-colors"
                                                 :class="Number(activeUserId) === Number(user.id) ? 'text-rose-500' :
                                                     'text-stone-400'"
-                                                x-text="user.last_message?.body || (user.last_message?.file_path ? (user.last_message.file_path.match(/\.(webm|mp3|wav|ogg|m4a)$/i) ? 'Voice Message' : 'Photo') : (user.is_online ? 'Active now' : 'Offline'))">
+                                                x-text="userPreview(user)">
                                             </div>
                                         </div>
-                                        <template x-if="Number(user.unseen_count || 0) > 0">
-                                            <span
-                                                class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10px] font-bold shadow-sm transition-transform group-hover:scale-110"
-                                                :class="Number(activeUserId) === Number(user.id) ? 'bg-rose-100 text-rose-600' :
-                                                    'bg-gradient-to-br from-rose-500 to-orange-400 text-white'"
-                                                x-text="Number(user.unseen_count) > 99 ? '99+' : user.unseen_count"></span>
-                                        </template>
+                                        <div class="flex-shrink-0 flex items-center gap-2">
+                                            <template x-if="Number(user.unseen_count || 0) > 0">
+                                                <span
+                                                    class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10px] font-bold shadow-sm transition-transform group-hover:scale-110"
+                                                    :class="Number(activeUserId) === Number(user.id) ? 'bg-rose-100 text-rose-600' :
+                                                        'bg-gradient-to-br from-rose-500 to-orange-400 text-white'"
+                                                    x-text="Number(user.unseen_count) > 99 ? '99+' : user.unseen_count"></span>
+                                            </template>
+                                            <button @click.stop="togglePin(user)" type="button" 
+                                                class="p-1.5 rounded-lg transition-all duration-200 hover:bg-amber-50 group/pin"
+                                                :class="user.is_pinned ? 'text-amber-500' : 'text-stone-300 hover:text-amber-500'">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover/pin:scale-110" 
+                                                    :fill="user.is_pinned ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 </button>
                             </template>
@@ -156,6 +210,40 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
+                                        <button type="button" @click="toggleSummary()" :disabled="isFetchingSummary" 
+                                                class="flex items-center justify-center gap-2 rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm disabled:opacity-50" 
+                                                title="View Conversation Summary">
+                                            <template x-if="!isFetchingSummary">
+                                                <div class="flex items-center gap-2">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                    <span x-text="showSummary ? 'Hide Summary' : 'Summary'"></span>
+                                                </div>
+                                            </template>
+                                            <template x-if="isFetchingSummary">
+                                                <div class="flex items-center gap-2">
+                                                    <svg class="h-4 w-4 animate-spin text-rose-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    <span>...</span>
+                                                </div>
+                                            </template>
+                                        </button>
+
+                                        <button @click.stop="togglePin(users.find(u => Number(u.id) === Number(activeUserId)))" type="button" 
+                                            class="flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white shadow-sm transition hover:bg-stone-50"
+                                            :class="users.find(u => Number(u.id) === Number(activeUserId))?.is_pinned ? 'border-amber-200 bg-amber-50 text-amber-500' : 'text-stone-400 hover:text-amber-500'"
+                                            :title="users.find(u => Number(u.id) === Number(activeUserId))?.is_pinned ? 'Pinned conversation' : 'Pin conversation'">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" 
+                                                :fill="users.find(u => Number(u.id) === Number(activeUserId))?.is_pinned ? 'currentColor' : 'none'" 
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z" />
+                                            </svg>
+                                        </button>
+
+                                        <button type="button" @click="activeConversationId = 0; localStorage.removeItem('admin_active_conversation_id');"
                                             class="hidden md:flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-stone-400 transition hover:bg-stone-50 hover:text-stone-800 shadow-sm" title="Close chat">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
@@ -166,6 +254,53 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Conversation Summary Panel -->
+                            <template x-if="showSummary && chatSummary">
+                                <div x-transition:enter="transition ease-out duration-300" 
+                                     x-transition:enter-start="opacity-0 -translate-y-4" 
+                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                     x-transition:leave="transition ease-in duration-200"
+                                     x-transition:leave-start="opacity-100 translate-y-0"
+                                     x-transition:leave-end="opacity-0 -translate-y-4"
+                                     class="relative border-b border-orange-100 bg-white p-6 shadow-sm z-20 max-h-[40vh] overflow-y-auto custom-scrollbar">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-md shadow-rose-200">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h4 class="text-[15px] font-bold tracking-tight text-stone-800">Conversation Summary</h4>
+                                            </div>
+                                        </div>
+                                        <button @click="showSummary = false" class="group flex h-8 w-8 items-center justify-center rounded-full hover:bg-rose-50 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-stone-400 group-hover:text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div class="mt-5 rounded-[20px] bg-gradient-to-br from-orange-50/30 to-rose-50/20 p-5 shadow-inner">
+                                        <div class="prose prose-sm prose-stone max-w-none">
+                                            <div class="text-[14px] leading-relaxed text-stone-700" x-html="parseSummary(chatSummary)"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 flex items-center justify-between px-2">
+                                        <div class="flex items-center gap-3">
+                                            <p class="text-[11px] font-bold text-stone-400" x-text="'Refreshed on ' + new Date().toLocaleTimeString()"></p>
+                                            <button @click="navigator.clipboard.writeText(chatSummary); $el.textContent = 'Copied!'; setTimeout(() => $el.textContent = 'Copy', 2000)" 
+                                                    class="text-[11px] font-bold text-rose-500 hover:text-rose-600 underline decoration-rose-200 underline-offset-4">
+                                                Copy
+                                            </button>
+                                        </div>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+                                            <span class="text-[11px] font-black tracking-tighter text-orange-500 uppercase">Live Summary</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
 
                             <div id="chat-box" class="flex-1 overflow-y-auto bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-50/50 via-white to-rose-50/30 px-4 py-4 md:px-6 md:py-6 transition-opacity duration-300" style="opacity: 0;">
                                 <!-- messages injected by JS -->
@@ -543,6 +678,8 @@
         function adminMessagesApp(config) {
             return {
                 users: [],
+                pinnedUsers: [],
+                otherUsers: [],
                 search: '',
                 loadingUsers: true,
                 activeUserId: Number(localStorage.getItem('admin_active_user_id')) || config.initialActiveUserId || 0,
@@ -558,10 +695,12 @@
                 usersRefreshTimer: null,
                 onlineStatusTimer: null,
                 heartbeatTimer: null,
-                lastMessageId: 0,
                 loadedMessageIds: new Set(),
                 lastMarkedReadAt: 0,
                 isLoadingMessages: false,
+                isFetchingSummary: false,
+                chatSummary: '',
+                showSummary: false,
                 lastLoadTime: 0, loadDebounceMs: 2000,
                 lastUserLoadTime: 0, userLoadDebounceMs: 2500,
                 isFileTooLarge: false,
@@ -624,6 +763,15 @@
                 initialFor(name) {
                     return name ? name.charAt(0).toUpperCase() : '?';
                 },
+                messagePreview(lastMessage, fallback = 'No message yet') {
+                    if (!lastMessage) return fallback;
+                    if (lastMessage.body && String(lastMessage.body).trim() !== '') return String(lastMessage.body).trim();
+                    if (lastMessage.file_path) return /\.(webm|mp3|wav|ogg|m4a|aac)$/i.test(lastMessage.file_path) ? 'Voice Message' : 'Photo';
+                    return fallback;
+                },
+                userPreview(user) {
+                    return this.messagePreview(user?.last_message, user?.is_online ? 'Active now' : 'Offline');
+                },
                 debouncedLoadUsers() {
                     clearTimeout(this.searchTimer);
                     this.searchTimer = setTimeout(() => this.loadUsers(), 250);
@@ -666,9 +814,13 @@
                         });
                         const data = await response.json();
                         this.users = data.users || [];
+                        this.pinnedUsers = this.users.filter((user) => Boolean(user.is_pinned));
+                        this.otherUsers = this.users.filter((user) => !user.is_pinned);
                     } catch (error) {
                         console.error(error);
                         this.users = [];
+                        this.pinnedUsers = [];
+                        this.otherUsers = [];
                     } finally {
                         if (showLoader) this.loadingUsers = false;
                     }
@@ -794,6 +946,75 @@ async loadMessages() {
                     } finally {
                         this.isLoadingMessages = false;
                     }
+                },
+                async togglePin(user) {
+                    try {
+                        let conversationId = user.conversation_id;
+                        
+                        if (!conversationId) {
+                            // Fallback if not loaded
+                            const response = await axios.get(`{{ route('admin.messages.conversation') }}?user=${user.id}`);
+                            conversationId = response.data.conversation.id;
+                        }
+
+                        if (!conversationId) return;
+
+                        const pinResponse = await axios.post('{{ route('messages.toggle-pin') }}', {
+                            conversation_id: conversationId
+                        });
+
+                        if (pinResponse.data.success) {
+                            user.is_pinned = pinResponse.data.is_pinned;
+                            user.conversation_id = conversationId;
+                            await this.loadUsers(false);
+                        }
+                    } catch (error) {
+                        console.error('Toggle pin error:', error);
+                    }
+                },
+                async toggleSummary() {
+                    if (this.showSummary) {
+                        this.showSummary = false;
+                        return;
+                    }
+                    await this.fetchSummary();
+                },
+                async fetchSummary() {
+                    if (!this.activeConversationId) return;
+                    this.isFetchingSummary = true;
+                    try {
+                        const response = await axios.get(`/messages/${this.activeConversationId}/summary`);
+                        this.chatSummary = response.data.summary;
+                        this.showSummary = true;
+                        
+                        // Scroll to bottom to show the summary panel
+                        this.scrollToBottom(document.getElementById('chat-box'), true);
+                    } catch (error) {
+                        console.error('Fetch summary failed', error);
+                        alert('Failed to generate summary. Please check your connection.');
+                    } finally {
+                        this.isFetchingSummary = false;
+                    }
+                },
+                parseSummary(text) {
+                    if (!text) return '';
+                    
+                    let html = text
+                        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-stone-900 font-bold">$1</strong>') // Bold text
+                        .replace(/^\s*###\s*(.*$)/gm, '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // H3 headings
+                        .replace(/^\s*##\s*(.*$)/gm, '<h4 class="text-[14px] font-bold text-stone-900 mt-4 mb-2 border-b border-stone-100 pb-1">$1</h4>') // H2 headings
+                        .replace(/^\s*#\s*(.*$)/gm, '<h3 class="text-[16px] font-extrabold text-stone-900 mt-5 mb-3">$1</h3>') // H1 headings
+                        .replace(/^\s*(\d+\.\s.*)$/gm, '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // Numbered headings
+                        .replace(/^\s*[-*]\s(.*)$/gm, '<div class="flex items-start gap-2 ml-2 my-0"><span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400"></span><span class="text-stone-700">$1</span></div>'); // Bullet points
+                    
+                    html = html.split('\n').map(line => {
+                        const trimmed = line.trim();
+                        if (trimmed === '') return '';
+                        if (line.includes('<div') || line.includes('<h')) return line;
+                        return line + '<br>';
+                    }).join('\n');
+                    
+                    return html.replace(/(<\/div>|<\/h[1-6]>)<br>/g, '$1').replace(/<br>\n<div/g, '\n<div').trim();
                 },
                 async sendMessage() {
                     if (!this.activeConversationId) return;
@@ -1074,5 +1295,7 @@ async loadMessages() {
             ...adminMessagesApp(config)
         }));
     });
+    </script>
+</x-admin-layout>
     </script>
 </x-admin-layout>

@@ -25,6 +25,7 @@ class ConversationParticipant extends Model
         'participant_id',
         'participant_type',
         'role',
+        'is_pinned',
         'added_by_id',
         'added_by_type',
         'last_read_at',
@@ -33,6 +34,7 @@ class ConversationParticipant extends Model
     ];
 
     protected $casts = [
+        'is_pinned' => 'boolean',
         'last_read_at' => 'datetime',
         'joined_at' => 'datetime',
         'left_at' => 'datetime',

@@ -12,6 +12,23 @@ use Modules\Messaging\Models\ConversationParticipant;
 
 class ConversationService
 {
+    public function buildMessagePreview(?string $body, ?string $filePath, string $fallback = 'No message yet'): string
+    {
+        $body = trim((string) $body);
+
+        if ($body !== '') {
+            return $body;
+        }
+
+        if ($filePath) {
+            return preg_match('/\.(webm|mp3|wav|ogg|m4a|aac)$/i', $filePath)
+                ? 'Voice Message'
+                : 'Photo';
+        }
+
+        return $fallback;
+    }
+
     public function resolveParticipantType(?string $type): ?string
     {
         if (!$type) return null;
@@ -312,13 +329,30 @@ class ConversationService
         }
 
         if ($mode === 'direct') {
-            if ($this->participantTypeKey($currentType) === 'admin') {
+            $currentIdInt = (int) $currentId;
+            $currentTypeKey = $this->participantTypeKey($currentType);
+
+            if ($currentTypeKey === 'admin') {
                 return $queryUsers->get(['id', 'name', 'email'])
-                    ->map(fn ($user) => $this->formatDirectoryItem($user, 'user'));
+                    ->map(fn ($user) => $this->formatDirectoryItem($user, 'user', $currentIdInt, $currentTypeKey))
+                    ->sort(function ($a, $b) {
+                        if ($a['is_pinned'] === $b['is_pinned']) {
+                            return strcasecmp($a['name'], $b['name']);
+                        }
+                        return $b['is_pinned'] <=> $a['is_pinned'];
+                    })
+                    ->values();
             }
 
             return $queryAdmins->get(['id', 'name', 'email'])
-                ->map(fn ($admin) => $this->formatDirectoryItem($admin, 'admin'));
+                ->map(fn ($admin) => $this->formatDirectoryItem($admin, 'admin', $currentIdInt, $currentTypeKey))
+                ->sort(function ($a, $b) {
+                    if ($a['is_pinned'] === $b['is_pinned']) {
+                        return strcasecmp($a['name'], $b['name']);
+                    }
+                    return $b['is_pinned'] <=> $a['is_pinned'];
+                })
+                ->values();
         }
 
         $users = $queryUsers->get(['id', 'name', 'email']);
@@ -334,26 +368,47 @@ class ConversationService
                 return (int) $item['id'] === $currentIdInt
                     && $item['type'] === $currentTypeKey;
             })
+            ->sort(function ($a, $b) {
+                if ($a['is_pinned'] === $b['is_pinned']) {
+                    return strcasecmp($a['name'], $b['name']);
+                }
+                return $b['is_pinned'] <=> $a['is_pinned'];
+            })
             ->values();
     }
 
     protected function formatDirectoryItem(Model $model, string $type, ?int $currentId = null, ?string $currentType = null): array
     {
         $lastMessage = null;
+        $isPinned = false;
+        $conversationId = null;
         if ($currentId && $currentType) {
+            $currentTypeFull = 'App\\Models\\' . ucfirst($currentType);
+            $typeFull = 'App\\Models\\' . ucfirst($type);
+
             $conversation = \Modules\Messaging\Models\Conversation::query()
                 ->direct()
-                ->whereHas('participants', fn($q) => $q->where('participant_id', $currentId)->where('participant_type', $currentType))
-                ->whereHas('participants', fn($q) => $q->where('participant_id', $model->id)->where('participant_type', $type))
-                ->with('lastMessage')
+                ->whereHas('participants', fn($q) => $q->where('participant_id', $currentId)->whereIn('participant_type', [$currentType, $currentTypeFull]))
+                ->whereHas('participants', fn($q) => $q->where('participant_id', $model->id)->whereIn('participant_type', [$type, $typeFull]))
+                ->with(['lastMessage', 'participants' => function($q) use ($currentId, $currentType, $currentTypeFull) {
+                    $q->where('participant_id', $currentId)->whereIn('participant_type', [$currentType, $currentTypeFull]);
+                }])
                 ->first();
             
-            if ($conversation && $conversation->lastMessage) {
-                $lastMessage = [
-                    'body' => $conversation->lastMessage->body,
-                    'file_path' => $conversation->lastMessage->file_path,
-                    'created_at' => $conversation->lastMessage->created_at,
-                ];
+            if ($conversation) {
+                $conversationId = $conversation->id;
+                if ($conversation->lastMessage) {
+                    $lastMessage = [
+                        'body' => $conversation->lastMessage->body,
+                        'file_path' => $conversation->lastMessage->file_path,
+                        'created_at' => $conversation->lastMessage->created_at,
+                    ];
+                }
+                
+                $currentUserParticipant = $conversation->participants->first();
+                if ($currentUserParticipant) {
+                    $isPinned = (bool) $currentUserParticipant->is_pinned;
+                }
             }
         }
 
@@ -365,6 +420,13 @@ class ConversationService
             'subtitle' => $type === 'admin' ? 'Admin' : 'User',
             'is_online' => cache()->has('online_' . $type . '_' . $model->id),
             'last_message' => $lastMessage,
+            'preview_text' => $this->buildMessagePreview(
+                $lastMessage['body'] ?? null,
+                $lastMessage['file_path'] ?? null,
+                $type === 'admin' ? 'Admin' : 'User'
+            ),
+            'is_pinned' => $isPinned,
+            'conversation_id' => $conversationId,
         ];
     }
 }

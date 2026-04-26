@@ -60,7 +60,17 @@
                 <div class="px-5 py-5 overflow-hidden">
                     <!-- Chats Tab -->
                     <div x-show="activeTab === 'direct'" class="flex flex-col h-[52vh]" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
-                        <p class="text-[10.5px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-4 px-1">Recent Conversations</p>
+                        <div class="mb-4 flex items-center justify-between px-1">
+                            <p class="text-[10.5px] font-bold uppercase tracking-[0.2em] text-stone-400">Recent Conversations</p>
+                            <template x-if="pinnedDirectConversations.length">
+                                <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z"/>
+                                    </svg>
+                                    Pinned
+                                </span>
+                            </template>
+                        </div>
                         
                         <div class="flex-1 space-y-1.5 overflow-y-auto pr-1 custom-scrollbar">
                             <template x-if="!directConversations.length">
@@ -73,9 +83,49 @@
                                     <p class="text-[12.5px] font-medium text-stone-400 leading-relaxed">No chats found.<br>Go to Contacts to start one.</p>
                                 </div>
                             </template>
-                            <template x-for="conversation in directConversations" :key="conversation.id">
-                                <button type="button" @click="selectConversation(conversation)" 
-                                    class="group block w-full rounded-[20px] px-4 py-3.5 text-left transition-all duration-300" 
+                            <template x-if="pinnedDirectConversations.length">
+                                <div class="space-y-1.5">
+                                    <p class="px-1 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">Pinned</p>
+                                    <template x-for="conversation in pinnedDirectConversations" :key="'pd-' + conversation.id">
+                                        <div role="button" tabindex="0" @click="selectConversation(conversation)" @keydown.enter.prevent="selectConversation(conversation)" @keydown.space.prevent="selectConversation(conversation)"
+                                            class="group block w-full cursor-pointer rounded-[20px] px-4 py-3.5 text-left transition-all duration-300"
+                                            :class="activeConversationId === conversation.id ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-amber-200/80 scale-[1.01] z-10 relative' : 'bg-amber-50/60 text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
+                                            <div class="relative min-w-0 flex-1">
+                                                <div class="flex items-center justify-between gap-2">
+                                                    <div class="flex items-center gap-2 min-w-0">
+                                                        <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-500">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                                                <path d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z"/>
+                                                            </svg>
+                                                        </span>
+                                                        <template x-if="conversation.is_online">
+                                                            <span class="h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
+                                                        </template>
+                                                        <div class="truncate text-[14.5px] font-bold tracking-tight text-stone-800" x-text="conversation.title"></div>
+                                                    </div>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <template x-if="Number(conversation.unread_count || 0) > 0">
+                                                            <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm" x-text="conversation.unread_count"></span>
+                                                        </template>
+                                                        <button @click.stop="togglePin(conversation)" type="button" class="p-1.5 rounded-lg transition-all duration-200 hover:bg-amber-100 text-amber-500" title="Unpin conversation">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                                                                <path d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z"/>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-0.5 truncate text-[12px] font-medium transition-colors" :class="activeConversationId === conversation.id ? 'text-amber-600' : 'text-stone-500'" x-text="conversationPreview(conversation, 'No message yet')"></div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                            <template x-if="otherDirectConversations.length && pinnedDirectConversations.length">
+                                <p class="px-1 pt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">All Chats</p>
+                            </template>
+                            <template x-for="conversation in (pinnedDirectConversations.length ? otherDirectConversations : directConversations)" :key="conversation.id">
+                                <div role="button" tabindex="0" @click="selectConversation(conversation)" @keydown.enter.prevent="selectConversation(conversation)" @keydown.space.prevent="selectConversation(conversation)"
+                                    class="group block w-full cursor-pointer rounded-[20px] px-4 py-3.5 text-left transition-all duration-300" 
                                     :class="activeConversationId === conversation.id ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-stone-200/60 scale-[1.01] z-10 relative' : 'bg-transparent text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
                                     <div class="relative min-w-0 flex-1">
                                         <div class="flex items-center justify-between gap-2">
@@ -88,11 +138,19 @@
                                             <template x-if="Number(conversation.unread_count || 0) > 0">
                                                 <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm transition-transform group-hover:scale-110" x-text="conversation.unread_count"></span>
                                             </template>
+                                            <button @click.stop="togglePin(conversation)" type="button" 
+                                                class="p-1.5 rounded-lg transition-all duration-200 hover:bg-amber-50 group/pin ml-1"
+                                                :class="conversation.is_pinned ? 'text-amber-500' : 'text-stone-300 hover:text-amber-500'">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover/pin:scale-110" 
+                                                    :fill="conversation.is_pinned ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z" />
+                                                </svg>
+                                            </button>
                                         </div>
                                         <div class="mt-0.5 truncate text-[12px] font-medium transition-colors" :class="activeConversationId === conversation.id ? 'text-rose-500' : 'text-stone-400'" 
-                                            x-text="conversation.last_message?.body || (conversation.last_message?.file_path ? (conversation.last_message.file_path.match(/\.(webm|mp3|wav|ogg|m4a)$/i) ? 'Voice Message' : 'Photo') : 'No message yet')"></div>
+                                            x-text="conversationPreview(conversation, 'No message yet')"></div>
                                     </div>
-                                </button>
+                                </div>
                             </template>
                         </div>
                     </div>
@@ -112,9 +170,46 @@
                                     Collaborate with your team<br>in group chats.
                                 </div>
                             </template>
-                            <template x-for="conversation in groupConversations" :key="conversation.id">
-                                <button type="button" @click="selectConversation(conversation)" 
-                                    class="group block w-full rounded-[20px] px-4 py-3.5 text-left transition-all duration-300" 
+                            <template x-if="pinnedGroupConversations.length">
+                                <div class="space-y-1.5">
+                                    <p class="px-1 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">Pinned Groups</p>
+                                    <template x-for="conversation in pinnedGroupConversations" :key="'pg-' + conversation.id">
+                                        <div role="button" tabindex="0" @click="selectConversation(conversation)" @keydown.enter.prevent="selectConversation(conversation)" @keydown.space.prevent="selectConversation(conversation)"
+                                            class="group block w-full cursor-pointer rounded-[20px] px-4 py-3.5 text-left transition-all duration-300"
+                                            :class="activeConversationId === conversation.id ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-amber-200/80 scale-[1.01] z-10 relative' : 'bg-amber-50/60 text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center justify-between gap-3">
+                                                    <div class="flex items-center gap-2 min-w-0">
+                                                        <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-500">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                                                <path d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z"/>
+                                                            </svg>
+                                                        </span>
+                                                        <div class="truncate text-[14.5px] font-bold tracking-tight text-stone-800" x-text="conversation.title"></div>
+                                                    </div>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <template x-if="Number(conversation.unread_count || 0) > 0">
+                                                            <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm" x-text="conversation.unread_count"></span>
+                                                        </template>
+                                                        <button @click.stop="togglePin(conversation)" type="button" class="p-1.5 rounded-lg transition-all duration-200 hover:bg-amber-100 text-amber-500" title="Unpin group">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                                                                <path d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z"/>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-0.5 truncate text-[12px] font-medium transition-colors" :class="activeConversationId === conversation.id ? 'text-amber-600' : 'text-stone-500'" x-text="conversationPreview(conversation, 'Start a discussion')"></div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                            <template x-if="otherGroupConversations.length && pinnedGroupConversations.length">
+                                <p class="px-1 pt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">All Groups</p>
+                            </template>
+                            <template x-for="conversation in (pinnedGroupConversations.length ? otherGroupConversations : groupConversations)" :key="conversation.id">
+                                <div role="button" tabindex="0" @click="selectConversation(conversation)" @keydown.enter.prevent="selectConversation(conversation)" @keydown.space.prevent="selectConversation(conversation)"
+                                    class="group block w-full cursor-pointer rounded-[20px] px-4 py-3.5 text-left transition-all duration-300" 
                                     :class="activeConversationId === conversation.id ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-stone-200/60 scale-[1.01] z-10 relative' : 'bg-transparent text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-center justify-between gap-3">
@@ -122,10 +217,18 @@
                                             <template x-if="Number(conversation.unread_count || 0) > 0">
                                                 <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm transition-transform group-hover:scale-110" x-text="conversation.unread_count"></span>
                                             </template>
+                                            <button @click.stop="togglePin(conversation)" type="button" 
+                                                class="p-1.5 rounded-lg transition-all duration-200 hover:bg-amber-50 group/pin ml-1"
+                                                :class="conversation.is_pinned ? 'text-amber-500' : 'text-stone-300 hover:text-amber-500'">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover/pin:scale-110" 
+                                                    :fill="conversation.is_pinned ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z" />
+                                                </svg>
+                                            </button>
                                         </div>
-                                        <div class="mt-0.5 truncate text-[12px] font-medium transition-colors" :class="activeConversationId === conversation.id ? 'text-rose-500' : 'text-stone-400'" x-text="conversation.last_message?.body || (conversation.last_message?.file_path ? 'Photo' : 'Start a discussion')"></div>
+                                        <div class="mt-0.5 truncate text-[12px] font-medium transition-colors" :class="activeConversationId === conversation.id ? 'text-rose-500' : 'text-stone-400'" x-text="conversationPreview(conversation, 'Start a discussion')"></div>
                                     </div>
-                                </button>
+                                </div>
                             </template>
                         </div>
                     </div>
@@ -155,7 +258,7 @@
                                             </template>
                                             <div class="truncate text-[14.5px] font-bold tracking-tight text-stone-800" x-text="item.name"></div>
                                         </div>
-                                        <div class="mt-1 truncate text-[10px] uppercase font-bold tracking-widest text-stone-400" x-text="item.subtitle"></div>
+                                        <div class="mt-0.5 truncate text-[12px] font-medium text-stone-400" x-text="item.preview_text || item.subtitle"></div>
                                     </div>
                                     <div class="flex h-8 w-8 items-center justify-center rounded-[12px] bg-stone-50 text-stone-400 shadow-sm transition-all duration-300 group-hover:bg-gradient-to-br group-hover:from-rose-400 group-hover:to-orange-300 group-hover:text-white group-hover:shadow-md">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
@@ -198,11 +301,19 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <template x-if="activeConversation.is_group && groupDetails.description">
-                                        <p class="text-[13px] font-medium leading-6 text-stone-500 bg-stone-50 p-2.5 rounded-[14px]" x-text="groupDetails.description"></p>
-                                    </template>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-2 justify-end w-full sm:w-auto">
+                                    <button @click.stop="togglePin(activeConversation)" type="button" 
+                                        class="flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white shadow-sm transition hover:bg-stone-50"
+                                        :class="activeConversation?.is_pinned ? 'border-amber-200 bg-amber-50 text-amber-500' : 'text-stone-400 hover:text-amber-500'"
+                                        :title="activeConversation?.is_pinned ? 'Pinned conversation' : 'Pin conversation'">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" 
+                                            :fill="activeConversation?.is_pinned ? 'currentColor' : 'none'" 
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z" />
+                                        </svg>
+                                    </button>
+
                                     <button type="button" @click="toggleSummary()" :disabled="isFetchingSummary" 
                                             class="flex items-center justify-center gap-2 rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm disabled:opacity-50" 
                                             title="View Conversation Summary">
@@ -338,7 +449,7 @@
                                         </div>
                                         <div class="mt-5 rounded-[20px] bg-gradient-to-br from-orange-50/30 to-rose-50/20 p-5 shadow-inner">
                                             <div class="prose prose-sm prose-stone max-w-none">
-                                                <div class="text-[14px] leading-relaxed text-stone-700 space-y-3" x-html="parseSummary(chatSummary)"></div>
+                                                <div class="text-[14px] leading-relaxed text-stone-700" x-html="parseSummary(chatSummary)"></div>
                                             </div>
                                         </div>
                                         <div class="mt-4 flex items-center justify-between px-2">
@@ -475,7 +586,7 @@
 <script>
 function messagingDashboard(config) {
     return {
-        conversations: [], directConversations: [], groupConversations: [], directCandidates: [], groupCandidates: [], messages: [],
+        conversations: [], directConversations: [], groupConversations: [], pinnedDirectConversations: [], pinnedGroupConversations: [], otherDirectConversations: [], otherGroupConversations: [], directCandidates: [], groupCandidates: [], messages: [],
         activeConversationId: localStorage.getItem('user_active_conversation_id') && localStorage.getItem('user_active_conversation_id') !== 'null' ? localStorage.getItem('user_active_conversation_id') : (config.initialConversationId || null),
         activeConversation: null,
         groupDetails: { members: [] }, loadingMessages: false, isMobileChatOpen: false,
@@ -484,6 +595,22 @@ function messagingDashboard(config) {
         showCreateGroupModal: false, showManageMembersModal: false, groupMemberSearch: '', manageMemberSearch: '', groupNameError: false, isFetchingSummary: false,
         chatSummary: '', showSummary: false,
         groupForm: { name: '', description: '', participants: [] }, pollTimer: null, lastLoadTime: 0, loadDebounceMs: 2500, lastConversationLoadTime: 0, conversationLoadDebounceMs: 3000,
+        isFetchingPin: false,
+        async togglePin(conversation) {
+            if (!conversation || this.isFetchingPin) return;
+            this.isFetchingPin = true;
+            try {
+                const response = await axios.post('/messages/toggle-pin', { conversation_id: conversation.id });
+                if (response.data.success) {
+                    conversation.is_pinned = response.data.is_pinned;
+                    await this.loadConversations(true);
+                }
+            } catch (e) {
+                console.error('Pin toggle failed', e);
+            } finally {
+                this.isFetchingPin = false;
+            }
+        },
         scrollToBottom(delay = 60, force = false) {
             this.$nextTick(() => {
                 setTimeout(() => {
@@ -573,6 +700,10 @@ function messagingDashboard(config) {
             this.conversations = data.conversations || [];
             this.directConversations = this.conversations.filter((item) => !item.is_group);
             this.groupConversations = this.conversations.filter((item) => item.is_group);
+            this.pinnedDirectConversations = this.directConversations.filter((item) => Boolean(item.is_pinned));
+            this.otherDirectConversations = this.directConversations.filter((item) => !item.is_pinned);
+            this.pinnedGroupConversations = this.groupConversations.filter((item) => Boolean(item.is_pinned));
+            this.otherGroupConversations = this.groupConversations.filter((item) => !item.is_pinned);
             if (!this.activeConversationId && this.conversations.length) { await this.selectConversation(this.conversations[0]); return; }
             if (this.activeConversationId) {
                 this.activeConversation = this.conversations.find((item) => item.id == this.activeConversationId) || null;
@@ -739,17 +870,53 @@ function messagingDashboard(config) {
             return String(message.sender_id) === String(config.currentId) && senderType === config.currentType; 
         },
         addEmoji(emoji) { this.draftMessage += emoji; if (this.$refs.messageInput) this.$refs.messageInput.focus(); },
-        formatTime(value) { return value ? new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''; },
+        formatTime(value) { 
+            if (!value) return '';
+            const date = new Date(value);
+            return date.toLocaleDateString([], { day: '2-digit', month: 'short' }) + ', ' + 
+                   date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        },
         initialFor(value) { return value ? String(value).charAt(0).toUpperCase() : '?'; },
+        messagePreview(lastMessage, fallback = 'No message yet') {
+            if (!lastMessage) return fallback;
+
+            const body = String(lastMessage.body || '').trim();
+            if (body !== '') return body;
+
+            const filePath = lastMessage.file_path || lastMessage.filePath || '';
+            if (filePath) return /\.(webm|mp3|wav|ogg|m4a|aac)$/i.test(filePath) ? 'Voice Message' : 'Photo';
+
+            return fallback;
+        },
+        conversationPreview(conversation, fallback = 'No message yet') {
+            if (!conversation) return fallback;
+
+            const directPreview = String(conversation.preview_text || '').trim();
+            if (directPreview !== '') return directPreview;
+
+            return this.messagePreview(conversation.last_message || conversation.lastMessage || null, fallback);
+        },
         parseSummary(text) {
             if (!text) return '';
-            // Simple markdown parser for headings, bold, and lists
-            return text
+            
+            let html = text
                 .replace(/\*\*(.*?)\*\*/g, '<strong class="text-stone-900 font-bold">$1</strong>') // Bold text
-                .replace(/^(\d+\.\s.*)$/gm, '<h5 class="text-sm font-bold text-stone-800 mt-4 mb-2">$1</h5>') // Numbered headings
-                .replace(/^[-*]\s(.*)$/gm, '<div class="flex items-start gap-2 ml-2 my-1.5"><span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400"></span><span class="text-stone-700">$1</span></div>') // Bullet points
-                .replace(/\n\n/g, '</div><div class="space-y-3">') // Paragraph breaks
-                .replace(/\n/g, '<br>'); // Line breaks
+                .replace(/^\s*###\s*(.*$)/gm, '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // H3 headings
+                .replace(/^\s*##\s*(.*$)/gm, '<h4 class="text-[14px] font-bold text-stone-900 mt-4 mb-2 border-b border-stone-100 pb-1">$1</h4>') // H2 headings
+                .replace(/^\s*#\s*(.*$)/gm, '<h3 class="text-[16px] font-extrabold text-stone-900 mt-5 mb-3">$1</h3>') // H1 headings
+                .replace(/^\s*(\d+\.\s.*)$/gm, '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // Numbered headings
+                .replace(/^\s*[-*]\s(.*)$/gm, '<div class="flex items-start gap-2 ml-2 my-0"><span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400"></span><span class="text-stone-700">$1</span></div>'); // Bullet points (removed margin)
+            
+            // Handle line breaks
+            html = html.split('\n').map(line => {
+                const trimmed = line.trim();
+                if (trimmed === '') return ''; // Remove empty lines to reduce space
+                if (line.includes('<div') || line.includes('<h')) return line; // Already formatted
+                return line + '<br>';
+            }).join('\n');
+            
+            // Remove redundant <br> after block elements and cleanup
+            return html.replace(/(<\/div>|<\/h[1-6]>)<br>/g, '$1').replace(/<br>\n<div/g, '\n<div').trim();
         },
         openCreateGroup() { this.showCreateGroupModal = true; this.groupForm = { name: '', description: '', participants: [] }; this.groupMemberSearch = ''; this.groupNameError = false; this.loadGroupCandidates(); },
         closeCreateGroup() { this.showCreateGroupModal = false; },
