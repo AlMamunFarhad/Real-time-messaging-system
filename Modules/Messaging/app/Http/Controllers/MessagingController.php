@@ -46,6 +46,8 @@ class MessagingController extends Controller
 
     public function messages($conversationId)
     {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
         $userId = AuthParticipant::id();
         $userType = AuthParticipant::type();
 
@@ -93,6 +95,8 @@ class MessagingController extends Controller
 
     public function messagesWeb($conversationId)
     {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
         $userId = AuthParticipant::id();
         $userType = AuthParticipant::type();
 
@@ -140,6 +144,8 @@ class MessagingController extends Controller
 
     public function getConversations(Request $request)
     {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
         $userId = AuthParticipant::id();
         $userType = AuthParticipant::type();
 
@@ -150,6 +156,10 @@ class MessagingController extends Controller
         $userTypeShort = strtolower(class_basename($userType));
 
         $query = $this->conversationService->conversationQueryForParticipant($userId, $userType);
+
+        if (!messaging_feature('groups')) {
+            $query->where('is_group', false);
+        }
 
         if ($userTypeShort === 'user') {
             $query->where(function ($conversationQuery) {
@@ -241,6 +251,8 @@ class MessagingController extends Controller
 
     public function notificationsFeed(Request $request)
     {
+        abort_unless(messaging_feature('notifications'), 403, 'Messaging feature disabled.');
+
         $userId = AuthParticipant::id();
         $userType = AuthParticipant::type();
 

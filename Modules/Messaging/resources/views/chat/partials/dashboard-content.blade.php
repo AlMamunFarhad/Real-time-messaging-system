@@ -14,8 +14,10 @@
         groupsBase: @js(url('/messages/groups')),
         summaryBase: @js(url('/messages')),
         exitRoute: @js(Auth::guard('admin')->check() ? route('admin.dashboard') : route('dashboard'))
-    }
+    },
+    features: @js(messaging_features())
 })" x-init="init()" class="-m-6 mt-6 mx-auto max-w-7xl overflow-hidden">
+    @if (messaging_feature('notifications'))
     <div class="pointer-events-none fixed right-4 top-4 z-[85] flex w-full max-w-sm flex-col gap-3 sm:right-6 sm:top-6">
         <template x-for="toast in notificationToasts" :key="toast.id">
             <button type="button" @click="openToastConversation(toast)"
@@ -39,6 +41,7 @@
             </button>
         </template>
     </div>
+    @endif
 
     <div x-show="isWorkspaceVisible" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="mx-3 my-3 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.35)] md:mx-4 md:my-4 lg:mx-0 lg:my-0 lg:rounded-[32px]">
         <div class="relative flex h-[78vh] overflow-hidden md:grid md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[340px_minmax(0,1fr)]">
@@ -70,6 +73,7 @@
                             </svg>
                             Chats
                         </button>
+                        @if (messaging_feature('groups'))
                         <button type="button"
                             @click="activeTab = 'groups'; showDirectPicker = false"
                             :class="activeTab === 'groups' ? 'bg-white text-stone-800 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] ring-1 ring-stone-200' : 'text-stone-500 hover:text-stone-800 hover:bg-white/60'"
@@ -79,6 +83,7 @@
                             </svg>
                             Groups
                         </button>
+                        @endif
                     </div>
                 </div>
 
@@ -127,7 +132,7 @@
                                                         <template x-if="Number(conversation.unread_count || 0) > 0">
                                                             <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm" x-text="conversation.unread_count"></span>
                                                         </template>
-                                                        <button @click.stop="togglePin(conversation)" type="button" class="group/pin flex h-9 w-9 items-center justify-center rounded-[12px] to-rose-50 text-amber-600 transition-all duration-100" title="Unpin conversation">
+                                            <button x-show="features.pinning" @click.stop="togglePin(conversation)" type="button" class="group/pin flex h-9 w-9 items-center justify-center rounded-[12px] to-rose-50 text-amber-600 transition-all duration-100" title="Unpin conversation">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-200 group-hover/pin:scale-110" viewBox="0 0 24 24" fill="currentColor">
                                                                 <path d="M9.75 3a.75.75 0 0 0-.75.75v2.19l-2.47 2.47a.75.75 0 0 0 .53 1.28h3.19v7.75a.75.75 0 0 0 1.28.53l.97-.97.97.97a.75.75 0 0 0 1.28-.53V9.69h3.19a.75.75 0 0 0 .53-1.28L16 5.94V3.75A.75.75 0 0 0 15.25 3h-5.5Z" />
                                                             </svg>
@@ -158,7 +163,7 @@
                                             <template x-if="Number(conversation.unread_count || 0) > 0">
                                                 <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm transition-transform group-hover:scale-110" x-text="conversation.unread_count"></span>
                                             </template>
-                                            <button @click.stop="togglePin(conversation)" type="button"
+                                            <button x-show="features.pinning" @click.stop="togglePin(conversation)" type="button"
                                                 class="group/pin flex h-9 w-9 items-center justify-center rounded-[12px] to-rose-50 text-amber-600 transition-all duration-100"
                                                 :class="conversation.is_pinned ? 'via-orange-50 to-rose-50 text-amber-600 shadow-sm' : 'border-transparent bg-transparent text-stone-300 hover:text-amber-500'"
                                                 :title="conversation.is_pinned ? 'Unpin conversation' : 'Pin conversation'">
@@ -177,6 +182,7 @@
                     </div>
 
                     <!-- Groups Tab -->
+                    @if (messaging_feature('groups'))
                     <div x-show="activeTab === 'groups'" class="flex flex-col h-[52vh]" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
                         <div class="mb-5 flex items-center justify-between px-1">
                             <p class="text-[10.5px] font-bold uppercase tracking-[0.2em] text-stone-400">Team Groups</p>
@@ -207,7 +213,7 @@
                                                         <template x-if="Number(conversation.unread_count || 0) > 0">
                                                             <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm" x-text="conversation.unread_count"></span>
                                                         </template>
-                                                        <button @click.stop="togglePin(conversation)" type="button" class="group/pin flex h-5 w-5 items-center justify-center rounded-[12px] to-rose-50 text-amber-600 transition-all duration-100" title="Unpin group">
+                                                        <button x-show="features.pinning" @click.stop="togglePin(conversation)" type="button" class="group/pin flex h-5 w-5 items-center justify-center rounded-[12px] to-rose-50 text-amber-600 transition-all duration-100" title="Unpin group">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 transition-transform duration-200 group-hover/pin:scale-110" viewBox="0 0 24 24" fill="currentColor">
                                                                 <path d="M9.75 3a.75.75 0 0 0-.75.75v2.19l-2.47 2.47a.75.75 0 0 0 .53 1.28h3.19v7.75a.75.75 0 0 0 1.28.53l.97-.97.97.97a.75.75 0 0 0 1.28-.53V9.69h3.19a.75.75 0 0 0 .53-1.28L16 5.94V3.75A.75.75 0 0 0 15.25 3h-5.5Z" />
                                                             </svg>
@@ -233,7 +239,7 @@
                                             <template x-if="Number(conversation.unread_count || 0) > 0">
                                                 <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm transition-transform group-hover:scale-110" x-text="conversation.unread_count"></span>
                                             </template>
-                                            <button @click.stop="togglePin(conversation)" type="button"
+                                            <button x-show="features.pinning" @click.stop="togglePin(conversation)" type="button"
                                                 class="group/pin ml-1 flex h-9 w-9 items-center justify-center rounded-[12px] border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm"
                                                 :class="conversation.is_pinned ? 'border-amber-200/80 bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 text-amber-600 shadow-sm' : 'border-transparent bg-transparent text-stone-300 hover:border-amber-100 hover:bg-amber-50/80 hover:text-amber-500'"
                                                 :title="conversation.is_pinned ? 'Unpin group' : 'Pin group'">
@@ -249,6 +255,7 @@
                             </template>
                         </div>
                     </div>
+                    @endif
                     <!-- Contacts Tab -->
                     <div x-show="activeTab === 'contacts'" class="flex flex-col h-[52vh]" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
                         <p class="text-[10.5px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-4 px-1">Find Members</p>
@@ -320,16 +327,16 @@
                                     </div>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-2 justify-end w-full sm:w-auto">
-                                    <template x-if="!activeConversation.is_group">
+                                        <template x-if="(features.audio_call || features.video_call) && !activeConversation.is_group">
                                         <div class="flex items-center gap-2">
-                                            <button type="button" @click="startCall('audio')"
+                                            <button x-show="features.audio_call" type="button" @click="startCall('audio')"
                                                 class="flex h-10 w-10 items-center justify-center rounded-[14px] border border-emerald-100 bg-emerald-50 text-emerald-600 shadow-sm transition hover:bg-emerald-100 hover:shadow-md"
                                                 title="Audio call">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 0 1 2-2h2.28a2 2 0 0 1 1.948 1.553l.57 2.28a2 2 0 0 1-.502 1.86L7.414 10.586a16.001 16.001 0 0 0 6 6l1.893-1.882a2 2 0 0 1 1.86-.502l2.28.57A2 2 0 0 1 21 16.72V19a2 2 0 0 1-2 2h-1C9.716 21 3 14.284 3 6V5Z" />
                                                 </svg>
                                             </button>
-                                            <button type="button" @click="startCall('video')"
+                                            <button x-show="features.video_call" type="button" @click="startCall('video')"
                                                 class="flex h-10 w-10 items-center justify-center rounded-[14px] border border-sky-100 bg-sky-50 text-sky-600 shadow-sm transition hover:bg-sky-100 hover:shadow-md"
                                                 title="Video call">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -346,7 +353,7 @@
                                         </svg>
                                         <span>Clear Chat</span>
                                     </button>
-                                    <button @click.stop="togglePin(activeConversation)" type="button" 
+                                    <button x-show="features.pinning" @click.stop="togglePin(activeConversation)" type="button" 
                                         class="group/pin flex h-10 w-10 items-center justify-center rounded-[14px] border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                                         :class="activeConversation?.is_pinned ? 'border-amber-200/80 bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 text-amber-600' : 'border-stone-200/60 bg-white text-stone-400 hover:border-amber-100 hover:bg-amber-50/80 hover:text-amber-500'"
                                         :title="activeConversation?.is_pinned ? 'Pinned conversation' : 'Pin conversation'">
@@ -357,7 +364,7 @@
                                         </svg>
                                     </button>
 
-                                    <button type="button" @click="toggleSummary()" :disabled="isFetchingSummary"
+                                    <button x-show="features.ai_summary" type="button" @click="toggleSummary()" :disabled="isFetchingSummary"
                                         class="flex items-center justify-center gap-2 rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm disabled:opacity-50"
                                         title="View Conversation Summary">
                                         <template x-if="!isFetchingSummary">
@@ -383,8 +390,8 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
-                                    <template x-if="activeConversation.is_group && groupDetails.can_manage"><button type="button" @click="openManageMembers()" class="rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm">Manage</button></template>
-                                    <template x-if="activeConversation.is_group"><button type="button" @click="leaveGroup()" class="rounded-[14px] border border-rose-100 bg-rose-50 px-4 py-2 text-[13px] font-bold text-rose-500 transition hover:bg-rose-100 shadow-sm">Leave</button></template>
+                                    <template x-if="features.groups && activeConversation.is_group && groupDetails.can_manage"><button type="button" @click="openManageMembers()" class="rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm">Manage</button></template>
+                                    <template x-if="features.groups && activeConversation.is_group"><button type="button" @click="leaveGroup()" class="rounded-[14px] border border-rose-100 bg-rose-50 px-4 py-2 text-[13px] font-bold text-rose-500 transition hover:bg-rose-100 shadow-sm">Leave</button></template>
                                 </div>
                             </div>
                         </div>
@@ -520,7 +527,7 @@
                                 </template>
 
                                 <!-- Conversation Summary Panel -->
-                                <template x-if="showSummary && chatSummary">
+                                <template x-if="features.ai_summary && showSummary && chatSummary">
                                     <div x-transition:enter="transition ease-out duration-300"
                                         x-transition:enter-start="opacity-0 translate-y-4 transform scale-95"
                                         x-transition:enter-end="opacity-100 translate-y-0 transform scale-100"
@@ -593,8 +600,8 @@
                                     </div>
                                 </div>
 
-                                <input type="file" x-ref="fileInput" class="hidden" @change="pickFile">
-                                <button type="button" @click="$refs.fileInput.click()" class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-orange-50 text-orange-500 shadow-sm transition-all hover:bg-orange-100 hover:text-orange-600 hover:shadow-md active:scale-95" title="Attach file">
+                                <input x-show="features.file_upload" type="file" x-ref="fileInput" class="hidden" @change="pickFile">
+                                <button x-show="features.file_upload" type="button" @click="$refs.fileInput.click()" class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-orange-50 text-orange-500 shadow-sm transition-all hover:bg-orange-100 hover:text-orange-600 hover:shadow-md active:scale-95" title="Attach file">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                     </svg>
@@ -610,7 +617,7 @@
                                     <textarea x-model="draftMessage" x-ref="messageInput" @keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); sendMessage(); }" rows="1" class="min-h-[52px] w-full rounded-[24px] border border-orange-100 bg-white px-5 py-3.5 text-[15px] text-stone-700 shadow-sm outline-none transition-all focus:border-rose-300 focus:bg-white focus:ring-4 focus:ring-rose-100/50 resize-none" placeholder="Type your message..."></textarea>
                                 </div>
 
-                                <button type="button" @click="toggleVoiceRecord()"
+                                <button x-show="features.file_upload && features.voice_chat" type="button" @click="toggleVoiceRecord()"
                                     class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] shadow-[0_2px_8px_rgba(225,29,72,0.1)] border transition-all hover:scale-105 active:scale-95"
                                     :class="isRecordingVoice ? 'border-rose-200 bg-rose-100 text-rose-600' : 'border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600'"
                                     title="Record Voice Message">
@@ -832,6 +839,7 @@
             directCandidates: [],
             groupCandidates: [],
             messages: [],
+            features: config.features || {},
             notificationToasts: [],
             seenConversationSnapshots: {},
             activeConversationId: localStorage.getItem('user_active_conversation_id') && localStorage.getItem('user_active_conversation_id') !== 'null' ? localStorage.getItem('user_active_conversation_id') : (config.initialConversationId || null),
@@ -907,6 +915,7 @@
             conversationLoadDebounceMs: 3000,
             isFetchingPin: false,
             async togglePin(conversation) {
+                if (!this.features.pinning) return;
                 if (!conversation || this.isFetchingPin) return;
                 this.isFetchingPin = true;
                 try {
@@ -1096,6 +1105,7 @@
                 await this.ensureMediaStream(mode);
             },
             async startCall(mode) {
+                if ((mode === 'audio' && !this.features.audio_call) || (mode === 'video' && !this.features.video_call)) return;
                 if (!this.activeConversation || this.activeConversation.is_group) return;
                 await this.prepareCallUi(mode, this.activeConversation.other_participant_id, this.activeConversation.other_participant_type, this.activeConversation.title);
                 if (this.microphoneUnavailable && this.cameraUnavailable) {
@@ -1129,6 +1139,7 @@
                 if (!signal) return;
 
                 if (signal.type === 'offer') {
+                    if (!this.callModeEnabled(signal.call_mode || 'audio')) return;
                     const conversation = this.conversations.find((item) => String(item.id) === String(signal.conversation_id));
                     if (conversation && String(this.activeConversationId) !== String(signal.conversation_id)) {
                         await this.selectConversation(conversation);
@@ -1180,7 +1191,11 @@
                     setTimeout(() => this.endCall(false), 800);
                 }
             },
+            callModeEnabled(mode) {
+                return mode === 'video' ? Boolean(this.features.video_call) : Boolean(this.features.audio_call);
+            },
             async acceptIncomingCall() {
+                if (!this.callModeEnabled(this.pendingIncomingSignal?.call_mode || 'audio')) return;
                 if (!this.pendingIncomingSignal) return;
                 const signal = this.pendingIncomingSignal;
                 this.pendingIncomingSignal = null;
@@ -1278,6 +1293,7 @@
                 this.isCameraOff = !this.isCameraOff;
             },
             startSignalPolling() {
+                if (!this.features.audio_call && !this.features.video_call) return;
                 if (this.signalPollTimer) clearInterval(this.signalPollTimer);
                 this.signalPollTimer = setInterval(async () => {
                     try {
@@ -1302,16 +1318,20 @@
 
                 const fileName = String(message?.file_name || '').trim();
                 if (fileName) {
-                    return `Attachment: ${fileName}`;
+                    if (/\.(webm|mp3|wav|ogg|m4a|aac)$/i.test(fileName)) return 'Voice Message';
+                    if (/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(fileName)) return 'Photo';
+
+                    return 'Attachment';
                 }
 
-                return message?.type === 'file' ? 'Sent an attachment' : 'New message received';
+                return message?.type === 'file' ? 'Attachment' : 'New message received';
             },
             notificationLabel(message) {
                 const conversation = this.conversations.find((item) => String(item.id) === String(message?.conversation_id));
                 return conversation?.title ? `Message from ${conversation.title}` : 'New Message';
             },
             connectNotificationListener(retryCount = 0) {
+                if (!this.features.notifications) return;
                 if (typeof window.Echo === 'undefined') {
                     if (retryCount < 10) {
                         setTimeout(() => this.connectNotificationListener(retryCount + 1), 800);
@@ -1327,6 +1347,7 @@
                     });
             },
             pushNotificationToast(message) {
+                if (!this.features.notifications) return;
                 if (window.__dashboardGlobalMessageNotifications) return;
                 const senderType = String(message?.sender_type || '').split('\\').pop().toLowerCase();
                 const isOwnMessage = String(message?.sender_id) === String(config.currentId) && senderType === config.currentType;
@@ -1387,6 +1408,7 @@
                 this.seenConversationSnapshots = nextSnapshots;
             },
             async openToastConversation(toast) {
+                if (!this.features.notifications) return;
                 this.notificationToasts = this.notificationToasts.filter((item) => item.id !== toast.id);
                 await this.loadConversations(true);
                 const conversation = this.conversations.find((item) => String(item.id) === String(toast.conversationId));
@@ -1455,14 +1477,19 @@
                 });
             },
             init() {
+                if (!this.features.groups && this.activeTab === 'groups') {
+                    this.activeTab = 'direct';
+                }
                 this.loadConversations();
                 this.loadDirectCandidates();
-                this.loadGroupCandidates();
+                if (this.features.groups) this.loadGroupCandidates();
                 this.startPolling();
-                this.startSignalPolling();
+                if (this.features.audio_call || this.features.video_call) this.startSignalPolling();
                 this.$watch('activeTab', value => localStorage.setItem('messaging_active_tab', value));
-                this.sendHeartbeat();
-                setInterval(() => this.sendHeartbeat(), 30000);
+                if (this.features.online_status) {
+                    this.sendHeartbeat();
+                    setInterval(() => this.sendHeartbeat(), 30000);
+                }
 
                 // Ensure only one audio plays at a time
                 document.addEventListener('play', (event) => {
@@ -1475,7 +1502,7 @@
                 }, true);
 
                 // Real-time listener using Laravel Echo
-                this.connectNotificationListener();
+                if (this.features.notifications) this.connectNotificationListener();
 
                 if (window.Echo) {
                     this.$watch('activeConversationId', (newId, oldId) => {
@@ -1523,6 +1550,7 @@
                 }
             },
             async sendHeartbeat() {
+                if (!this.features.online_status) return;
                 try {
                     await axios.post('/online-heartbeat');
                 } catch (e) {
@@ -1573,6 +1601,7 @@
                 this.directCandidates = (await response.json()).items || [];
             },
             async loadGroupCandidates() {
+                if (!this.features.groups) return;
                 const search = this.showManageMembersModal ? this.manageMemberSearch : this.groupMemberSearch;
                 const response = await fetch(`${config.routes.participants}?mode=group&q=${encodeURIComponent(search)}`, {
                     credentials: 'include',
@@ -1735,6 +1764,7 @@
             async sendMessage() {
                 if (!this.activeConversationId) return;
                 if (!this.draftMessage.trim() && !this.selectedFile) return;
+                if (this.selectedFile && !this.features.file_upload) return;
 
                 const formData = new FormData();
                 formData.append('conversation_id', this.activeConversationId);
@@ -1776,6 +1806,7 @@
                 }
             },
             pickFile(event) {
+                if (!this.features.file_upload) return;
                 const file = event.target.files[0] || null;
                 this.selectedFile = file;
                 this.selectedFileName = file ? file.name : '';
@@ -1797,6 +1828,7 @@
                 if (this.$refs.fileInput) this.$refs.fileInput.value = '';
             },
             async toggleVoiceRecord() {
+                if (!this.features.file_upload || !this.features.voice_chat) return;
                 if (this.isRecordingVoice) {
                     if (window._voiceMediaRecorder) {
                         window._voiceMediaRecorder.stop();
@@ -1899,6 +1931,7 @@
                 return html.replace(/(<\/div>|<\/h[1-6]>)<br>/g, '$1').replace(/<br>\n<div/g, '\n<div').trim();
             },
             openCreateGroup() {
+                if (!this.features.groups) return;
                 this.showCreateGroupModal = true;
                 this.groupForm = {
                     name: '',
@@ -1921,6 +1954,7 @@
                 return this.groupForm.participants.some((entry) => Number(entry.id) === Number(item.id) && entry.type === item.type);
             },
             async createGroup() {
+                if (!this.features.groups) return;
                 if (!this.groupForm.name.trim()) {
                     this.groupNameError = true;
                     return;
@@ -1939,6 +1973,7 @@
                 if (conversation) await this.selectConversation(conversation);
             },
             async loadGroupDetails() {
+                if (!this.features.groups) return;
                 if (!this.activeConversation?.is_group) return;
                 const response = await axios.get(`${config.routes.groupsBase}/${this.activeConversationId}`);
                 this.groupDetails = response.data.group || {
@@ -1946,6 +1981,7 @@
                 };
             },
             openManageMembers() {
+                if (!this.features.groups) return;
                 this.showManageMembersModal = true;
                 this.manageMemberSearch = '';
                 this.loadGroupCandidates();
@@ -1955,6 +1991,7 @@
                 return this.groupCandidates.filter((item) => !existing.has(`${item.type}-${item.id}`));
             },
             async addMembers(items) {
+                if (!this.features.groups) return;
                 await axios.post(`${config.routes.groupsBase}/${this.activeConversationId}/members`, {
                     participants: items.map((item) => ({
                         id: item.id,
@@ -1965,6 +2002,7 @@
                 await this.loadGroupDetails();
             },
             async removeMember(member) {
+                if (!this.features.groups) return;
                 await axios.delete(`${config.routes.groupsBase}/${this.activeConversationId}/members/${member.type}/${member.id}`);
                 await this.loadConversations();
                 await this.loadGroupDetails();
@@ -1981,12 +2019,14 @@
                 window.location.href = this.exitRoute;
             },
             async leaveGroup() {
+                if (!this.features.groups) return;
                 if (!this.activeConversation?.is_group) return;
                 await axios.post(`${config.routes.groupsBase}/${this.activeConversationId}/leave`);
                 this.closeConversationUI();
                 await this.loadConversations();
             },
             async toggleSummary() {
+                if (!this.features.ai_summary) return;
                 if (this.showSummary) {
                     this.showSummary = false;
                     return;
@@ -1994,6 +2034,7 @@
                 await this.fetchSummary();
             },
             async fetchSummary() {
+                if (!this.features.ai_summary) return;
                 if (!this.activeConversationId) return;
                 this.isFetchingSummary = true;
                 try {

@@ -736,8 +736,13 @@
                     const body = String(payload?.body || '').trim();
                     if (body) return body.length > 120 ? `${body.slice(0, 120)}...` : body;
                     const fileName = String(payload?.file_name || '').trim();
-                    if (fileName) return `Attachment: ${fileName}`;
-                    return payload?.type === 'file' ? 'Sent an attachment' : 'New message received';
+                    if (fileName) {
+                        if (/\.(webm|mp3|wav|ogg|m4a|aac)$/i.test(fileName)) return 'Voice Message';
+                        if (/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(fileName)) return 'Photo';
+
+                        return 'Attachment';
+                    }
+                    return payload?.type === 'file' ? 'Attachment' : 'New message received';
                 },
                 pushNotificationToast(payload) {
                     if (window.__dashboardGlobalMessageNotifications) return;

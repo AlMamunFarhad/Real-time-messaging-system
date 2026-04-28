@@ -9,6 +9,25 @@ use Modules\Messaging\Helpers\AuthParticipant;
 
 class VoiceCallController extends Controller
 {
+    protected function ensureCallFeature(?string $mode = null): void
+    {
+        if ($mode === 'audio') {
+            abort_unless(messaging_feature('audio_call'), 403, 'Audio call feature disabled.');
+            return;
+        }
+
+        if ($mode === 'video') {
+            abort_unless(messaging_feature('video_call'), 403, 'Video call feature disabled.');
+            return;
+        }
+
+        abort_unless(
+            messaging_feature('audio_call') || messaging_feature('video_call'),
+            403,
+            'Call feature disabled.'
+        );
+    }
+
     /**
      * Caller একটি নতুন call শুরু করে SDP offer পাঠায়
      */
@@ -21,6 +40,7 @@ class VoiceCallController extends Controller
             'call_mode'       => 'required|in:audio,video',
             'payload'         => 'required|string', // SDP offer JSON
         ]);
+        $this->ensureCallFeature($request->string('call_mode')->value());
 
         $fromId   = AuthParticipant::id();
         $fromType = AuthParticipant::typeShort();
@@ -66,6 +86,7 @@ class VoiceCallController extends Controller
             'call_mode'       => 'required|in:audio,video',
             'payload'         => 'required|string', // SDP answer JSON
         ]);
+        $this->ensureCallFeature($request->string('call_mode')->value());
 
         $fromId   = AuthParticipant::id();
         $fromType = AuthParticipant::typeShort();
@@ -110,6 +131,7 @@ class VoiceCallController extends Controller
             'to_type'         => 'required|string',
             'call_mode'       => 'nullable|in:audio,video',
         ]);
+        $this->ensureCallFeature($request->string('call_mode')->value() ?: null);
 
         $fromId   = AuthParticipant::id();
         $fromType = AuthParticipant::typeShort();
@@ -154,6 +176,7 @@ class VoiceCallController extends Controller
             'to_type'         => 'required|string',
             'call_mode'       => 'nullable|in:audio,video',
         ]);
+        $this->ensureCallFeature($request->string('call_mode')->value() ?: null);
 
         $fromId   = AuthParticipant::id();
         $fromType = AuthParticipant::typeShort();
@@ -191,6 +214,7 @@ class VoiceCallController extends Controller
             'call_mode'       => 'nullable|in:audio,video',
             'payload'         => 'required|string',
         ]);
+        $this->ensureCallFeature($request->string('call_mode')->value() ?: null);
 
         $fromId   = AuthParticipant::id();
         $fromType = AuthParticipant::typeShort();
@@ -227,6 +251,7 @@ class VoiceCallController extends Controller
             'to_type'         => 'required|string',
             'call_mode'       => 'nullable|in:audio,video',
         ]);
+        $this->ensureCallFeature($request->string('call_mode')->value() ?: null);
 
         $fromId   = AuthParticipant::id();
         $fromType = AuthParticipant::typeShort();
@@ -270,6 +295,8 @@ class VoiceCallController extends Controller
      */
     public function pollSignals(Request $request)
     {
+        $this->ensureCallFeature();
+
         $myId   = AuthParticipant::id();
         $myType = AuthParticipant::typeShort();
 

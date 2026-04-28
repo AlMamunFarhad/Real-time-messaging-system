@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Modules\Messaging\Http\Controllers\ChatController;
+use Modules\Messaging\Http\Middleware\EnsureMessagingFeatureEnabled;
 use Modules\Messaging\Http\Controllers\ParticipantDirectoryController;
 
 Route::get('/', function () {
@@ -35,10 +36,13 @@ Route::prefix('admin')->group(function () {
         })->name('admin.dashboard');
 
         Route::get('/messages', [ChatController::class, 'dashboard'])
+            ->middleware(EnsureMessagingFeatureEnabled::class . ':enabled')
             ->name('admin.messages');
         Route::get('/messages/conversation', [ChatController::class, 'directConversation'])
+            ->middleware(EnsureMessagingFeatureEnabled::class . ':enabled')
             ->name('admin.messages.conversation');
         Route::get('/users/list', [ParticipantDirectoryController::class, 'adminUsers'])
+            ->middleware(EnsureMessagingFeatureEnabled::class . ':enabled')
             ->name('admin.users.list');
 
         Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
@@ -47,8 +51,10 @@ Route::prefix('admin')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/user/messages/conversation', [ChatController::class, 'userConversation'])
+        ->middleware(EnsureMessagingFeatureEnabled::class . ':enabled')
         ->name('user.messages.conversation');
     Route::get('/messages', [ChatController::class, 'dashboard'])
+        ->middleware(EnsureMessagingFeatureEnabled::class . ':enabled')
         ->name('user.messages');
 });
 

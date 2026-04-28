@@ -15,6 +15,8 @@ class GroupController extends Controller
 
     public function store(Request $request)
     {
+        abort_unless(messaging_feature('groups'), 403, 'Messaging feature disabled.');
+
         $request->validate([
             'name' => 'required|string|max:100',
             'description' => 'nullable|string|max:1000',
@@ -46,6 +48,8 @@ class GroupController extends Controller
 
     public function show(int $conversationId)
     {
+        abort_unless(messaging_feature('groups'), 403, 'Messaging feature disabled.');
+
         $participantId = AuthParticipant::id();
         $participantType = AuthParticipant::type();
 
@@ -87,6 +91,8 @@ class GroupController extends Controller
 
     public function addMembers(Request $request, int $conversationId)
     {
+        abort_unless(messaging_feature('groups'), 403, 'Messaging feature disabled.');
+
         $request->validate([
             'participants' => 'required|array|min:1',
             'participants.*.id' => 'required|integer',
@@ -122,6 +128,8 @@ class GroupController extends Controller
 
     public function removeMember(int $conversationId, string $memberType, int $memberId)
     {
+        abort_unless(messaging_feature('groups'), 403, 'Messaging feature disabled.');
+
         $participantId = AuthParticipant::id();
         $participantType = AuthParticipant::type();
 
@@ -150,6 +158,8 @@ class GroupController extends Controller
 
     public function leave(int $conversationId)
     {
+        abort_unless(messaging_feature('groups'), 403, 'Messaging feature disabled.');
+
         $participantId = AuthParticipant::id();
         $participantType = AuthParticipant::type();
 

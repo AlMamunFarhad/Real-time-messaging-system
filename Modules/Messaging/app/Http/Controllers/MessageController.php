@@ -37,7 +37,13 @@ class MessageController extends Controller
 
     public function send(Request $request)
     {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
         try {
+            if ($request->hasFile('file')) {
+                abort_unless(messaging_feature('file_upload'), 403, 'Messaging feature disabled.');
+            }
+
             $request->validate([
                 'conversation_id' => 'required|integer',
                 'file' => 'nullable|file|max:10240'
@@ -146,6 +152,8 @@ class MessageController extends Controller
 
     public function markRead(Request $request)
     {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
         $conversationId = $request->conversation_id;
 
         if (!$conversationId) {
@@ -216,6 +224,8 @@ class MessageController extends Controller
      */
     public function update(Request $request, $id)
     {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
         $request->validate([
             'body' => 'required|string|max:5000',
         ]);
@@ -239,6 +249,8 @@ class MessageController extends Controller
      */
     public function destroy($id)
     {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
         $message = Message::findOrFail($id);
         $conversation = $this->authorizedConversation($message->conversation_id);
         $this->ensureOwnMessage($message);
@@ -255,6 +267,8 @@ class MessageController extends Controller
 
     public function clearConversation($conversationId)
     {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
         $conversation = $this->authorizedConversation($conversationId);
 
         DB::transaction(function () use ($conversationId, $conversation) {

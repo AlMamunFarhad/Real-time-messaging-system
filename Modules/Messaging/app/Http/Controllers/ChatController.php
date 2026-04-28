@@ -16,6 +16,8 @@ class ChatController extends Controller
 
     public function dashboard(Request $request)
     {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
         $participantId = AuthParticipant::id();
         $participantType = AuthParticipant::type();
 
@@ -31,6 +33,8 @@ class ChatController extends Controller
 
     public function directConversation(Request $request)
     {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
         $request->validate([
             'target_id' => 'required|integer',
             'target_type' => 'required|string|in:user,admin',
@@ -113,6 +117,8 @@ class ChatController extends Controller
 
     public function togglePin(Request $request)
     {
+        abort_unless(messaging_feature('pinning'), 403, 'Messaging feature disabled.');
+
         $request->validate([
             'conversation_id' => 'required|integer',
         ]);

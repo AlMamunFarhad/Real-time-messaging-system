@@ -15,6 +15,8 @@ class ParticipantDirectoryController extends Controller
 
     public function index(Request $request)
     {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
         $participantId = AuthParticipant::id();
         $participantType = AuthParticipant::type();
 
@@ -22,10 +24,15 @@ class ParticipantDirectoryController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        $mode = $request->string('mode')->value() ?: 'group';
+        if ($mode === 'group') {
+            abort_unless(messaging_feature('groups'), 403, 'Messaging feature disabled.');
+        }
+
         $items = $this->conversationService->availableParticipants(
             $participantId,
             $participantType,
-            $request->string('mode')->value() ?: 'group',
+            $mode,
             $request->string('q')->value()
         );
 

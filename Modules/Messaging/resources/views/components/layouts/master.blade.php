@@ -65,9 +65,14 @@
                     if (body) return body.length > 90 ? `${body.slice(0, 90)}...` : body;
 
                     const fileName = String(message?.file_name || '').trim();
-                    if (fileName) return `Attachment: ${fileName}`;
+                    if (fileName) {
+                        if (/\.(webm|mp3|wav|ogg|m4a|aac)$/i.test(fileName)) return 'Voice Message';
+                        if (/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(fileName)) return 'Photo';
 
-                    return message?.type === 'file' ? 'Sent an attachment' : 'New message received';
+                        return 'Attachment';
+                    }
+
+                    return message?.type === 'file' ? 'Attachment' : 'New message received';
                 };
 
                 const showToast = (message) => {

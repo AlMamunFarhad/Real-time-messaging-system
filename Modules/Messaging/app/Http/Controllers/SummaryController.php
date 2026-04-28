@@ -18,6 +18,8 @@ class SummaryController extends Controller
 
     public function generate(Request $request, $conversationId)
     {
+        abort_unless(messaging_feature('ai_summary'), 403, 'Messaging feature disabled.');
+
         $participantId = AuthParticipant::id();
         $participantType = AuthParticipant::type();
 

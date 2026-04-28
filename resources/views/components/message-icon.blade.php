@@ -14,7 +14,8 @@
     }
 @endphp
 
-@if ($isAdminDashboard)
+@if (!messaging_feature('enabled'))
+@elseif ($isAdminDashboard)
     <div x-data="window.messageCounterBadge({
         unreadCount: {{ $unread }},
         conversationsUrl: @js(route('messages.conversations'))
@@ -47,7 +48,7 @@
     </div>
 @endif
 
-@if ($isAdminDashboard || \App\Models\Admin::first())
+@if (messaging_feature('enabled') && ($isAdminDashboard || \App\Models\Admin::first()))
     <style>
         .message-row {
             display: flex;
