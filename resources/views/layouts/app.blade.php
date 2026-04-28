@@ -16,6 +16,19 @@
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     </head>
     <body class="font-sans antialiased">
+        @php
+            $messageNotificationAuth = Auth::guard('web')->check()
+                ? [
+                    'type' => 'user',
+                    'id' => (int) Auth::guard('web')->id(),
+                    'messagesUrl' => route('messages.dashboard'),
+                    'feedUrl' => route('messages.notifications.feed'),
+                ]
+                : null;
+        @endphp
+
+        <x-global-message-notifications :auth="$messageNotificationAuth" />
+
         <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
             @include('layouts.navigation')
 

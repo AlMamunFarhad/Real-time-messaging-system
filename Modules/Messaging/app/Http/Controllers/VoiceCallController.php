@@ -18,6 +18,7 @@ class VoiceCallController extends Controller
             'conversation_id' => 'required|integer',
             'to_id'           => 'required|integer',
             'to_type'         => 'required|string',
+            'call_mode'       => 'required|in:audio,video',
             'payload'         => 'required|string', // SDP offer JSON
         ]);
 
@@ -43,6 +44,7 @@ class VoiceCallController extends Controller
             'to_id'           => $request->to_id,
             'to_type'         => $request->to_type,
             'type'            => 'offer',
+            'call_mode'       => $request->call_mode,
             'payload'         => $request->payload,
             'is_processed'    => false,
             'created_at'      => now(),
@@ -61,6 +63,7 @@ class VoiceCallController extends Controller
             'conversation_id' => 'required|integer',
             'to_id'           => 'required|integer',
             'to_type'         => 'required|string',
+            'call_mode'       => 'required|in:audio,video',
             'payload'         => 'required|string', // SDP answer JSON
         ]);
 
@@ -86,6 +89,7 @@ class VoiceCallController extends Controller
             'to_id'           => $request->to_id,
             'to_type'         => $request->to_type,
             'type'            => 'answer',
+            'call_mode'       => $request->call_mode,
             'payload'         => $request->payload,
             'is_processed'    => false,
             'created_at'      => now(),
@@ -104,6 +108,7 @@ class VoiceCallController extends Controller
             'conversation_id' => 'required|integer',
             'to_id'           => 'required|integer',
             'to_type'         => 'required|string',
+            'call_mode'       => 'nullable|in:audio,video',
         ]);
 
         $fromId   = AuthParticipant::id();
@@ -128,6 +133,43 @@ class VoiceCallController extends Controller
             'to_id'           => $request->to_id,
             'to_type'         => $request->to_type,
             'type'            => 'reject',
+            'call_mode'       => $request->call_mode,
+            'payload'         => null,
+            'is_processed'    => false,
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Callee রিং এ উত্তরের আগে caller কে জানান যে কল তার কাছে পৌঁছেছে
+     */
+    public function ringCall(Request $request)
+    {
+        $request->validate([
+            'conversation_id' => 'required|integer',
+            'to_id'           => 'required|integer',
+            'to_type'         => 'required|string',
+            'call_mode'       => 'nullable|in:audio,video',
+        ]);
+
+        $fromId   = AuthParticipant::id();
+        $fromType = AuthParticipant::typeShort();
+
+        if (!$fromId || !$fromType) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        DB::table('voice_call_signals')->insert([
+            'conversation_id' => $request->conversation_id,
+            'from_id'         => $fromId,
+            'from_type'       => $fromType,
+            'to_id'           => $request->to_id,
+            'to_type'         => $request->to_type,
+            'type'            => 'ringing',
+            'call_mode'       => $request->call_mode,
             'payload'         => null,
             'is_processed'    => false,
             'created_at'      => now(),
@@ -146,6 +188,7 @@ class VoiceCallController extends Controller
             'conversation_id' => 'required|integer',
             'to_id'           => 'required|integer',
             'to_type'         => 'required|string',
+            'call_mode'       => 'nullable|in:audio,video',
             'payload'         => 'required|string',
         ]);
 
@@ -163,6 +206,7 @@ class VoiceCallController extends Controller
             'to_id'           => $request->to_id,
             'to_type'         => $request->to_type,
             'type'            => 'ice_candidate',
+            'call_mode'       => $request->call_mode,
             'payload'         => $request->payload,
             'is_processed'    => false,
             'created_at'      => now(),
@@ -181,6 +225,7 @@ class VoiceCallController extends Controller
             'conversation_id' => 'required|integer',
             'to_id'           => 'required|integer',
             'to_type'         => 'required|string',
+            'call_mode'       => 'nullable|in:audio,video',
         ]);
 
         $fromId   = AuthParticipant::id();
@@ -210,6 +255,7 @@ class VoiceCallController extends Controller
             'to_id'           => $request->to_id,
             'to_type'         => $request->to_type,
             'type'            => 'hangup',
+            'call_mode'       => $request->call_mode,
             'payload'         => null,
             'is_processed'    => false,
             'created_at'      => now(),
@@ -224,10 +270,6 @@ class VoiceCallController extends Controller
      */
     public function pollSignals(Request $request)
     {
-        $request->validate([
-            'conversation_id' => 'required|integer',
-        ]);
-
         $myId   = AuthParticipant::id();
         $myType = AuthParticipant::typeShort();
 
@@ -237,10 +279,12 @@ class VoiceCallController extends Controller
 
         // আমার জন্য unprocessed signals নিই
         $signals = DB::table('voice_call_signals')
-            ->where('conversation_id', $request->conversation_id)
             ->where('to_id', $myId)
             ->where('to_type', $myType)
             ->where('is_processed', false)
+            ->when($request->filled('conversation_id'), function ($query) use ($request) {
+                $query->where('conversation_id', $request->integer('conversation_id'));
+            })
             ->orderBy('id', 'asc')
             ->get();
 
@@ -255,7 +299,9 @@ class VoiceCallController extends Controller
             'signals' => $signals->map(function ($s) {
                 return [
                     'id'      => $s->id,
+                    'conversation_id' => $s->conversation_id,
                     'type'    => $s->type,
+                    'call_mode' => $s->call_mode,
                     'from_id' => $s->from_id,
                     'from_type' => $s->from_type,
                     'payload' => $s->payload,

@@ -4,6 +4,8 @@ namespace Modules\Messaging\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Modules\Messaging\Helpers\AuthParticipant;
 use Modules\Messaging\Models\Conversation;
 use Modules\Messaging\Models\ConversationParticipant;
@@ -212,10 +214,133 @@ class MessageController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id) {}
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'body' => 'required|string|max:5000',
+        ]);
+
+        $message = Message::findOrFail($id);
+        $conversation = $this->authorizedConversation($message->conversation_id);
+        $this->ensureOwnMessage($message);
+
+        $message->body = trim((string) $request->body);
+        $message->save();
+        $conversation->touch();
+
+        return response()->json([
+            'success' => true,
+            'message' => $this->transformMessage($message->fresh()),
+        ]);
+    }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id) {}
+    public function destroy($id)
+    {
+        $message = Message::findOrFail($id);
+        $conversation = $this->authorizedConversation($message->conversation_id);
+        $this->ensureOwnMessage($message);
+
+        $this->deleteMessageFile($message);
+        $message->delete();
+        $conversation->touch();
+
+        return response()->json([
+            'success' => true,
+            'message_id' => (int) $id,
+        ]);
+    }
+
+    public function clearConversation($conversationId)
+    {
+        $conversation = $this->authorizedConversation($conversationId);
+
+        DB::transaction(function () use ($conversationId, $conversation) {
+            Message::where('conversation_id', $conversationId)
+                ->whereNotNull('file_path')
+                ->get()
+                ->each(function (Message $message) {
+                    $this->deleteMessageFile($message);
+                });
+
+            Message::where('conversation_id', $conversationId)->delete();
+            $conversation->touch();
+        });
+
+        return response()->json([
+            'success' => true,
+        ]);
+    }
+
+    protected function authorizedConversation($conversationId): Conversation
+    {
+        $userId = AuthParticipant::id();
+        $userType = AuthParticipant::type();
+
+        abort_unless($userId && $userType, 401, 'Unauthorized');
+
+        $userTypeShort = strtolower(class_basename($userType));
+
+        $conversation = Conversation::where('id', $conversationId)
+            ->whereHas('participants', function ($q) use ($userId, $userType, $userTypeShort) {
+                $q->where('participant_id', $userId)
+                    ->whereIn('participant_type', [$userType, $userTypeShort])
+                    ->whereNull('left_at');
+            })
+            ->first();
+
+        abort_unless($conversation, 403, 'Conversation not found or you are not a participant');
+
+        return $conversation;
+    }
+
+    protected function ensureOwnMessage(Message $message): void
+    {
+        $senderId = AuthParticipant::id();
+        $senderType = AuthParticipant::type();
+        $senderTypeShort = strtolower(class_basename($senderType));
+        $messageTypeShort = strtolower(class_basename((string) $message->sender_type));
+
+        abort_unless(
+            (int) $message->sender_id === (int) $senderId
+                && in_array($messageTypeShort, [$senderTypeShort], true),
+            403,
+            'You can only modify your own messages'
+        );
+    }
+
+    protected function transformMessage(Message $message): array
+    {
+        $sender = $message->sender;
+
+        return [
+            'id' => $message->id,
+            'conversation_id' => $message->conversation_id,
+            'sender_id' => $message->sender_id,
+            'sender_type' => $message->sender_type,
+            'sender_name' => $sender ? ($sender->name ?? 'Unknown') : 'Unknown',
+            'body' => $message->body,
+            'type' => $message->type,
+            'file_path' => $message->file_path,
+            'file_url' => $message->file_path ? asset($message->file_path) : null,
+            'created_at' => $message->created_at,
+            'updated_at' => $message->updated_at,
+            'read_at' => $message->read_at,
+            'file_name' => $message->file_path ? basename($message->file_path) : null,
+        ];
+    }
+
+    protected function deleteMessageFile(Message $message): void
+    {
+        if (!$message->file_path) {
+            return;
+        }
+
+        $absolutePath = public_path($message->file_path);
+        if (File::exists($absolutePath)) {
+            File::delete($absolutePath);
+        }
+    }
 }

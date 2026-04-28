@@ -19,6 +19,19 @@
 </head>
 
 <body class="antialiased bg-gray-50">
+    @php
+        $messageNotificationAuth = Auth::guard('admin')->check()
+            ? [
+                'type' => 'admin',
+                'id' => (int) Auth::guard('admin')->id(),
+                'messagesUrl' => route('admin.messages'),
+                'feedUrl' => route('messages.notifications.feed'),
+            ]
+            : null;
+    @endphp
+
+    <x-global-message-notifications :auth="$messageNotificationAuth" />
+
     <div class="min-h-screen flex">
         <!-- Navigation -->
         <nav class="bg-white shadow-sm border-r border-gray-200 w-64 min-h-screen">

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Messaging\Models\Conversation;
 use Modules\Messaging\Models\Message;
+use Modules\Messaging\Models\ConversationParticipant;
 use Modules\Messaging\Helpers\AuthParticipant;
 use Modules\Messaging\Services\ConversationService;
 
@@ -67,9 +68,11 @@ class MessagingController extends Controller
         }
 
         $messages = Message::where('conversation_id', $conversationId)
-            ->orderBy('created_at', 'asc')
+            ->latest('created_at')
             ->limit(50)
             ->get()
+            ->sortBy('created_at')
+            ->values()
             ->map(function ($msg) {
                 $sender = $msg->sender;
                 $msg->sender_name = $sender ? ($sender->name ?? 'Unknown') : 'Unknown';
@@ -112,9 +115,11 @@ class MessagingController extends Controller
         }
 
         $messages = Message::where('conversation_id', $conversationId)
-            ->orderBy('created_at', 'asc')
+            ->latest('created_at')
             ->limit(50)
             ->get()
+            ->sortBy('created_at')
+            ->values()
             ->map(function ($msg) {
                 $sender = $msg->sender;
                 $msg->sender_name = $sender ? ($sender->name ?? 'Unknown') : 'Unknown';
@@ -231,6 +236,62 @@ class MessagingController extends Controller
         return response()->json([
             'conversations' => $conversations,
             'unread_count' => $unreadCount
+        ]);
+    }
+
+    public function notificationsFeed(Request $request)
+    {
+        $userId = AuthParticipant::id();
+        $userType = AuthParticipant::type();
+
+        if (!$userId || !$userType) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $userTypeShort = strtolower(class_basename($userType));
+        $since = $request->query('since');
+
+        $conversationIds = ConversationParticipant::query()
+            ->where('participant_id', $userId)
+            ->whereIn('participant_type', [$userType, $userTypeShort])
+            ->whereNull('left_at')
+            ->pluck('conversation_id');
+
+        $messages = Message::query()
+            ->with('conversation', 'sender')
+            ->whereIn('conversation_id', $conversationIds)
+            ->when($since, fn ($query) => $query->where('created_at', '>', $since))
+            ->where(function ($query) use ($userId, $userType, $userTypeShort) {
+                $query->where('sender_id', '!=', $userId)
+                    ->orWhereNotIn('sender_type', [$userType, $userTypeShort]);
+            })
+            ->orderBy('created_at', 'asc')
+            ->limit(20)
+            ->get()
+            ->map(function (Message $message) {
+                $sender = $message->sender;
+                $conversation = $message->conversation;
+
+                return [
+                    'id' => $message->id,
+                    'conversation_id' => $message->conversation_id,
+                    'conversation_title' => $conversation?->is_group
+                        ? ($conversation?->name ?: 'Group Chat')
+                        : ($sender?->name ?? $sender?->email ?? 'Direct Chat'),
+                    'sender_id' => $message->sender_id,
+                    'sender_type' => $message->sender_type,
+                    'sender_name' => $sender?->name ?? ($sender?->email ?? 'Unknown'),
+                    'body' => $message->body,
+                    'type' => $message->type,
+                    'file_name' => $message->file_path ? basename($message->file_path) : null,
+                    'created_at' => optional($message->created_at)->toISOString(),
+                ];
+            });
+
+        return response()->json([
+            'messages' => $messages,
+            'unread_count' => $this->conversationService->getUnreadCountForParticipant($userId, $userType),
+            'server_time' => now()->toISOString(),
         ]);
     }
 }

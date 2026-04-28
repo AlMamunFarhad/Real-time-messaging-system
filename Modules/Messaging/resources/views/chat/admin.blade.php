@@ -37,6 +37,29 @@
         showChat: false,
         isFileTooLarge: false
     })" x-init="init()" class="-m-6 mx-auto max-w-7xl overflow-hidden">
+        <div class="pointer-events-none fixed right-4 top-4 z-[85] flex w-full max-w-sm flex-col gap-3 sm:right-6 sm:top-6">
+            <template x-for="toast in notificationToasts" :key="toast.id">
+                <button type="button" @click="openToastConversation(toast)"
+                    class="pointer-events-auto overflow-hidden rounded-[24px] border border-white/80 bg-white/95 text-left shadow-[0_24px_60px_rgba(15,23,42,0.16)] ring-1 ring-orange-100/80 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(15,23,42,0.2)]">
+                    <div class="h-1.5 bg-gradient-to-r from-rose-500 via-orange-400 to-amber-400"></div>
+                    <div class="flex items-start gap-3 px-4 py-4">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-lg shadow-orange-200/70">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-3">
+                                <p class="text-[12px] font-black uppercase tracking-[0.2em] text-orange-500" x-text="toast.label"></p>
+                                <span class="rounded-full bg-orange-50 px-2 py-1 text-[10px] font-bold text-orange-500">Live</span>
+                            </div>
+                            <p class="mt-1 truncate text-[15px] font-bold tracking-tight text-stone-800" x-text="toast.sender"></p>
+                            <p class="mt-1 line-clamp-2 text-[13px] leading-5 text-stone-500" x-text="toast.preview"></p>
+                        </div>
+                    </div>
+                </button>
+            </template>
+        </div>
         <div class="mx-3 my-3 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.35)] md:mx-4 md:my-4 lg:mx-0 lg:my-0 lg:rounded-[28px]">
             <div class="relative flex h-[88vh] overflow-hidden md:grid md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[340px_minmax(0,1fr)]">
                 <aside class="flex h-full w-full flex-col overflow-hidden border-b border-stone-200 bg-[#fafafa] md:w-auto md:border-b-0 md:border-r">
@@ -680,6 +703,8 @@
                 users: [],
                 pinnedUsers: [],
                 otherUsers: [],
+                notificationToasts: [],
+                seenUserSnapshots: {},
                 search: '',
                 loadingUsers: true,
                 activeUserId: Number(localStorage.getItem('admin_active_user_id')) || config.initialActiveUserId || 0,
@@ -707,6 +732,78 @@
                 isRecordingVoice: false,
                 voiceMediaRecorder: null,
                 voiceAudioChunks: [],
+                notificationPreview(payload) {
+                    const body = String(payload?.body || '').trim();
+                    if (body) return body.length > 120 ? `${body.slice(0, 120)}...` : body;
+                    const fileName = String(payload?.file_name || '').trim();
+                    if (fileName) return `Attachment: ${fileName}`;
+                    return payload?.type === 'file' ? 'Sent an attachment' : 'New message received';
+                },
+                pushNotificationToast(payload) {
+                    if (window.__dashboardGlobalMessageNotifications) return;
+                    const senderType = String(payload?.sender_type || '').split('\\').pop().toLowerCase();
+                    const isOwnMessage = String(payload?.sender_id) === String(config.userId) && senderType === config.userTypeShort;
+                    if (!payload?.id || isOwnMessage) return;
+
+                    const alreadyVisible = this.notificationToasts.some((item) => String(item.messageId) === String(payload.id));
+                    if (alreadyVisible) return;
+
+                    const toast = {
+                        id: `${payload.id}-${Date.now()}`,
+                        messageId: payload.id,
+                        conversationId: payload.conversation_id,
+                        userId: payload.user_id || 0,
+                        sender: payload.sender_name || 'Someone',
+                        preview: this.notificationPreview(payload),
+                        label: payload.user_name ? `Message from ${payload.user_name}` : 'New Message',
+                    };
+
+                    this.notificationToasts = [...this.notificationToasts, toast].slice(-4);
+
+                    setTimeout(() => {
+                        this.notificationToasts = this.notificationToasts.filter((item) => item.id !== toast.id);
+                    }, 5000);
+                },
+                syncUserSnapshots(users, force = false) {
+                    const nextSnapshots = {};
+
+                    users.forEach((user) => {
+                        const lastMessage = user.last_message || null;
+                        const snapshot = {
+                            lastMessageId: String(lastMessage?.id || ''),
+                            unreadCount: Number(user.unread_count || 0),
+                        };
+
+                        const previousSnapshot = this.seenUserSnapshots[String(user.id)];
+                        if (!force && previousSnapshot && snapshot.lastMessageId && previousSnapshot.lastMessageId !== snapshot.lastMessageId) {
+                            this.pushNotificationToast({
+                                id: lastMessage.id,
+                                conversation_id: user.conversation_id || this.activeConversationId || 0,
+                                user_id: user.id,
+                                user_name: user.name,
+                                sender_id: lastMessage.sender_id,
+                                sender_type: lastMessage.sender_type,
+                                sender_name: lastMessage.sender_name || user.name,
+                                body: lastMessage.body || this.userPreview(user),
+                                type: lastMessage.type || 'text',
+                                file_name: lastMessage.file_name || null,
+                            });
+                        }
+
+                        nextSnapshots[String(user.id)] = snapshot;
+                    });
+
+                    this.seenUserSnapshots = nextSnapshots;
+                },
+                async openToastConversation(toast) {
+                    this.notificationToasts = this.notificationToasts.filter((item) => item.id !== toast.id);
+                    if (toast.userId) {
+                        const user = this.users.find((item) => String(item.id) === String(toast.userId));
+                        if (user) {
+                            await this.selectUser(user);
+                        }
+                    }
+                },
                 scrollToBottom(el, smooth = false) {
                     if (!el) return;
                     const doScroll = () => {
@@ -814,6 +911,7 @@
                         });
                         const data = await response.json();
                         this.users = data.users || [];
+                        this.syncUserSnapshots(this.users, showLoader);
                         this.pinnedUsers = this.users.filter((user) => Boolean(user.is_pinned));
                         this.otherUsers = this.users.filter((user) => !user.is_pinned);
                     } catch (error) {

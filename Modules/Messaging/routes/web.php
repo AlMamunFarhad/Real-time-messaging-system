@@ -55,9 +55,21 @@ Route::middleware(['web', 'auth:admin,web'])->group(function () {
     Route::post('/mark-read', [MessageController::class, 'markRead'])
         ->name('messages.markRead');
 
+    Route::patch('/messages/{message}', [MessageController::class, 'update'])
+        ->name('messages.update');
+
+    Route::delete('/messages/{message}', [MessageController::class, 'destroy'])
+        ->name('messages.destroy');
+
+    Route::delete('/messages/conversations/{conversationId}/clear', [MessageController::class, 'clearConversation'])
+        ->name('messages.clear');
+
     // Get conversations for message icon
     Route::get('/messages/conversations', [MessagingController::class, 'getConversations'])
         ->name('messages.conversations');
+
+    Route::get('/messages/notifications/feed', [MessagingController::class, 'notificationsFeed'])
+        ->name('messages.notifications.feed');
 
     // Load messages for a conversation (web route - session auth works here)
     Route::get('/messages/{conversationId}', [MessagingController::class, 'messagesWeb'])
@@ -82,6 +94,8 @@ Route::middleware(['web', 'auth:admin,web'])->group(function () {
         ->name('voice.answer');
     Route::post('/voice-call/reject', [VoiceCallController::class, 'rejectCall'])
         ->name('voice.reject');
+    Route::post('/voice-call/ringing', [VoiceCallController::class, 'ringCall'])
+        ->name('voice.ringing');
     Route::post('/voice-call/ice-candidate', [VoiceCallController::class, 'sendIceCandidate'])
         ->name('voice.ice');
     Route::post('/voice-call/hangup', [VoiceCallController::class, 'hangupCall'])

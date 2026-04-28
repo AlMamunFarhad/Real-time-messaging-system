@@ -11,6 +11,19 @@
 </head>
 
 <body class="font-sans antialiased">
+    @php
+        $messageNotificationAuth = Auth::guard('admin')->check()
+            ? [
+                'type' => 'admin',
+                'id' => (int) Auth::guard('admin')->id(),
+                'messagesUrl' => route('admin.messages'),
+                'feedUrl' => route('messages.notifications.feed'),
+            ]
+            : null;
+    @endphp
+
+    <x-global-message-notifications :auth="$messageNotificationAuth" />
+
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
         <!-- Header -->
         @isset($header)
