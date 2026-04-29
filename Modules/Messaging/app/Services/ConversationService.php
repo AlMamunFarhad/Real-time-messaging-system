@@ -236,11 +236,26 @@ class ConversationService
             return false;
         }
 
-        $participant->update([
-            'left_at' => now(),
-        ]);
+        return DB::transaction(function () use ($conversation, $participant) {
+            $participant->update([
+                'left_at' => now(),
+            ]);
 
-        return true;
+            $remainingParticipants = $conversation->participants()
+                ->whereNull('left_at')
+                ->count();
+
+            $remainingAdmins = $conversation->participants()
+                ->whereNull('left_at')
+                ->where('role', 'admin')
+                ->count();
+
+            if ($remainingParticipants === 0 || ($participant->isAdmin() && $remainingAdmins === 0)) {
+                $conversation->delete();
+            }
+
+            return true;
+        });
     }
 
     public function getConversationForParticipant(int $conversationId, int $participantId, string $participantType): ?Conversation

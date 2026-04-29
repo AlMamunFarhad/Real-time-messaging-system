@@ -38,7 +38,7 @@ class MessagingServiceProvider extends ModuleServiceProvider
     {
         parent::register();
 
-        $this->mergeConfigFrom(module_path($this->name, 'config/messaging.php'), 'messaging');
+        $this->mergeConfigFrom(module_path($this->name, 'config/features.php'), 'messaging');
 
         require_once module_path($this->name, 'app/Helpers/features.php');
     }

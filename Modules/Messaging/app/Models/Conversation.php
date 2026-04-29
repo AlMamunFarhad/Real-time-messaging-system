@@ -4,12 +4,24 @@ namespace Modules\Messaging\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Messaging\Models\Message;
+use Illuminate\Support\Facades\File;
 // use Modules\Messaging\Database\Factories\ConversationFactory;
 
 class Conversation extends Model
 {
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Conversation $conversation) {
+            foreach ($conversation->messages()->whereNotNull('file_path')->cursor() as $message) {
+                $absolutePath = public_path($message->file_path);
+                if (File::exists($absolutePath)) {
+                    File::delete($absolutePath);
+                }
+            }
+        });
+    }
 
     /**
      * The attributes that are mass assignable.

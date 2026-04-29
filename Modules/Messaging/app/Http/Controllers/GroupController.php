@@ -76,6 +76,8 @@ class GroupController extends Controller
             ];
         })->values();
 
+        $admin = $members->firstWhere('role', 'admin');
+
         return response()->json([
             'group' => [
                 'id' => $conversation->id,
@@ -84,6 +86,7 @@ class GroupController extends Controller
                 'is_group' => true,
                 'members_count' => $members->count(),
                 'can_manage' => $this->conversationService->canManageGroup($conversation, $participantId, $participantType),
+                'admin' => $admin,
                 'members' => $members,
             ],
         ]);

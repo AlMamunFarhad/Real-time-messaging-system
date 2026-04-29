@@ -92,7 +92,7 @@
                     <div x-show="activeTab === 'direct'" class="flex flex-col h-[52vh]" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
                         <div class="mb-4 flex items-center justify-between px-1">
                             <p class="text-[10.5px] font-bold uppercase tracking-[0.2em] text-stone-400">Recent Conversations</p>
-                            <template x-if="pinnedDirectConversations.length">
+                            <template x-if="features.pinning && pinnedDirectConversations.length">
                                 <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-600">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z" />
@@ -113,7 +113,7 @@
                                     <p class="text-[12.5px] font-medium text-stone-400 leading-relaxed">No chats found.<br>Go to Contacts to start one.</p>
                                 </div>
                             </template>
-                            <template x-if="pinnedDirectConversations.length">
+                            <template x-if="features.pinning && pinnedDirectConversations.length">
                                 <div class="space-y-1.5">
                                     <p class="px-1 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">Pinned</p>
                                     <template x-for="conversation in pinnedDirectConversations" :key="'pd-' + conversation.id">
@@ -132,7 +132,7 @@
                                                         <template x-if="Number(conversation.unread_count || 0) > 0">
                                                             <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm" x-text="conversation.unread_count"></span>
                                                         </template>
-                                            <button x-show="features.pinning" @click.stop="togglePin(conversation)" type="button" class="group/pin flex h-9 w-9 items-center justify-center rounded-[12px] to-rose-50 text-amber-600 transition-all duration-100" title="Unpin conversation">
+                                                        <button x-show="features.pinning" @click.stop="togglePin(conversation)" type="button" class="group/pin flex h-9 w-9 items-center justify-center rounded-[12px] to-rose-50 text-amber-600 transition-all duration-100" title="Unpin conversation">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-200 group-hover/pin:scale-110" viewBox="0 0 24 24" fill="currentColor">
                                                                 <path d="M9.75 3a.75.75 0 0 0-.75.75v2.19l-2.47 2.47a.75.75 0 0 0 .53 1.28h3.19v7.75a.75.75 0 0 0 1.28.53l.97-.97.97.97a.75.75 0 0 0 1.28-.53V9.69h3.19a.75.75 0 0 0 .53-1.28L16 5.94V3.75A.75.75 0 0 0 15.25 3h-5.5Z" />
                                                             </svg>
@@ -145,7 +145,7 @@
                                     </template>
                                 </div>
                             </template>
-                            <template x-if="otherDirectConversations.length && pinnedDirectConversations.length">
+                            <template x-if="features.pinning && otherDirectConversations.length && pinnedDirectConversations.length">
                                 <p class="px-1 pt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">All Chats</p>
                             </template>
                             <template x-for="conversation in (pinnedDirectConversations.length ? otherDirectConversations : directConversations)" :key="conversation.id">
@@ -197,7 +197,7 @@
                                     Collaborate with your team<br>in group chats.
                                 </div>
                             </template>
-                            <template x-if="pinnedGroupConversations.length">
+                            <template x-if="features.pinning && pinnedGroupConversations.length">
                                 <div class="space-y-1.5">
                                     <p class="px-1 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">Pinned Groups</p>
                                     <template x-for="conversation in pinnedGroupConversations" :key="'pg-' + conversation.id">
@@ -226,7 +226,7 @@
                                     </template>
                                 </div>
                             </template>
-                            <template x-if="otherGroupConversations.length && pinnedGroupConversations.length">
+                            <template x-if="features.pinning && otherGroupConversations.length && pinnedGroupConversations.length">
                                 <p class="px-1 pt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">All Groups</p>
                             </template>
                             <template x-for="conversation in (pinnedGroupConversations.length ? otherGroupConversations : groupConversations)" :key="conversation.id">
@@ -317,27 +317,44 @@
                                                     <span class="absolute -right-0.5 -bottom-0.5 block h-3.5 w-3.5 rounded-full border-[2.5px] border-white bg-emerald-400 shadow-sm"></span>
                                                 </template>
                                             </div>
-                                            <div>
+                                            <div :class="activeConversation?.is_group ? 'cursor-pointer' : ''"
+                                                 @click="activeConversation?.is_group && openManageMembers()"
+                                                 :title="activeConversation?.is_group ? 'View group details' : ''"
+                                                 role="button" tabindex="0"
+                                                 @keydown.enter="activeConversation?.is_group && openManageMembers()"
+                                                 @keydown.space.prevent="activeConversation?.is_group && openManageMembers()">
                                                 <div class="flex items-center gap-2">
                                                     <h3 class="text-[17.5px] font-bold text-stone-800 tracking-tight" x-text="activeConversation.title"></h3>
+                                                    <template x-if="activeConversation?.is_group">
+                                                        <span class="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold tracking-[0.15em] text-slate-600">Group</span>
+                                                    </template>
                                                 </div>
-                                                <p class="text-[12.5px] font-medium text-stone-500 mt-0.5 ml-1" x-text="activeConversation.is_group ? ((groupDetails.members?.length || activeConversation.members_count || 0) + ' members in this group') : (activeConversation.is_online ? 'Active now' : 'Personal chat')"></p>
+                                                <p class="text-[12.5px] font-medium text-stone-500 mt-0.5 ml-1">
+                                                    <template x-if="activeConversation.is_group">
+                                                        <span x-text="(groupDetails.members?.length || activeConversation.members_count || 0) + ' members'"></span>
+                                                        <span class="mx-1 text-slate-400">&middot;</span>
+                                                        <span x-text="groupAdminName() ? 'Admin: ' + groupAdminName() : 'Loading group admin'"></span>
+                                                    </template>
+                                                    <template x-if="!activeConversation.is_group">
+                                                        <span x-text="activeConversation.is_online ? 'Active now' : 'Personal chat'"></span>
+                                                    </template>
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-2 justify-end w-full sm:w-auto">
-                                        <template x-if="(features.audio_call || features.video_call) && !activeConversation.is_group">
+                                    <template x-if="(features.audio_call || features.video_call) && !activeConversation.is_group">
                                         <div class="flex items-center gap-2">
                                             <button x-show="features.audio_call" type="button" @click="startCall('audio')"
-                                                class="flex h-10 w-10 items-center justify-center rounded-[14px] border border-emerald-100 bg-emerald-50 text-emerald-600 shadow-sm transition hover:bg-emerald-100 hover:shadow-md"
+                                                class="flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-rose-400 shadow-sm transition hover:bg-emerald-100 hover:shadow-md"
                                                 title="Audio call">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 0 1 2-2h2.28a2 2 0 0 1 1.948 1.553l.57 2.28a2 2 0 0 1-.502 1.86L7.414 10.586a16.001 16.001 0 0 0 6 6l1.893-1.882a2 2 0 0 1 1.86-.502l2.28.57A2 2 0 0 1 21 16.72V19a2 2 0 0 1-2 2h-1C9.716 21 3 14.284 3 6V5Z" />
                                                 </svg>
                                             </button>
                                             <button x-show="features.video_call" type="button" @click="startCall('video')"
-                                                class="flex h-10 w-10 items-center justify-center rounded-[14px] border border-sky-100 bg-sky-50 text-sky-600 shadow-sm transition hover:bg-sky-100 hover:shadow-md"
+                                                class="flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-rose-400 shadow-sm transition hover:bg-sky-100 hover:shadow-md"
                                                 title="Video call">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 10 4.553-2.276A1 1 0 0 1 21 8.618v6.764a1 1 0 0 1-1.447.894L15 14m-9 4h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2Z" />
@@ -345,19 +362,12 @@
                                             </button>
                                         </div>
                                     </template>
-                                    <button type="button" @click="clearConversation()" :disabled="isClearingConversation"
-                                        class="flex items-center justify-center gap-2 rounded-[14px] border border-rose-100 bg-rose-50 px-4 py-2 text-[13px] font-bold text-rose-500 transition hover:bg-rose-100 shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
-                                        title="Clear chat">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7 5 7m5-3h4m-5 7v6m4-6v6m5-10v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7h12Z" />
-                                        </svg>
-                                        <span>Clear Chat</span>
-                                    </button>
-                                    <button x-show="features.pinning" @click.stop="togglePin(activeConversation)" type="button" 
+
+                                    <button x-show="features.pinning" @click.stop="togglePin(activeConversation)" type="button"
                                         class="group/pin flex h-10 w-10 items-center justify-center rounded-[14px] border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                                        :class="activeConversation?.is_pinned ? 'border-amber-200/80 bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 text-amber-600' : 'border-stone-200/60 bg-white text-stone-400 hover:border-amber-100 hover:bg-amber-50/80 hover:text-amber-500'"
+                                        :class="activeConversation?.is_pinned ? 'border-rose-200 bg-rose-50 to-rose-50 text-amber-600' : 'border-stone-200/60 bg-white text-stone-400 hover:border-amber-100 hover:bg-amber-50/80 hover:text-amber-500'"
                                         :title="activeConversation?.is_pinned ? 'Pinned conversation' : 'Pin conversation'">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-200 group-hover/pin:scale-110"
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-rose-400 transition-transform duration-100 group-hover/pin:scale-110"
                                             :fill="activeConversation?.is_pinned ? 'currentColor' : 'none'"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9.75 3.75v2.19L7.28 8.41h3.22v7.78L12 14.69l1.5 1.5V8.41h3.22l-2.47-2.47V3.75h-4.5Z" />
@@ -385,13 +395,21 @@
                                             </div>
                                         </template>
                                     </button>
+                                    <button type="button" @click="clearConversation()" :disabled="isClearingConversation"
+                                        class="flex items-center justify-center gap-2 rounded-[14px] border border-rose-100 bg-rose-50 px-4 py-2 text-[13px] font-bold text-rose-500 transition hover:bg-rose-100 shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
+                                        title="Clear chat">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7 5 7m5-3h4m-5 7v6m4-6v6m5-10v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7h12Z" />
+                                        </svg>
+                                        <span>Clear Chat</span>
+                                    </button>
+                                    <template x-if="features.groups && activeConversation.is_group && groupDetails.can_manage"><button type="button" @click="openManageMembers()" class="rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm">Manage</button></template>
+                                    <template x-if="features.groups && activeConversation.is_group"><button type="button" @click="leaveGroup()" class="rounded-[14px] border border-rose-100 bg-rose-50 px-4 py-2 text-[13px] font-bold text-rose-500 transition hover:bg-rose-100 shadow-sm">Leave</button></template>
                                     <button type="button" @click="closeWorkspace()" class="hidden md:flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-stone-400 transition hover:bg-stone-50 hover:text-stone-800 shadow-sm" title="Close Workspace">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
-                                    <template x-if="features.groups && activeConversation.is_group && groupDetails.can_manage"><button type="button" @click="openManageMembers()" class="rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm">Manage</button></template>
-                                    <template x-if="features.groups && activeConversation.is_group"><button type="button" @click="leaveGroup()" class="rounded-[14px] border border-rose-100 bg-rose-50 px-4 py-2 text-[13px] font-bold text-rose-500 transition hover:bg-rose-100 shadow-sm">Leave</button></template>
                                 </div>
                             </div>
                         </div>
@@ -429,14 +447,17 @@
                             <div id="messages-list" class="space-y-4" x-show="!loadingMessages" x-cloak>
                                 <template x-for="message in messages" :key="message.id">
                                     <div class="flex" :class="isMine(message) ? 'justify-end' : 'justify-start'">
-                                        <div class="max-w-[80%]">
+                                        <div class="max-w-[80%] min-w-0 overflow-hidden break-words">
                                             <template x-if="!isMine(message)">
                                                 <p class="mb-1 px-3 text-[11px] uppercase tracking-wider font-bold text-rose-400" x-text="message.sender_name"></p>
                                             </template>
-                                            <div class="relative rounded-[24px] px-5 py-3.5 shadow-sm transform transition-all duration-300 hover:-translate-y-0.5"
-                                                :class="isMine(message) 
+                                            <div class="relative rounded-[24px] px-5 py-3.5 shadow-sm transform transition-all duration-300 hover:-translate-y-0.5 break-words whitespace-normal"
+                                                :class="[isMine(message) 
                                                     ? 'bg-blue-50 text-blue-800 shadow-[0_4px_12px_rgba(37,99,235,0.05)] rounded-br-md border border-blue-100' 
-                                                    : 'bg-white text-stone-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-bl-md border border-stone-100'">
+                                                    : 'bg-white text-stone-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-bl-md border border-stone-100',
+                                                    (isEditingMessage(message.id) || openMessageMenuId === message.id) ? 'z-10' : 'z-0']"
+                                                style="word-break: break-word; overflow-wrap: anywhere;">
+
                                                 <template x-if="isMine(message)">
                                                     <div class="absolute right-3 top-3 z-10" @click.outside="closeMessageMenu(message.id)">
                                                         <button type="button" @click.stop="toggleMessageMenu(message.id)"
@@ -488,7 +509,7 @@
                                                     </div>
                                                 </template>
                                                 <template x-if="!isEditingMessage(message.id) && message.body">
-                                                    <p class="pr-10 whitespace-pre-wrap text-[14.5px] leading-relaxed font-medium" x-text="message.body"></p>
+                                                    <p class="pr-10 whitespace-pre-wrap break-words break-all text-[14.5px] leading-relaxed font-medium w-full" x-text="message.body" style="word-wrap: break-word; word-break: break-word; overflow-wrap: anywhere;"></p>
                                                 </template>
                                                 <template x-if="message.file_url">
                                                     <div class="mt-2 text-left">
@@ -591,7 +612,7 @@
                                 </div>
                                 <button type="button" @click="clearFile()" class="flex h-8 w-8 items-center justify-center rounded-full bg-white text-stone-400 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm">&times;</button>
                             </div>
-                            <div class="relative flex items-end gap-3" x-data="{ showEmojiPicker: false }">
+                            <div class="relative flex items-center gap-3" x-data="{ showEmojiPicker: false }">
                                 <div x-show="showEmojiPicker" @click.away="showEmojiPicker = false" x-cloak x-transition class="absolute bottom-16 left-0 z-50 w-72 rounded-[24px] border border-orange-100 bg-white/95 p-3 shadow-2xl backdrop-blur-xl">
                                     <div class="grid grid-cols-6 gap-1 max-h-60 overflow-y-auto p-1 custom-scrollbar">
                                         <template x-for="emoji in ['😊','😂','❤️','👍','😍','🙌','✨','🔥','✅','🚀','💡','👏','🙏','🎉','😎','🤔','😮','😢','🤝','📍','🤩','😇','🥳','🥺','🤫','🤯','😴','🧡','💛','💚','💙','💜','🤍','💘','❣️','🎈','🎁','💎','📱','💻','☕','🌍','⚡','💪','🌈','🌟','💯','🔥','✨','😀','😁','😆','😅','🤣','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾']" :key="emoji">
@@ -601,7 +622,7 @@
                                 </div>
 
                                 <input x-show="features.file_upload" type="file" x-ref="fileInput" class="hidden" @change="pickFile">
-                                <button x-show="features.file_upload" type="button" @click="$refs.fileInput.click()" class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-orange-50 text-orange-500 shadow-sm transition-all hover:bg-orange-100 hover:text-orange-600 hover:shadow-md active:scale-95" title="Attach file">
+                                <button x-show="features.file_upload" type="button" @click="$refs.fileInput.click()" class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-rose-50 text-rose-400 shadow-sm transition-all hover:bg-rose-100 hover:text-orange-600 hover:shadow-md active:scale-95" title="Attach file">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                     </svg>
@@ -708,26 +729,57 @@
         <div class="my-auto w-full max-w-2xl rounded-[28px] bg-white p-6 shadow-2xl transition-all">
             <div class="flex items-center justify-between gap-4">
                 <div>
-                    <h3 class="text-xl font-semibold text-slate-900">Manage Members</h3>
+                    <h3 class="text-xl font-semibold text-slate-900">Group Info</h3>
                     <p class="mt-1 text-sm text-slate-500" x-text="activeConversation?.title"></p>
                 </div><button type="button" @click="showManageMembersModal = false" class="text-2xl text-slate-400 hover:text-slate-700">&times;</button>
             </div>
-            <div class="mt-5"><input x-model="manageMemberSearch" @input.debounce.250ms="loadGroupCandidates()" type="text" placeholder="Search users or admins to add" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"></div>
+            <div class="mt-5 space-y-4">
+                <div class="grid gap-3 md:grid-cols-2">
+                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Group Admin</p>
+                        <p class="mt-2 text-sm font-semibold text-slate-900" x-text="groupAdminName() || 'Unknown'"></p>
+                    </div>
+                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Members</p>
+                        <p class="mt-2 text-sm font-semibold text-slate-900" x-text="groupDetails.members?.length || 0"></p>
+                    </div>
+                </div>
+                <div>
+                    <template x-if="groupDetails.can_manage">
+                        <input x-model="manageMemberSearch" @input.debounce.250ms="loadGroupCandidates()" type="text" placeholder="Search users or admins to add" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200">
+                    </template>
+                    <template x-if="!groupDetails.can_manage">
+                        <p class="text-sm text-slate-500">View group members and roles. Only admins can manage group membership.</p>
+                    </template>
+                </div>
+            </div>
             <div class="mt-4 grid gap-4 lg:grid-cols-2">
-                <div class="max-h-80 space-y-2 overflow-y-auto rounded-3xl border border-slate-200 bg-slate-50 p-3"><template x-for="member in groupDetails.members || []" :key="member.type + '-' + member.id">
+                <div class="max-h-80 space-y-2 overflow-y-auto rounded-3xl border border-slate-200 bg-slate-50 p-3">
+                    <template x-for="member in groupDetails.members || []" :key="member.type + '-' + member.id">
                         <div class="flex items-center justify-between rounded-2xl bg-white px-4 py-3">
                             <div>
-                                <div class="text-sm font-semibold text-slate-900" x-text="member.name"></div>
-                                <div class="text-xs text-slate-500" x-text="member.type + '  ' + member.role"></div>
-                            </div><button type="button" @click="removeMember(member)" class="text-sm text-rose-500">Remove</button>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-semibold text-slate-900" x-text="member.name"></span>
+                                    <span x-show="member.role === 'admin'" class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-700">Admin</span>
+                                </div>
+                                <div class="text-xs text-slate-500" x-text="member.type + ' • ' + (member.joined_at ? formatJoinDate(member.joined_at) : '')"></div>
+                            </div>
+                            <button type="button" x-show="groupDetails.can_manage && member.role !== 'admin'" @click="removeMember(member)" class="text-sm text-rose-500">Remove</button>
                         </div>
-                    </template></div>
-                <div class="max-h-80 space-y-2 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-3"><template x-for="item in availableNewMembers()" :key="item.type + '-' + item.id"><button type="button" @click="addMembers([item])" class="flex w-full items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-left transition hover:bg-slate-100">
-                            <div>
-                                <div class="text-sm font-semibold text-slate-900" x-text="item.name"></div>
-                                <div class="text-xs text-slate-500" x-text="item.subtitle + '  ' + item.email"></div>
-                            </div><span class="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500">Add</span>
-                        </button></template></div>
+                    </template>
+                </div>
+                <template x-if="groupDetails.can_manage">
+                    <div class="max-h-80 space-y-2 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-3">
+                        <template x-for="item in availableNewMembers()" :key="item.type + '-' + item.id">
+                            <button type="button" @click="addMembers([item])" class="flex w-full items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-left transition hover:bg-slate-100">
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-900" x-text="item.name"></div>
+                                    <div class="text-xs text-slate-500" x-text="item.subtitle + '  ' + item.email"></div>
+                                </div><span class="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500">Add</span>
+                            </button>
+                        </template>
+                    </div>
+                </template>
             </div>
         </div>
     </div>
@@ -800,8 +852,8 @@
                     <video x-ref="remoteVideo" autoplay playsinline class="h-full min-h-[320px] w-full object-cover" :class="callMode === 'audio' ? 'hidden' : 'block'"></video>
                     <div x-show="callMode === 'audio' || !remoteStreamActive" class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.2),_transparent_55%)]">
                         <div class="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 text-3xl font-bold text-white shadow-lg"
-                             :class="incomingCall && !callConnected ? 'ring-4 ring-orange-300/60 animate-pulse' : ''"
-                             x-text="initialFor(callPeerName || activeConversation?.title)"></div>
+                            :class="incomingCall && !callConnected ? 'ring-4 ring-orange-300/60 animate-pulse' : ''"
+                            x-text="initialFor(callPeerName || activeConversation?.title)"></div>
                         <p class="text-lg font-semibold text-white" x-text="callPeerName || activeConversation?.title"></p>
                     </div>
                 </div>
@@ -957,7 +1009,10 @@
                     let gotStream = false;
                     if (mode === 'video') {
                         try {
-                            this.localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                            this.localStream = await navigator.mediaDevices.getUserMedia({
+                                audio: true,
+                                video: false
+                            });
                             this.cameraUnavailable = true;
                             gotStream = true;
                         } catch (audioOnlyError) {
@@ -966,7 +1021,10 @@
 
                         if (!gotStream) {
                             try {
-                                this.localStream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+                                this.localStream = await navigator.mediaDevices.getUserMedia({
+                                    audio: false,
+                                    video: true
+                                });
                                 this.microphoneUnavailable = true;
                                 this.cameraUnavailable = false;
                                 gotStream = true;
@@ -1006,9 +1064,12 @@
             },
             createPeerConnection() {
                 const connection = new RTCPeerConnection({
-                    iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
+                    iceServers: [{
+                            urls: 'stun:stun.l.google.com:19302'
+                        },
+                        {
+                            urls: 'stun:stun1.l.google.com:19302'
+                        },
                     ],
                 });
 
@@ -1437,7 +1498,12 @@
                 this.editingMessageId = null;
                 this.editingMessageDraft = '';
             },
-            openConfirmDialog({ title, description, confirmText = 'Confirm', onConfirm }) {
+            openConfirmDialog({
+                title,
+                description,
+                confirmText = 'Confirm',
+                onConfirm
+            }) {
                 this.confirmDialog = {
                     open: true,
                     title,
@@ -1577,6 +1643,12 @@
                 this.otherDirectConversations = this.directConversations.filter((item) => !item.is_pinned);
                 this.pinnedGroupConversations = this.groupConversations.filter((item) => Boolean(item.is_pinned));
                 this.otherGroupConversations = this.groupConversations.filter((item) => !item.is_pinned);
+                if (!this.features.pinning) {
+                    this.pinnedDirectConversations = [];
+                    this.otherDirectConversations = this.directConversations;
+                    this.pinnedGroupConversations = [];
+                    this.otherGroupConversations = this.groupConversations;
+                }
                 if (!this.activeConversationId && this.conversations.length) {
                     await this.selectConversation(this.conversations[0]);
                     return;
@@ -1900,6 +1972,23 @@
 
                 return fallback;
             },
+            groupAdminName() {
+                if (this.groupDetails.admin?.name) {
+                    return this.groupDetails.admin.name;
+                }
+
+                const admin = (this.groupDetails.members || []).find((member) => member.role === 'admin');
+                return admin ? admin.name : '';
+            },
+            formatJoinDate(value) {
+                if (!value) return '';
+                const date = new Date(value);
+                return date.toLocaleDateString([], {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+            },
             conversationPreview(conversation, fallback = 'No message yet') {
                 if (!conversation) return fallback;
 
@@ -1980,8 +2069,9 @@
                     members: []
                 };
             },
-            openManageMembers() {
+            async openManageMembers() {
                 if (!this.features.groups) return;
+                await this.loadGroupDetails();
                 this.showManageMembersModal = true;
                 this.manageMemberSearch = '';
                 this.loadGroupCandidates();
