@@ -38,6 +38,15 @@ class AuthParticipant
         };
     }
 
+    public static function typeShort()
+    {
+        return match (self::guard()) {
+            'admin' => 'admin',
+            'web' => 'user',
+            default => null,
+        };
+    }
+
     public static function model()
     {
         $guard = self::guard();

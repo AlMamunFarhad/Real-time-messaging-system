@@ -4,14 +4,21 @@ namespace Modules\Messaging\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Modules\Messaging\Helpers\AuthParticipant;
 use Modules\Messaging\Models\Conversation;
 use Modules\Messaging\Models\ConversationParticipant;
 use Modules\Messaging\Models\Message;
 use Modules\Messaging\Events\MessageSent;
+use Modules\Messaging\Services\ConversationService;
 
 class MessageController extends Controller
 {
+    public function __construct(
+        protected ConversationService $conversationService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -30,9 +37,16 @@ class MessageController extends Controller
 
     public function send(Request $request)
     {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
         try {
+            if ($request->hasFile('file')) {
+                abort_unless(messaging_feature('file_upload'), 403, 'Messaging feature disabled.');
+            }
+
             $request->validate([
-                'conversation_id' => 'required|integer'
+                'conversation_id' => 'required|integer',
+                'file' => 'nullable|file|max:10240'
             ]);
 
             $senderId = AuthParticipant::id();
@@ -55,7 +69,8 @@ class MessageController extends Controller
             $conversation = Conversation::where('id', $conversationId)
                 ->whereHas('participants', function ($q) use ($senderId, $senderType, $senderTypeShort) {
                     $q->where('participant_id', $senderId)
-                        ->whereIn('participant_type', [$senderType, $senderTypeShort]);
+                        ->whereIn('participant_type', [$senderType, $senderTypeShort])
+                        ->whereNull('left_at');
                 })
                 ->first();
 
@@ -67,9 +82,9 @@ class MessageController extends Controller
             $filePath = null;
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip', 'rar'];
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip', 'rar', 'webm', 'mp3', 'wav', 'ogg', 'm4a', 'aac'];
                 $extension = $file->getClientOriginalExtension();
-                
+
                 if (in_array(strtolower($extension), $allowedExtensions)) {
                     $fileName = time() . '_' . $file->getClientOriginalName();
                     $file->move(public_path('uploads/messages'), $fileName);
@@ -105,6 +120,8 @@ class MessageController extends Controller
             $response = [
                 'id' => $message->id,
                 'conversation_id' => $message->conversation_id,
+                'conversation_name' => $conversation->name,
+                'is_group' => (bool) $conversation->is_group,
                 'sender_id' => $message->sender_id,
                 'sender_type' => $message->sender_type,
                 'sender_name' => $senderName,
@@ -117,7 +134,7 @@ class MessageController extends Controller
                     'senderTypeShort' => strtolower(class_basename($senderType))
                 ]
             ];
-            
+
             if ($filePath) {
                 $response['file_url'] = asset($filePath);
                 $response['file_name'] = $request->file('file')->getClientOriginalName();
@@ -133,8 +150,29 @@ class MessageController extends Controller
         }
     }
 
+    public function downloadAttachment(Request $request)
+    {
+        $path = $request->query('path');
+        $name = $request->query('name');
+
+        if (!$path || !File::exists(public_path($path))) {
+            abort(404);
+        }
+
+        // Basic security check: ensure the path contains 'uploads/messages/'
+        if (!str_contains($path, 'uploads/messages/')) {
+            abort(403);
+        }
+
+        return response()->download(public_path($path), $name, [
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+    }
+
     public function markRead(Request $request)
     {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
         $conversationId = $request->conversation_id;
 
         if (!$conversationId) {
@@ -153,6 +191,7 @@ class MessageController extends Controller
         $participant = ConversationParticipant::where('conversation_id', $conversationId)
             ->where('participant_id', $userId)
             ->whereIn('participant_type', [$userType, $userTypeShort])
+            ->whereNull('left_at')
             ->first();
 
         if (!$participant) {
@@ -177,82 +216,11 @@ class MessageController extends Controller
         ]);
     }
 
-    // public function send(Request $request)
-    // {
-    //     $request->validate([
-    //         'receiver_id' => 'required',
-    //         'receiver_type' => 'required',
-    //         'message' => 'required'
-    //     ]);
-
-    //     $senderId = AuthParticipant::id();
-    //     $senderType = AuthParticipant::type();
-
-    //     // Step 1: conversation find or create
-    //     $conversation = Conversation::whereHas('participants', function ($q) use ($senderId, $senderType) {
-    //         $q->where('participant_id', $senderId)
-    //             ->where('participant_type', $senderType);
-    //     })
-    //         ->whereHas('participants', function ($q) use ($request) {
-    //             $q->where('participant_id', $request->receiver_id)
-    //                 ->where('participant_type', $request->receiver_type);
-    //         })
-    //         ->first();
-
-    //     // if conversation not found then create new conversation and add participants
-    //     if (!$conversation) {
-    //         $conversation = Conversation::create();
-
-    //         // sender add
-    //         ConversationParticipant::create([
-    //             'conversation_id' => $conversation->id,
-    //             'participant_id' => $senderId,
-    //             'participant_type' => $senderType,
-    //             'joined_at' => now(),
-    //         ]);
-
-    //         // receiver add
-    //         ConversationParticipant::create([
-    //             'conversation_id' => $conversation->id,
-    //             'participant_id' => $request->receiver_id,
-    //             'participant_type' => $request->receiver_type,
-    //             'joined_at' => now(),
-    //         ]);
-    //     }
-
-    //     // Step 2: message insert
-    //     $message = Message::create([
-    //         'conversation_id' => $conversation->id,
-    //         'sender_id' => $senderId,
-    //         'sender_type' => $senderType,
-    //         'body' => $request->message,
-    //     ]);
-    //     event(new MessageSent($message));
-
-    //     return response()->json([
-    //         'message' => 'Message sent',
-    //         'data' => $message
-    //     ]);
-    // }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        // $user = auth()->user();
-        // $message = Message::create([
-        //     'conversation_id' => $request->conversation_id,
-        //     'sender_id' => $user->id,
-        //     'sender_type' => get_class($user),
-        //     'body' => $request->message,
-        // ]);
-
-        // // real-time trigger
-        // event(new MessageSent($message));
-
-        // return response()->json($message);
-    }
+    public function store(Request $request) {}
 
     /**
      * Show the specified resource.
@@ -273,10 +241,139 @@ class MessageController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id) {}
+    public function update(Request $request, $id)
+    {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
+        $request->validate([
+            'body' => 'required|string|max:5000',
+        ]);
+
+        $message = Message::findOrFail($id);
+        $conversation = $this->authorizedConversation($message->conversation_id);
+        $this->ensureOwnMessage($message);
+
+        $message->body = trim((string) $request->body);
+        $message->save();
+        $conversation->touch();
+
+        return response()->json([
+            'success' => true,
+            'message' => $this->transformMessage($message->fresh()),
+        ]);
+    }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id) {}
+    public function destroy($id)
+    {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
+        $message = Message::findOrFail($id);
+        $conversation = $this->authorizedConversation($message->conversation_id);
+        $this->ensureOwnMessage($message);
+
+        $this->deleteMessageFile($message);
+        $message->delete();
+        $conversation->touch();
+
+        return response()->json([
+            'success' => true,
+            'message_id' => (int) $id,
+        ]);
+    }
+
+    public function clearConversation($conversationId)
+    {
+        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+
+        $conversation = $this->authorizedConversation($conversationId);
+
+        DB::transaction(function () use ($conversationId, $conversation) {
+            Message::where('conversation_id', $conversationId)
+                ->whereNotNull('file_path')
+                ->get()
+                ->each(function (Message $message) {
+                    $this->deleteMessageFile($message);
+                });
+
+            Message::where('conversation_id', $conversationId)->delete();
+            $conversation->touch();
+        });
+
+        return response()->json([
+            'success' => true,
+        ]);
+    }
+
+    protected function authorizedConversation($conversationId): Conversation
+    {
+        $userId = AuthParticipant::id();
+        $userType = AuthParticipant::type();
+
+        abort_unless($userId && $userType, 401, 'Unauthorized');
+
+        $userTypeShort = strtolower(class_basename($userType));
+
+        $conversation = Conversation::where('id', $conversationId)
+            ->whereHas('participants', function ($q) use ($userId, $userType, $userTypeShort) {
+                $q->where('participant_id', $userId)
+                    ->whereIn('participant_type', [$userType, $userTypeShort])
+                    ->whereNull('left_at');
+            })
+            ->first();
+
+        abort_unless($conversation, 403, 'Conversation not found or you are not a participant');
+
+        return $conversation;
+    }
+
+    protected function ensureOwnMessage(Message $message): void
+    {
+        $senderId = AuthParticipant::id();
+        $senderType = AuthParticipant::type();
+        $senderTypeShort = strtolower(class_basename($senderType));
+        $messageTypeShort = strtolower(class_basename((string) $message->sender_type));
+
+        abort_unless(
+            (int) $message->sender_id === (int) $senderId
+                && in_array($messageTypeShort, [$senderTypeShort], true),
+            403,
+            'You can only modify your own messages'
+        );
+    }
+
+    protected function transformMessage(Message $message): array
+    {
+        $sender = $message->sender;
+
+        return [
+            'id' => $message->id,
+            'conversation_id' => $message->conversation_id,
+            'sender_id' => $message->sender_id,
+            'sender_type' => $message->sender_type,
+            'sender_name' => $sender ? ($sender->name ?? 'Unknown') : 'Unknown',
+            'body' => $message->body,
+            'type' => $message->type,
+            'file_path' => $message->file_path,
+            'file_url' => $message->file_path ? asset($message->file_path) : null,
+            'created_at' => $message->created_at,
+            'updated_at' => $message->updated_at,
+            'read_at' => $message->read_at,
+            'file_name' => $message->file_path ? basename($message->file_path) : null,
+        ];
+    }
+
+    protected function deleteMessageFile(Message $message): void
+    {
+        if (!$message->file_path) {
+            return;
+        }
+
+        $absolutePath = public_path($message->file_path);
+        if (File::exists($absolutePath)) {
+            File::delete($absolutePath);
+        }
+    }
 }

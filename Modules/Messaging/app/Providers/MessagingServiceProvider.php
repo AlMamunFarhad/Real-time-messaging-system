@@ -34,6 +34,15 @@ class MessagingServiceProvider extends ModuleServiceProvider
         RouteServiceProvider::class,
     ];
 
+    public function register(): void
+    {
+        parent::register();
+
+        $this->mergeConfigFrom(module_path($this->name, 'config/features.php'), 'messaging');
+
+        require_once module_path($this->name, 'app/Helpers/features.php');
+    }
+
     /**
      * Define module schedules.
      * 

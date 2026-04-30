@@ -2,14 +2,22 @@
 
 namespace App\Http\Middleware;
 
-use Illuminate\Auth\Middleware\Authenticate as Middleware;
+use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class RedirectIfAuthenticated extends Middleware
+class RedirectIfAuthenticated
 {
-    protected function redirectTo($request)
+    public function handle(Request $request, Closure $next, string ...$guards): mixed
     {
-        return null;
+        $guards = empty($guards) ? [null] : $guards;
+
+        foreach ($guards as $guard) {
+            if (Auth::guard($guard)->check()) {
+                return redirect('/dashboard');
+            }
+        }
+
+        return $next($request);
     }
 }

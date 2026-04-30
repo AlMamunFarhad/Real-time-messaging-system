@@ -11,6 +11,8 @@ class OnlineStatusController extends Controller
 {
     public function heartbeat()
     {
+        abort_unless(messaging_feature('online_status'), 403, 'Messaging feature disabled.');
+
         $id = AuthParticipant::id();
         $type = AuthParticipant::type(); // full class e.g. App\Models\User
 
@@ -21,13 +23,15 @@ class OnlineStatusController extends Controller
         // Use short type name to match what check() uses from URL params
         $typeShort = strtolower(class_basename($type)); // "user" or "admin"
         $key = "online_{$typeShort}_{$id}";
-        Cache::put($key, true, now()->addSeconds(10));
+        Cache::put($key, true, now()->addSeconds(60));
 
         return response()->json(['status' => 'ok']);
     }
 
     public function check($userId, $type)
     {
+        abort_unless(messaging_feature('online_status'), 403, 'Messaging feature disabled.');
+
         $key = "online_{$type}_{$userId}";
         $isOnline = Cache::has($key);
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class AuthController extends Controller
 {
@@ -18,6 +19,8 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (Auth::guard('admin')->attempt($credentials)) {
+            $request->session()->regenerate();
+            Cache::put('online_admin_' . Auth::guard('admin')->id(), true, now()->addSeconds(10));
             return redirect('/admin/dashboard');
         }
 
@@ -26,7 +29,11 @@ class AuthController extends Controller
 
     public function logout()
     {
+        $adminId = Auth::guard('admin')->id();
         Auth::guard('admin')->logout();
+        if ($adminId) {
+            Cache::forget('online_admin_' . $adminId);
+        }
         return redirect('/admin/login');
     }
 }

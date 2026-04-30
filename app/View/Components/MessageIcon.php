@@ -11,6 +11,7 @@ use Modules\Messaging\Helpers\AuthParticipant;
 class MessageIcon extends Component
 {
     public $unreadCount;
+    protected $conversationService;
     public $conversations;
     public $currentUserId;
     public $currentUserType;
@@ -20,6 +21,7 @@ class MessageIcon extends Component
 
     public function __construct()
     {
+        $this->conversationService = app(\Modules\Messaging\Services\ConversationService::class);
         $userId = AuthParticipant::id();
         $userType = AuthParticipant::type();
         $userTypeShort = $userType ? strtolower(class_basename($userType)) : null;
@@ -36,42 +38,34 @@ class MessageIcon extends Component
             return;
         }
 
-        $conversations = Conversation::whereHas('participants', function ($q) use ($userId, $userType, $userTypeShort) {
-                $q->where('participant_id', $userId)
-                  ->whereIn('participant_type', [$userType, $userTypeShort]);
-            })
-            ->with('participants')
-            ->orderBy('updated_at', 'desc')
-            ->get();
+        $query = $this->conversationService->conversationQueryForParticipant($userId, $userType);
+        
+        // Apply admin/user specific filters if needed (similar to controller)
+        if ($userTypeShort === 'user') {
+            $query->where(function ($conversationQuery) {
+                $adminType = \App\Models\Admin::class;
+                $adminTypeShort = strtolower(class_basename($adminType));
+                $conversationQuery->where('is_group', true)
+                    ->orWhereHas('participants', function ($q) use ($adminType, $adminTypeShort) {
+                        $q->whereIn('participant_type', [$adminType, $adminTypeShort])
+                            ->whereNull('left_at');
+                    });
+            });
+        }
+
+        $conversations = $query->with('participants')->orderBy('updated_at', 'desc')->get();
 
         $unreadCount = 0;
         foreach ($conversations as $conversation) {
-            // Use the same matching logic as the user list endpoint (which works)
-            $participant = $conversation->participants->first(function ($participant) use ($userId, $userType, $userTypeShort) {
-                return (int) $participant->participant_id === (int) $userId
-                    && in_array($participant->participant_type, [$userType, $userTypeShort], true);
-            });
-
-            if (!$participant) {
-                continue; // Skip if no matching participant found
-            }
-
-            $unread = $conversation->messages()
-                ->when($participant->last_read_at, fn ($query) => $query->where('created_at', '>', $participant->last_read_at))
-                ->where(function ($query) use ($userId, $userType, $userTypeShort) {
-                    $query->where('sender_id', '!=', $userId)
-                        ->orWhereNotIn('sender_type', [$userType, $userTypeShort]);
-                })
-                ->count();
+            $unread = $this->conversationService->getUnreadCountForConversation($conversation, $userId, $userType);
             $unreadCount += $unread;
-            
             $conversation->unread_count = $unread;
         }
 
         $this->unreadCount = $unreadCount;
         $this->conversations = $conversations->take(10)->values();
 
-        // For admin, get users (10 per page loaded via AJAX)
+        // For admin, get users
         if ($this->isAdminDashboard) {
             $this->userList = \App\Models\User::where('id', '!=', $userId)
                 ->orderBy('name')

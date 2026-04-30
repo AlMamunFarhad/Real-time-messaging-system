@@ -59,6 +59,17 @@ class AuthParticipant
         return $user->name ?? 'Unknown';
     }
 
+    public static function typeShort()
+    {
+        $guard = self::guard();
+
+        return match ($guard) {
+            'admin' => 'admin',
+            'web'   => 'user',
+            default => null,
+        };
+    }
+
     public static function check()
     {
         return self::guard() !== null;
