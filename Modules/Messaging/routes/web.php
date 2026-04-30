@@ -58,6 +58,10 @@ Route::middleware(['web', 'auth:admin,web', EnsureMessagingFeatureEnabled::class
     Route::post('/send-message', [MessageController::class, 'send'])
         ->name('messages.send');
 
+    // Download attachment
+    Route::get('/messages/download-attachment', [MessageController::class, 'downloadAttachment'])
+        ->name('messages.download-attachment');
+
     // Mark messages as read
     Route::post('/mark-read', [MessageController::class, 'markRead'])
         ->name('messages.markRead');

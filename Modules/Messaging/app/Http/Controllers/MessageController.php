@@ -150,6 +150,25 @@ class MessageController extends Controller
         }
     }
 
+    public function downloadAttachment(Request $request)
+    {
+        $path = $request->query('path');
+        $name = $request->query('name');
+
+        if (!$path || !File::exists(public_path($path))) {
+            abort(404);
+        }
+
+        // Basic security check: ensure the path contains 'uploads/messages/'
+        if (!str_contains($path, 'uploads/messages/')) {
+            abort(403);
+        }
+
+        return response()->download(public_path($path), $name, [
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+    }
+
     public function markRead(Request $request)
     {
         abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');

@@ -63,18 +63,23 @@ class GroupController extends Controller
             return response()->json(['error' => 'Group not found'], 404);
         }
 
-        $members = $conversation->participants->map(function ($participant) {
-            return [
-                'id' => $participant->participant_id,
-                'type' => $this->conversationService->participantTypeKey($participant->participant_type),
-                'name' => $this->conversationService->getParticipantDisplayName(
-                    (int) $participant->participant_id,
-                    $participant->participant_type
-                ),
-                'role' => $participant->role,
-                'joined_at' => optional($participant->joined_at)?->toISOString(),
-            ];
-        })->values();
+        $members = $conversation->participants()
+            ->whereNull('left_at')
+            ->get()
+            ->map(function ($participant) {
+                return [
+                    'id' => $participant->participant_id,
+                    'type' => $this->conversationService->participantTypeKey($participant->participant_type),
+                    'name' => $this->conversationService->getParticipantDisplayName(
+                        (int) $participant->participant_id,
+                        $participant->participant_type
+                    ),
+                    'role' => $participant->role,
+                    'joined_at' => optional($participant->joined_at)?->toISOString(),
+                ];
+            })
+            ->sortByDesc(fn ($member) => $member['role'] === 'admin')
+            ->values();
 
         $admin = $members->firstWhere('role', 'admin');
 

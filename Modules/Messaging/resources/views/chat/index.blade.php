@@ -262,6 +262,40 @@
             }
         }
 
+        window.downloadFile = function(url, filename) {
+            if (!url) return;
+            
+            // Extract relative path from absolute URL
+            const match = url.match(/uploads\/messages\/(.+)$/);
+            if (match) {
+                const relativePath = 'uploads/messages/' + match[1].split('?')[0];
+                const downloadUrl = `/messages/download-attachment?path=${encodeURIComponent(relativePath)}&name=${encodeURIComponent(filename || 'file')}`;
+                
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(() => document.body.removeChild(link), 100);
+                return;
+            }
+
+            // Fallback for external or non-standard URLs
+            fetch(url).then(r => r.blob()).then(blob => {
+                const blobUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = filename || 'download';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(blobUrl);
+            }).catch(err => {
+                console.error('Download fallback failed:', err);
+                window.location.href = url;
+            });
+        };
+
         async function markConversationAsRead(force = false) {
             const now = Date.now();
 
@@ -280,6 +314,30 @@
             } catch (error) {
                 console.error('Mark read error:', error);
             }
+        }
+
+        function scrollToBottom() {
+            const chatBox = document.getElementById('chat-box');
+            if (!chatBox) return;
+            
+            const performScroll = (behavior = 'smooth') => {
+                chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: behavior });
+            };
+
+            // Instant snap
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            // Smooth adjustment after render
+            requestAnimationFrame(() => performScroll('smooth'));
+
+            // Handle images
+            chatBox.querySelectorAll('img').forEach(img => {
+                if (!img.complete) img.addEventListener('load', () => performScroll('smooth'), { once: true });
+            });
+
+            // Follow-up checks
+            setTimeout(() => performScroll('smooth'), 150);
+            setTimeout(() => performScroll('smooth'), 500);
         }
 
         window.appendMessage = function(message) {
@@ -305,13 +363,9 @@
             if (isMe) {
                 let content = message.body || '';
                 if (hasImage) {
-                    content += `<img src="${fileUrl}" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
-                    <a href="${fileUrl}" download style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; margin-top: 6px; background: rgba(255,255,255,0.3); border-radius: 6px; text-decoration: none; font-size: 11px; color: white;">
-                        <svg xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Download
-                    </a>`;
+                    content += `<div style="position: relative; margin-top: 8px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <img src="${fileUrl}" style="max-width: 100%; display: block; border-radius: 12px;">
+                    </div>`;
                 } else if (isAudio) {
                     content += `
                     <div style="margin-top: 8px; padding: 10px; background: rgba(255,255,255,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
@@ -324,11 +378,17 @@
                         <audio controls src="${fileUrl}" style="height: 38px; max-width: 240px; width: 100%; border-radius: 20px;"></audio>
                     </div>`;
                 } else if (fileUrl) {
-                    content += `<a href="${fileUrl}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(255,255,255,0.2); border-radius: 8px; text-decoration: none;">
-                        <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                        </svg>
-                        <span style="color: white; font-size: 12px;">Download File</span>
+                    let fileName = fileUrl.split('/').pop().split('?')[0] || 'File';
+                    content += `<a href="${fileUrl}" target="_blank" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; margin-top: 8px; background: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 14px; text-decoration: none; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.08);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'">
+                        <div style="width: 32px; height: 32px; background: #fff1f2; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px; color: #f43f5e;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="color: #e11d48; font-size: 13px; font-weight: 700; line-height: 1.2;">${fileName}</span>
+                            <span style="color: #9f1239; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; opacity: 0.8;">View Document</span>
+                        </div>
                     </a>`;
                 }
                 container.innerHTML = `
@@ -337,13 +397,15 @@
             } else {
                 let content = message.body || '';
                 if (hasImage) {
-                    content += `<img src="${fileUrl}" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #e5e7eb;">
-                    <a href="${fileUrl}" download style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; margin-top: 6px; background: #e5e7eb; border-radius: 6px; text-decoration: none; font-size: 11px; color: #374151;">
-                        <svg xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Download
-                    </a>`;
+                    content += `<div style="position: relative; margin-top: 8px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;">
+                        <img src="${fileUrl}" style="max-width: 100%; display: block; border-radius: 12px;">
+                        <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${fileName}')" style="position: absolute; bottom: 8px; right: 8px; display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.05); border-radius: 10px; text-decoration: none; font-size: 12px; color: #1e293b; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.95)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.8)'; this.style.transform='scale(1)'">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px; color: #f43f5e;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download
+                        </a>
+                    </div>`;
                 } else if (isAudio) {
                     content += `
                     <div style="margin-top: 8px; padding: 10px; background: #f1f5f9; border-radius: 12px; border: 1px solid #e2e8f0;">
@@ -356,12 +418,26 @@
                         <audio controls src="${fileUrl}" style="height: 38px; max-width: 240px; width: 100%; border-radius: 20px;"></audio>
                     </div>`;
                 } else if (fileUrl) {
-                    content += `<a href="${fileUrl}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #e5e7eb; border-radius: 8px; text-decoration: none;">
-                        <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; color: #6b7280;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                        </svg>
-                        <span style="color: #374151; font-size: 12px;">Download File</span>
-                    </a>`;
+                    let fileName = fileUrl.split('/').pop().split('?')[0] || 'File';
+                    content += `<div style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px;">
+                        <a href="${fileUrl}" target="_blank" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#f8fafc'; this.style.transform='translateY(0)'">
+                            <div style="width: 32px; height: 32px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                                <svg xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px; color: #f43f5e;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="color: #1e293b; font-size: 13px; font-weight: 600; line-height: 1.2;">${fileName}</span>
+                                <span style="color: #64748b; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.02em;">View File</span>
+                            </div>
+                        </a>
+                        <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${fileName}')" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; text-decoration: none; font-size: 11px; color: #e11d48; font-weight: 800; transition: all 0.2s;" onmouseover="this.style.background='#ffe4e6'" onmouseout="this.style.background='#fff1f2'">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            DOWNLOAD FILE
+                        </a>
+                    </div>`;
                 }
                 container.innerHTML = `
                     <div class="sender-name">${senderName}</div>
@@ -371,7 +447,7 @@
 
             row.appendChild(container);
             chatBox.appendChild(row);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            scrollToBottom(isMe);
         };
 
         window.isLoadingMessages = false;

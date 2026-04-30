@@ -93,7 +93,7 @@
                         <div class="mb-4 flex items-center justify-between px-1">
                             <p class="text-[10.5px] font-bold uppercase tracking-[0.2em] text-stone-400">Recent Conversations</p>
                             <template x-if="features.pinning && pinnedDirectConversations.length">
-                                <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-600">
+                                <span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-rose-400">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z" />
                                     </svg>
@@ -115,11 +115,11 @@
                             </template>
                             <template x-if="features.pinning && pinnedDirectConversations.length">
                                 <div class="space-y-1.5">
-                                    <p class="px-1 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">Pinned</p>
+                                    <p class="px-1 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-rose-400">Pinned</p>
                                     <template x-for="conversation in pinnedDirectConversations" :key="'pd-' + conversation.id">
                                         <div role="button" tabindex="0" @click="selectConversation(conversation)" @keydown.enter.prevent="selectConversation(conversation)" @keydown.space.prevent="selectConversation(conversation)"
                                             class="group block w-full cursor-pointer rounded-[20px] px-4 py-3.5 text-left transition-all duration-300"
-                                            :class="activeConversationId === conversation.id ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-amber-200/80 scale-[1.01] z-10 relative' : 'bg-amber-50/60 text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
+                                            :class="activeConversationId === conversation.id ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-amber-200/80 scale-[1.01] z-10 relative' : 'bg-rose-50/60 text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
                                             <div class="relative min-w-0 flex-1">
                                                 <div class="flex items-center justify-between gap-2">
                                                     <div class="flex items-center gap-2 min-w-0">
@@ -133,7 +133,7 @@
                                                             <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm" x-text="conversation.unread_count"></span>
                                                         </template>
                                                         <button x-show="features.pinning" @click.stop="togglePin(conversation)" type="button" class="group/pin flex h-9 w-9 items-center justify-center rounded-[12px] to-rose-50 text-amber-600 transition-all duration-100" title="Unpin conversation">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-200 group-hover/pin:scale-110" viewBox="0 0 24 24" fill="currentColor">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-rose-400 transition-transform duration-200 group-hover/pin:scale-110" viewBox="0 0 24 24" fill="currentColor">
                                                                 <path d="M9.75 3a.75.75 0 0 0-.75.75v2.19l-2.47 2.47a.75.75 0 0 0 .53 1.28h3.19v7.75a.75.75 0 0 0 1.28.53l.97-.97.97.97a.75.75 0 0 0 1.28-.53V9.69h3.19a.75.75 0 0 0 .53-1.28L16 5.94V3.75A.75.75 0 0 0 15.25 3h-5.5Z" />
                                                             </svg>
                                                         </button>
@@ -199,11 +199,11 @@
                             </template>
                             <template x-if="features.pinning && pinnedGroupConversations.length">
                                 <div class="space-y-1.5">
-                                    <p class="px-1 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">Pinned Groups</p>
+                                    <p class="px-1 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-rose-400">Pinned Groups</p>
                                     <template x-for="conversation in pinnedGroupConversations" :key="'pg-' + conversation.id">
                                         <div role="button" tabindex="0" @click="selectConversation(conversation)" @keydown.enter.prevent="selectConversation(conversation)" @keydown.space.prevent="selectConversation(conversation)"
                                             class="group block w-full cursor-pointer rounded-[20px] px-4 py-3.5 text-left transition-all duration-300"
-                                            :class="activeConversationId === conversation.id ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-amber-200/80 scale-[1.01] z-10 relative' : 'bg-amber-50/60 text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
+                                            :class="activeConversationId === conversation.id ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-amber-200/80 scale-[1.01] z-10 relative' : 'bg-rose-50/60 text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
                                             <div class="flex-1 min-w-0">
                                                 <div class="flex items-center justify-between gap-3">
                                                     <div class="flex items-center gap-2 min-w-0">
@@ -214,7 +214,7 @@
                                                             <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm" x-text="conversation.unread_count"></span>
                                                         </template>
                                                         <button x-show="features.pinning" @click.stop="togglePin(conversation)" type="button" class="group/pin flex h-5 w-5 items-center justify-center rounded-[12px] to-rose-50 text-amber-600 transition-all duration-100" title="Unpin group">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 transition-transform duration-200 group-hover/pin:scale-110" viewBox="0 0 24 24" fill="currentColor">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-rose-400 transition-transform duration-200 group-hover/pin:scale-110" viewBox="0 0 24 24" fill="currentColor">
                                                                 <path d="M9.75 3a.75.75 0 0 0-.75.75v2.19l-2.47 2.47a.75.75 0 0 0 .53 1.28h3.19v7.75a.75.75 0 0 0 1.28.53l.97-.97.97.97a.75.75 0 0 0 1.28-.53V9.69h3.19a.75.75 0 0 0 .53-1.28L16 5.94V3.75A.75.75 0 0 0 15.25 3h-5.5Z" />
                                                             </svg>
                                                         </button>
@@ -241,9 +241,9 @@
                                             </template>
                                             <button x-show="features.pinning" @click.stop="togglePin(conversation)" type="button"
                                                 class="group/pin ml-1 flex h-9 w-9 items-center justify-center rounded-[12px] border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm"
-                                                :class="conversation.is_pinned ? 'border-amber-200/80 bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 text-amber-600 shadow-sm' : 'border-transparent bg-transparent text-stone-300 hover:border-amber-100 hover:bg-amber-50/80 hover:text-amber-500'"
+                                                :class="conversation.is_pinned ? 'border-amber-200/80 bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 text-rose-400 shadow-sm' : 'border-transparent bg-transparent text-stone-300 hover:border-rose-100 hover:bg-rose-50/80 hover:text-rose-400'"
                                                 :title="conversation.is_pinned ? 'Unpin group' : 'Pin group'">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 transition-transform duration-200 group-hover/pin:scale-110"
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-200 group-hover/pin:scale-110"
                                                     :fill="conversation.is_pinned ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9.75 3.75v2.19L7.28 8.41h3.22v7.78L12 14.69l1.5 1.5V8.41h3.22l-2.47-2.47V3.75h-4.5Z" />
                                                 </svg>
@@ -363,17 +363,6 @@
                                         </div>
                                     </template>
 
-                                    <button x-show="features.pinning" @click.stop="togglePin(activeConversation)" type="button"
-                                        class="group/pin flex h-10 w-10 items-center justify-center rounded-[14px] border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                                        :class="activeConversation?.is_pinned ? 'border-rose-200 bg-rose-50 to-rose-50 text-amber-600' : 'border-stone-200/60 bg-white text-stone-400 hover:border-amber-100 hover:bg-amber-50/80 hover:text-amber-500'"
-                                        :title="activeConversation?.is_pinned ? 'Pinned conversation' : 'Pin conversation'">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-rose-400 transition-transform duration-100 group-hover/pin:scale-110"
-                                            :fill="activeConversation?.is_pinned ? 'currentColor' : 'none'"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9.75 3.75v2.19L7.28 8.41h3.22v7.78L12 14.69l1.5 1.5V8.41h3.22l-2.47-2.47V3.75h-4.5Z" />
-                                        </svg>
-                                    </button>
-
                                     <button x-show="features.ai_summary" type="button" @click="toggleSummary()" :disabled="isFetchingSummary"
                                         class="flex items-center justify-center gap-2 rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm disabled:opacity-50"
                                         title="View Conversation Summary">
@@ -395,6 +384,19 @@
                                             </div>
                                         </template>
                                     </button>
+                                    <template x-if="features.groups && activeConversation.is_group && groupDetails.can_manage"><button type="button" @click="openManageMembers()" class="rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm">Manage</button></template>
+                                   
+                                    <button x-show="features.pinning" @click.stop="togglePin(activeConversation)" type="button"
+                                        class="group/pin flex h-10 w-10 items-center justify-center rounded-[14px] border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                                        :class="activeConversation?.is_pinned ? 'border-rose-200 bg-rose-50 to-rose-50 text-amber-600' : 'border-stone-200/60 bg-white text-stone-400 hover:border-amber-100 hover:bg-amber-50/80 hover:text-amber-500'"
+                                        :title="activeConversation?.is_pinned ? 'Pinned conversation' : 'Pin conversation'">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-rose-400 transition-transform duration-100 group-hover/pin:scale-110"
+                                            :fill="activeConversation?.is_pinned ? 'currentColor' : 'none'"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9.75 3.75v2.19L7.28 8.41h3.22v7.78L12 14.69l1.5 1.5V8.41h3.22l-2.47-2.47V3.75h-4.5Z" />
+                                        </svg>
+                                    </button>
+
                                     <button type="button" @click="clearConversation()" :disabled="isClearingConversation"
                                         class="flex items-center justify-center gap-2 rounded-[14px] border border-rose-100 bg-rose-50 px-4 py-2 text-[13px] font-bold text-rose-500 transition hover:bg-rose-100 shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
                                         title="Clear chat">
@@ -403,7 +405,6 @@
                                         </svg>
                                         <span>Clear Chat</span>
                                     </button>
-                                    <template x-if="features.groups && activeConversation.is_group && groupDetails.can_manage"><button type="button" @click="openManageMembers()" class="rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm">Manage</button></template>
                                     <template x-if="features.groups && activeConversation.is_group"><button type="button" @click="leaveGroup()" class="rounded-[14px] border border-rose-100 bg-rose-50 px-4 py-2 text-[13px] font-bold text-rose-500 transition hover:bg-rose-100 shadow-sm">Leave</button></template>
                                     <button type="button" @click="closeWorkspace()" class="hidden md:flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-stone-400 transition hover:bg-stone-50 hover:text-stone-800 shadow-sm" title="Close Workspace">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -447,7 +448,7 @@
                             <div id="messages-list" class="space-y-4" x-show="!loadingMessages" x-cloak>
                                 <template x-for="message in messages" :key="message.id">
                                     <div class="flex" :class="isMine(message) ? 'justify-end' : 'justify-start'">
-                                        <div class="max-w-[80%] min-w-0 overflow-hidden break-words">
+                                        <div class="max-w-[80%] min-w-0 overflow-visible break-words">
                                             <template x-if="!isMine(message)">
                                                 <p class="mb-1 px-3 text-[11px] uppercase tracking-wider font-bold text-rose-400" x-text="message.sender_name"></p>
                                             </template>
@@ -470,7 +471,7 @@
                                                             </svg>
                                                         </button>
                                                         <div x-show="openMessageMenuId === message.id" x-cloak x-transition
-                                                            class="absolute right-0 mt-2 w-36 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1.5 shadow-[0_18px_40px_rgba(15,23,42,0.14)]">
+                                                            class="absolute right-0 mt-2 w-36 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1.5 shadow-[0_18px_40px_rgba(15,23,42,0.14)] z-50">
                                                             <template x-if="message.body">
                                                                 <button type="button" @click="startInlineEdit(message)"
                                                                     class="flex w-full items-center gap-2 px-3.5 py-2 text-left text-[12px] font-semibold text-stone-600 transition hover:bg-blue-50 hover:text-blue-700">
@@ -479,6 +480,14 @@
                                                                     </svg>
                                                                     <span>Edit</span>
                                                                 </button>
+                                                            </template>
+                                                            <template x-if="message.file_url">
+                                                                <a :href="message.file_url" :download="message.file_name || ''" class="flex w-full items-center gap-2 px-3.5 py-2 text-left text-[12px] font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-800">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 10l5 5 5-5M12 15V3" />
+                                                                    </svg>
+                                                                    <span>Download</span>
+                                                                </a>
                                                             </template>
                                                             <button type="button" @click="requestDeleteMessage(message)"
                                                                 class="flex w-full items-center gap-2 px-3.5 py-2 text-left text-[12px] font-semibold text-rose-500 transition hover:bg-rose-50 hover:text-rose-600">
@@ -514,30 +523,58 @@
                                                 <template x-if="message.file_url">
                                                     <div class="mt-2 text-left">
                                                         <template x-if="message.file_url && (message.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i))">
-                                                            <div class="group relative mt-2 inline-block overflow-hidden rounded-[20px] shadow-sm transition-all duration-300 hover:shadow-md" :class="isMine(message) ? 'border border-white/20' : 'border border-rose-100'">
+                                                            <div class="group relative mt-2 inline-block overflow-hidden rounded-[20px] shadow-md transition-all duration-300 hover:shadow-lg" :class="isMine(message) ? 'border border-white/20' : 'border border-rose-100'">
                                                                 <img :src="message.file_url" @load="const cb = $el.closest('.flex-1'); if(cb) cb.scrollTop = cb.scrollHeight;" class="max-h-52 max-w-[280px] w-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-105" @click="window.open(message.file_url, '_blank')" alt="Attachment">
-                                                                <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                                                                <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                                                                <template x-if="!isMine(message)">
+                                                                    <a href="javascript:void(0)" @click="downloadFile(message.file_url, message.file_name)" class="absolute bottom-3 right-3 flex items-center gap-2 rounded-xl bg-black/50 px-3.5 py-2 text-[12px] font-bold text-white backdrop-blur-md border border-white/20 transition hover:bg-black/70 hover:scale-105 opacity-0 group-hover:opacity-100">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                                        </svg>
+                                                                        <span>Download</span>
+                                                                    </a>
+                                                                </template>
                                                             </div>
                                                         </template>
                                                         <template x-if="message.file_url && (message.file_url.match(/\.(webm|mp3|wav|ogg|m4a)$/i))">
-                                                            <div class="mt-2 flex flex-col gap-2 p-2 rounded-2xl bg-white/40 border border-white/20">
+                                                            <div class="mt-2 flex flex-col gap-2 p-3 rounded-2xl bg-white/40 border border-white/20 shadow-sm">
                                                                 <div class="flex items-center gap-2 px-1">
                                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                                                                     </svg>
                                                                     <span class="text-[11px] font-bold uppercase tracking-widest text-rose-500">Voice Message</span>
                                                                 </div>
-                                                                <audio controls class="h-8 max-w-[240px] w-full" :src="message.file_url"></audio>
+                                                                <audio controls class="h-9 max-w-[240px] w-full outline-none" :src="message.file_url"></audio>
+                                                                <template x-if="!isMine(message)">
+                                                                    <a href="javascript:void(0)" @click="downloadFile(message.file_url, message.file_name)" class="mt-1 flex items-center justify-center gap-2 rounded-xl border border-rose-100 bg-white/60 py-2 text-[11px] font-bold text-rose-500 transition hover:bg-rose-50">
+                                                                        Download Recording
+                                                                    </a>
+                                                                </template>
                                                             </div>
                                                         </template>
                                                         <template x-if="!(message.file_url && (message.file_url.match(/\.(jpg|jpeg|png|gif|webp|webm|mp3|wav|ogg|m4a)$/i)))">
-                                                            <a :href="message.file_url" target="_blank" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold shadow-sm transition-transform hover:scale-105"
-                                                                :class="isMine(message) ? 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm' : 'bg-orange-50 text-orange-700 hover:bg-orange-100'">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                                </svg>
-                                                                <span x-text="message.file_name || 'View attachment'"></span>
-                                                            </a>
+                                                            <div class="mt-2 flex flex-col gap-1.5">
+                                                                <a :href="message.file_url" target="_blank" class="flex items-center gap-3 rounded-2xl border p-3 transition-all duration-300 hover:-translate-y-0.5"
+                                                                    :class="isMine(message) ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' : 'bg-stone-50 border-stone-200 text-stone-800 hover:bg-white hover:shadow-md'">
+                                                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" :class="isMine(message) ? 'bg-rose-50' : 'bg-white shadow-sm border border-stone-100'">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" :class="isMine(message) ? 'text-rose-500' : 'text-rose-500'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="flex flex-col min-w-0">
+                                                                        <span class="truncate text-[13px] font-bold leading-tight" :class="isMine(message) ? 'text-rose-600' : 'text-stone-800'" x-text="message.file_name || 'Attachment'"></span>
+                                                                        <span class="text-[10px] font-bold uppercase tracking-wider opacity-70" :class="isMine(message) ? 'text-rose-500' : 'text-stone-500'">View Document</span>
+                                                                    </div>
+                                                                </a>
+                                                                <template x-if="!isMine(message)">
+                                                                    <a href="javascript:void(0)" @click="downloadFile(message.file_url, message.file_name)" class="flex items-center justify-center gap-2 rounded-xl bg-rose-50 border border-rose-100 py-2.5 text-[11px] font-black text-rose-600 transition hover:bg-rose-100">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                                        </svg>
+                                                                        DOWNLOAD FILE
+                                                                    </a>
+                                                                </template>
+                                                            </div>
                                                         </template>
                                                     </div>
                                                 </template>
@@ -604,7 +641,15 @@
                                         </div>
                                     </template>
                                     <div class="flex flex-col">
-                                        <span class="text-sm font-semibold" :class="isFileTooLarge ? 'text-rose-600' : 'text-stone-700'" x-text="selectedFileName"></span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm font-semibold" :class="isFileTooLarge ? 'text-rose-600' : 'text-stone-700'" x-text="selectedFileName"></span>
+                                            <template x-if="isSendingMessage && selectedFile">
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-1 text-[11px] font-semibold text-rose-600">
+                                                    <span class="h-2.5 w-2.5 rounded-full border border-rose-600 border-t-transparent animate-spin"></span>
+                                                    Sending...
+                                                </span>
+                                            </template>
+                                        </div>
                                         <template x-if="isFileTooLarge">
                                             <span class="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-500">File too large! Maximum limit is 10MB</span>
                                         </template>
@@ -652,11 +697,19 @@
                                     </template>
                                 </button>
 
-                                <button type="button" @click="sendMessage()" :disabled="isFileTooLarge || (!draftMessage.trim() && !selectedFile)"
+                                <button type="button" @click="sendMessage()" :disabled="isFileTooLarge || (!draftMessage.trim() && !selectedFile) || isSendingMessage"
                                     class="group relative flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-[0_4px_14px_0_rgba(251,113,133,0.39)] transition-all hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(251,113,133,0.5)] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-                                    </svg>
+                                    <template x-if="!isSendingMessage">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                                        </svg>
+                                    </template>
+                                    <template x-if="isSendingMessage">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+                                            <path d="M22 12a10 10 0 0 1-10 10" stroke-linecap="round"></path>
+                                        </svg>
+                                    </template>
                                 </button>
                             </div>
                         </div>
@@ -896,10 +949,12 @@
             seenConversationSnapshots: {},
             activeConversationId: localStorage.getItem('user_active_conversation_id') && localStorage.getItem('user_active_conversation_id') !== 'null' ? localStorage.getItem('user_active_conversation_id') : (config.initialConversationId || null),
             activeConversation: null,
+            currentConversationChannel: null,
             groupDetails: {
                 members: []
             },
             loadingMessages: false,
+            loadedMessagesForConversation: {},
             isMobileChatOpen: false,
             activeTab: localStorage.getItem('messaging_active_tab') || 'direct',
             isWorkspaceVisible: true,
@@ -933,6 +988,7 @@
             selectedFileName: '',
             isFileTooLarge: false,
             selectedFilePreview: null,
+            isSendingMessage: false,
             isRecordingVoice: false,
             showCreateGroupModal: false,
             showManageMembersModal: false,
@@ -954,6 +1010,52 @@
                 confirmText: 'Confirm',
                 loading: false,
                 onConfirm: null
+            },
+            async togglePin(conversation) {
+                if (!this.features.pinning) return;
+                try {
+                    const response = await axios.post(`/messages/conversations/${conversation.id}/toggle-pin`);
+                    if (response.data.status === 'success') {
+                        conversation.is_pinned = response.data.is_pinned;
+                        await this.loadConversations();
+                    }
+                } catch (error) {
+                    console.error('Toggle pin error:', error);
+                }
+            },
+
+            downloadFile(url, filename) {
+                if (!url) return;
+                
+                // Extract relative path from absolute URL
+                const match = url.match(/uploads\/messages\/(.+)$/);
+                if (match) {
+                    const relativePath = 'uploads/messages/' + match[1].split('?')[0];
+                    const downloadUrl = `/messages/download-attachment?path=${encodeURIComponent(relativePath)}&name=${encodeURIComponent(filename || 'file')}`;
+                    
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    setTimeout(() => document.body.removeChild(link), 100);
+                    return;
+                }
+
+                // Fallback for external or non-standard URLs
+                fetch(url).then(r => r.blob()).then(blob => {
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = filename || 'download';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(blobUrl);
+                }).catch(err => {
+                    console.error('Download fallback failed:', err);
+                    window.location.href = url;
+                });
             },
             groupForm: {
                 name: '',
@@ -1407,6 +1509,44 @@
                         this.pushNotificationToast(message);
                     });
             },
+            subscribeToConversationChannel(conversationId, retryCount = 0) {
+                if (!conversationId) return;
+
+                if (typeof window.Echo === 'undefined') {
+                    if (retryCount < 10) {
+                        setTimeout(() => this.subscribeToConversationChannel(conversationId, retryCount + 1), 250);
+                    }
+                    return;
+                }
+
+                if (this.currentConversationChannel === conversationId) {
+                    return;
+                }
+
+                if (this.currentConversationChannel && this.currentConversationChannel !== conversationId) {
+                    window.Echo.leave(`conversation.${this.currentConversationChannel}`);
+                }
+
+                this.currentConversationChannel = conversationId;
+
+                window.Echo.private(`conversation.${conversationId}`)
+                    .listen('.message.sent', (message) => {
+                        if (!message || String(message.conversation_id) !== String(this.activeConversationId)) return;
+                        const exists = this.messages.some(m => String(m.id) === String(message.id));
+                        if (!exists) {
+                            this.messages = [...this.messages, message];
+                            this.$nextTick(() => {
+                                this.scrollToBottom(0, true);
+                            });
+                            axios.post(config.routes.read, {
+                                conversation_id: this.activeConversationId
+                            });
+                            if (window.dispatchMessageCounterSync) window.dispatchMessageCounterSync('read', {
+                                conversationId: this.activeConversationId
+                            });
+                        }
+                    });
+            },
             pushNotificationToast(message) {
                 if (!this.features.notifications) return;
                 if (window.__dashboardGlobalMessageNotifications) return;
@@ -1524,21 +1664,25 @@
                     onConfirm: null
                 };
             },
-            scrollToBottom(delay = 60, force = false) {
+            scrollToBottom(delay = 50) {
                 this.$nextTick(() => {
-                    setTimeout(() => {
-                        const panel = document.getElementById('messages-panel');
-                        if (panel) {
-                            const threshold = 50; // strictly at the very bottom
-                            const isAtBottom = panel.scrollHeight - panel.scrollTop - panel.clientHeight < threshold;
+                    const panel = document.getElementById('messages-panel');
+                    if (!panel) return;
+                    
+                    const performScroll = (behavior = 'smooth') => {
+                        panel.scrollTo({ top: panel.scrollHeight, behavior: behavior });
+                    };
 
-                            if (force || isAtBottom) {
-                                panel.scrollTo({
-                                    top: panel.scrollHeight,
-                                    behavior: 'smooth'
-                                });
-                            }
-                        }
+                    setTimeout(() => {
+                        panel.scrollTop = panel.scrollHeight;
+                        requestAnimationFrame(() => performScroll('smooth'));
+                        
+                        panel.querySelectorAll('img').forEach(img => {
+                            if (!img.complete) img.addEventListener('load', () => performScroll('smooth'), { once: true });
+                        });
+
+                        setTimeout(() => performScroll('smooth'), 200);
+                        setTimeout(() => performScroll('smooth'), 600);
                     }, delay);
                 });
             },
@@ -1572,46 +1716,13 @@
 
                 if (window.Echo) {
                     this.$watch('activeConversationId', (newId, oldId) => {
-                        if (oldId) {
-                            console.log('Leaving conversation channel:', oldId);
-                            window.Echo.leave(`conversation.${oldId}`);
-                        }
                         if (!newId) return;
-
                         localStorage.setItem('user_active_conversation_id', newId);
-
-                        console.log('Joining conversation channel:', newId);
-                        window.Echo.private(`conversation.${newId}`)
-                            .listen('.message.sent', (message) => {
-                                if (!message || String(message.conversation_id) !== String(this.activeConversationId)) return;
-
-                                const exists = this.messages.some(m => String(m.id) === String(message.id));
-                                if (!exists) {
-                                    this.messages = [...this.messages, message];
-                                    this.scrollToBottom(150, false); // Only scroll if near bottom
-                                    axios.post(config.routes.read, {
-                                        conversation_id: this.activeConversationId
-                                    });
-                                    if (window.dispatchMessageCounterSync) window.dispatchMessageCounterSync('read', {
-                                        conversationId: this.activeConversationId
-                                    });
-                                }
-                            });
+                        this.subscribeToConversationChannel(newId);
                     });
 
                     if (this.activeConversationId) {
-                        window.Echo.private(`conversation.${this.activeConversationId}`)
-                            .listen('.message.sent', (message) => {
-                                if (!message || String(message.conversation_id) !== String(this.activeConversationId)) return;
-                                const exists = this.messages.some(m => String(m.id) === String(message.id));
-                                if (!exists) {
-                                    this.messages = [...this.messages, message];
-                                    this.scrollToBottom(150, false); // Only scroll if near bottom
-                                    axios.post(config.routes.read, {
-                                        conversation_id: this.activeConversationId
-                                    });
-                                }
-                            });
+                        this.subscribeToConversationChannel(this.activeConversationId);
                     }
                 }
             },
@@ -1721,7 +1832,8 @@
                 // Allow immediate load if messages are empty (i.e. we just switched conversations)
                 if (!silent && this.messages.length > 0 && (now - this.lastLoadTime < this.loadDebounceMs)) return;
 
-                if (!silent) {
+                const showLoading = !silent && !this.loadedMessagesForConversation[this.activeConversationId] && this.messages.length === 0;
+                if (showLoading) {
                     this.loadingMessages = true;
                 }
 
@@ -1743,9 +1855,10 @@
                         conversationId: this.activeConversationId
                     });
                 } finally {
-                    if (!silent) {
+                    if (showLoading) {
                         this.loadingMessages = false;
                     }
+                    this.loadedMessagesForConversation[this.activeConversationId] = true;
                 }
             },
             async saveInlineEdit(message) {
@@ -1843,6 +1956,7 @@
                 if (this.draftMessage.trim()) formData.append('message', this.draftMessage.trim());
                 if (this.selectedFile) formData.append('file', this.selectedFile);
 
+                this.isSendingMessage = true;
                 try {
                     const response = await axios.post(config.routes.send, formData, {
                         headers: {
@@ -1875,6 +1989,8 @@
                 } catch (error) {
                     console.error('Send failed', error);
                     alert('Failed to send message. Please try again.');
+                } finally {
+                    this.isSendingMessage = false;
                 }
             },
             pickFile(event) {

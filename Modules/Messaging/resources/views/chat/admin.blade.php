@@ -661,6 +661,40 @@
         const csrfToken = document.querySelector('meta[name="csrf-token"]');
         if (csrfToken) window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
 
+        window.downloadFile = function(url, filename) {
+            if (!url) return;
+            
+            // Extract relative path from absolute URL
+            const match = url.match(/uploads\/messages\/(.+)$/);
+            if (match) {
+                const relativePath = 'uploads/messages/' + match[1].split('?')[0];
+                const downloadUrl = `/messages/download-attachment?path=${encodeURIComponent(relativePath)}&name=${encodeURIComponent(filename || 'file')}`;
+                
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(() => document.body.removeChild(link), 100);
+                return;
+            }
+
+            // Fallback for external or non-standard URLs
+            fetch(url).then(r => r.blob()).then(blob => {
+                const blobUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = filename || 'download';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(blobUrl);
+            }).catch(err => {
+                console.error('Download fallback failed:', err);
+                window.location.href = url;
+            });
+        };
+
         function buildAttachmentHtml(fileUrl, fileName, isMe) {
             if (!fileUrl) return '';
 
@@ -672,9 +706,15 @@
 
             if (isImage) {
                 return `
-                    <div style="margin-top:10px;">
-                        <img src="${fileUrl}" alt="${safeName}" onload="const cb = this.closest('.flex-1'); if(cb) cb.scrollTop = cb.scrollHeight" style="max-width:220px; max-height:220px; border-radius:16px; border:1px solid rgba(148,163,184,.25); display:block;">
-                        <a href="${fileUrl}" download="${safeName}" style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:14px;background:${isMe ? 'rgba(255,255,255,0.14)' : '#f8fafc'};color:${isMe ? '#fff' : '#0f172a'};text-decoration:none;font-size:12px;">Download</a>
+                    <div style="position: relative; margin-top: 10px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <img src="${fileUrl}" alt="${safeName}" onload="const cb = this.closest('.flex-1'); if(cb) cb.scrollTop = cb.scrollHeight" style="max-width:240px; display:block; border-radius:16px;">
+                        ${!isMe ? `
+                        <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${safeName}')" style="position: absolute; bottom: 10px; right: 10px; display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; text-decoration: none; font-size: 12px; color: white; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.7)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'; this.style.transform='scale(1)'">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download
+                        </a>` : ''}
                     </div>
                 `;
             }
@@ -694,7 +734,26 @@
             }
 
             return `
-                <a href="${fileUrl}" download="${safeName}" style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:14px;background:${isMe ? 'rgba(255,255,255,0.14)' : '#f8fafc'};color:${isMe ? '#fff' : '#0f172a'};text-decoration:none;font-size:12px;">Download file</a>
+                <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px;">
+                    <a href="${fileUrl}" target="_blank" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: ${isMe ? '#fff' : '#f8fafc'}; border: 1px solid ${isMe ? 'rgba(0,0,0,0.05)' : '#e2e8f0'}; border-radius: 16px; text-decoration: none; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.05);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.05)'">
+                        <div style="width: 32px; height: 32px; background: #fff1f2; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px; color: #f43f5e;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="color: #e11d48; font-size: 13px; font-weight: 700; line-height: 1.2;">${safeName}</span>
+                            <span style="color: #9f1239; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; opacity: 0.8;">View Document</span>
+                        </div>
+                    </a>
+                    ${!isMe ? `
+                    <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${safeName}')" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; text-decoration: none; font-size: 11px; color: #e11d48; font-weight: 800; transition: all 0.2s;" onmouseover="this.style.background='#ffe4e6'" onmouseout="this.style.background='#fff1f2'">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        DOWNLOAD FILE
+                    </a>` : ''}
+                </div>
             `;
         }
 
@@ -809,20 +868,26 @@
                         }
                     }
                 },
-                scrollToBottom(el, smooth = false) {
-                    if (!el) return;
-                    const doScroll = () => {
-                        if (smooth) {
-                            el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
-                        } else {
-                            el.scrollTop = el.scrollHeight;
-                        }
-                    };
-                    // Immediate
-                    doScroll();
-                    // After paint
-                    requestAnimationFrame(() => {
-                        doScroll();
+                scrollToBottom(delay = 50) {
+                    this.$nextTick(() => {
+                        const panel = document.getElementById('chat-box') || document.getElementById('chat-box-modal');
+                        if (!panel) return;
+                        
+                        const performScroll = (behavior = 'smooth') => {
+                            panel.scrollTo({ top: panel.scrollHeight, behavior: behavior });
+                        };
+
+                        setTimeout(() => {
+                            panel.scrollTop = panel.scrollHeight;
+                            requestAnimationFrame(() => performScroll('smooth'));
+                            
+                            panel.querySelectorAll('img').forEach(img => {
+                                if (!img.complete) img.addEventListener('load', () => performScroll('smooth'), { once: true });
+                            });
+
+                            setTimeout(() => performScroll('smooth'), 200);
+                            setTimeout(() => performScroll('smooth'), 600);
+                        }, delay);
                     });
                 },
                 init() {
@@ -851,10 +916,7 @@
 
                     if (this.activeConversationId) {
                         this.loadMessages().then(() => {
-                            const chatBox = document.getElementById('chat-box');
-                            const chatBoxModal = document.getElementById('chat-box-modal');
-                            this.scrollToBottom(chatBox);
-                            this.scrollToBottom(chatBoxModal);
+                            this.scrollToBottom();
                         });
                         this.startPolling();
                         this.checkOnlineStatus();
@@ -1016,7 +1078,7 @@ async loadMessages() {
                         const isFirstLoad = this.loadedMessageIds.size === 0;
                         if (isFirstLoad) {
                             if (chatBox) chatBox.innerHTML = '';
-                            if (chatBoxModal) chatBox.innerHTML = '';
+                            if (chatBoxModal) chatBoxModal.innerHTML = '';
                         }
                         
                         let newMessagesCount = 0;
