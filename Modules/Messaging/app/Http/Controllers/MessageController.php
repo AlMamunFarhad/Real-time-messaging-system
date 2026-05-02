@@ -5,18 +5,20 @@ namespace Modules\Messaging\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Modules\Messaging\Helpers\AuthParticipant;
 use Modules\Messaging\Models\Conversation;
 use Modules\Messaging\Models\ConversationParticipant;
 use Modules\Messaging\Models\Message;
 use Modules\Messaging\Events\MessageSent;
 use Modules\Messaging\Services\ConversationService;
+use Modules\Messaging\Services\UploadService;
+use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
 {
     public function __construct(
-        protected ConversationService $conversationService
+        protected ConversationService $conversationService,
+        protected UploadService $uploadService
     ) {}
 
     /**
@@ -81,15 +83,7 @@ class MessageController extends Controller
             // Handle file upload
             $filePath = null;
             if ($request->hasFile('file')) {
-                $file = $request->file('file');
-                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip', 'rar', 'webm', 'mp3', 'wav', 'ogg', 'm4a', 'aac'];
-                $extension = $file->getClientOriginalExtension();
-
-                if (in_array(strtolower($extension), $allowedExtensions)) {
-                    $fileName = time() . '_' . $file->getClientOriginalName();
-                    $file->move(public_path('uploads/messages'), $fileName);
-                    $filePath = 'uploads/messages/' . $fileName;
-                }
+                $filePath = $this->uploadService->upload($request->file('file'), 'messages');
             }
 
             $message = Message::create([
@@ -136,7 +130,7 @@ class MessageController extends Controller
             ];
 
             if ($filePath) {
-                $response['file_url'] = asset($filePath);
+                $response['file_url'] = $this->uploadService->getUrl($filePath);
                 $response['file_name'] = $request->file('file')->getClientOriginalName();
             }
 
@@ -155,18 +149,19 @@ class MessageController extends Controller
         $path = $request->query('path');
         $name = $request->query('name');
 
-        if (!$path || !File::exists(public_path($path))) {
+        $disk = config('messaging.upload.disk', 'public');
+
+        if (!$path || !Storage::disk($disk)->exists($path)) {
             abort(404);
         }
 
-        // Basic security check: ensure the path contains 'uploads/messages/'
-        if (!str_contains($path, 'uploads/messages/')) {
+        // Basic security check: ensure the path starts with the configured base folder
+        $baseFolder = config('messaging.upload.base_folder', 'chat-images');
+        if (!str_starts_with($path, $baseFolder)) {
             abort(403);
         }
 
-        return response()->download(public_path($path), $name, [
-            'Content-Disposition' => 'attachment; filename="' . $name . '"',
-        ]);
+        return Storage::disk($disk)->download($path, $name);
     }
 
     public function markRead(Request $request)
@@ -357,7 +352,7 @@ class MessageController extends Controller
             'body' => $message->body,
             'type' => $message->type,
             'file_path' => $message->file_path,
-            'file_url' => $message->file_path ? asset($message->file_path) : null,
+            'file_url' => $this->uploadService->getUrl($message->file_path),
             'created_at' => $message->created_at,
             'updated_at' => $message->updated_at,
             'read_at' => $message->read_at,
@@ -371,9 +366,9 @@ class MessageController extends Controller
             return;
         }
 
-        $absolutePath = public_path($message->file_path);
-        if (File::exists($absolutePath)) {
-            File::delete($absolutePath);
+        $disk = config('messaging.upload.disk', 'public');
+        if (Storage::disk($disk)->exists($message->file_path)) {
+            Storage::disk($disk)->delete($message->file_path);
         }
     }
 }

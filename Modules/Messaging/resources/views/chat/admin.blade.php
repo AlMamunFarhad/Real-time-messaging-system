@@ -114,21 +114,22 @@
                             <template x-if="pinnedUsers.length">
                                 <div class="space-y-1.5">
                                     <div class="flex items-center justify-between px-1 pt-1">
-                                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">Pinned</p>
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-600">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
-                                                <path d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z"/>
+                                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-rose-400">Pinned</p>
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-rose-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3 w-3">
+                                                <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
+                                                <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
                                             </svg>
-                                            Saved
+                                            Pinned
                                         </span>
                                     </div>
                                     <template x-for="user in pinnedUsers" :key="'pinned-user-' + user.id">
                                         <button type="button" @click="selectUser(user)"
-                                            class="group block w-full rounded-[20px] border border-amber-100 bg-amber-50/60 px-3.5 py-3 text-left transition-all duration-300 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]"
-                                            :class="Number(activeUserId) === Number(user.id) ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-amber-200/80 scale-[1.01] z-10 relative' : 'text-stone-800'">
+                                            class="group block w-full rounded-[20px] border border-rose-100 bg-rose-50/60 px-3.5 py-3 text-left transition-all duration-300 hover:bg-white hover:shadow-[0_2px_10px_-4_rgba(0,0,0,0.05)]"
+                                            :class="Number(activeUserId) === Number(user.id) ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-rose-200/80 scale-[1.01] z-10 relative' : 'text-stone-800'">
                                             <div class="flex items-center gap-3.5">
                                                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] text-[14px] font-bold shadow-sm transition-all duration-300"
-                                                    :class="Number(activeUserId) === Number(user.id) ? 'bg-gradient-to-br from-amber-400 to-orange-300 text-white shadow-md shadow-amber-200' : 'bg-amber-100 text-amber-600'"
+                                                    :class="Number(activeUserId) === Number(user.id) ? 'bg-gradient-to-br from-rose-400 to-orange-300 text-white shadow-md shadow-rose-200' : 'bg-rose-100 text-rose-500'"
                                                     x-text="initialFor(user.name)"></div>
                                                 <div class="min-w-0 flex-1">
                                                     <div class="flex items-center gap-1.5">
@@ -141,9 +142,10 @@
                                                     <template x-if="Number(user.unseen_count || 0) > 0">
                                                         <span class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-bold text-white shadow-sm" x-text="Number(user.unseen_count) > 99 ? '99+' : user.unseen_count"></span>
                                                     </template>
-                                                    <button @click.stop="togglePin(user)" type="button" class="p-1.5 rounded-lg text-amber-500 transition-all duration-200 hover:bg-amber-100" title="Unpin conversation">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                                                            <path d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z"/>
+                                                    <button @click.stop="togglePin(user)" type="button" class="p-1.5 rounded-lg text-rose-400 transition-all duration-200 hover:bg-rose-100" title="Unpin conversation">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+                                                            <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
+                                                            <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
                                                         </svg>
                                                     </button>
                                                 </div>
@@ -191,9 +193,10 @@
                                             <button @click.stop="togglePin(user)" type="button" 
                                                 class="p-1.5 rounded-lg transition-all duration-200 hover:bg-amber-50 group/pin"
                                                 :class="user.is_pinned ? 'text-amber-500' : 'text-stone-300 hover:text-amber-500'">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover/pin:scale-110" 
-                                                    :fill="user.is_pinned ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z" />
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 transition-transform group-hover/pin:scale-110">
+                                                    <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
+                                                    <path x-show="user.is_pinned" d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
+                                                    <path x-show="!user.is_pinned" fill-rule="evenodd" d="M11.47 2.47a.75.75 0 0 1 1.06 0l4.5 4.5a.75.75 0 0 1-1.06 1.06l-3.22-3.22V16.5a.75.75 0 0 1-1.5 0V4.81L8.03 8.03a.75.75 0 0 1-1.06-1.06l4.5-4.5ZM3 15.75a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd" style="display: none;"/>
                                                 </svg>
                                             </button>
                                         </div>
@@ -246,9 +249,8 @@
                                             </template>
                                             <template x-if="isFetchingSummary">
                                                 <div class="flex items-center gap-2">
-                                                    <svg class="h-4 w-4 animate-spin text-rose-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 text-rose-500 animate-spin">
+                                                        <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
                                                     </svg>
                                                     <span>...</span>
                                                 </div>
@@ -257,12 +259,11 @@
 
                                         <button @click.stop="togglePin(users.find(u => Number(u.id) === Number(activeUserId)))" type="button" 
                                             class="flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white shadow-sm transition hover:bg-stone-50"
-                                            :class="users.find(u => Number(u.id) === Number(activeUserId))?.is_pinned ? 'border-amber-200 bg-amber-50 text-amber-500' : 'text-stone-400 hover:text-amber-500'"
+                                            :class="users.find(u => Number(u.id) === Number(activeUserId))?.is_pinned ? 'border-rose-200 bg-rose-50 text-rose-500' : 'text-stone-400 hover:text-rose-500'"
                                             :title="users.find(u => Number(u.id) === Number(activeUserId))?.is_pinned ? 'Pinned conversation' : 'Pin conversation'">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" 
-                                                :fill="users.find(u => Number(u.id) === Number(activeUserId))?.is_pinned ? 'currentColor' : 'none'" 
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z" />
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+                                                <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
+                                                <path x-show="users.find(u => Number(u.id) === Number(activeUserId))?.is_pinned" d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
                                             </svg>
                                         </button>
 
@@ -661,15 +662,20 @@
         const csrfToken = document.querySelector('meta[name="csrf-token"]');
         if (csrfToken) window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
 
-        window.downloadFile = function(url, filename) {
-            if (!url) return;
+        window.downloadFile = function(url, filename, relativePath = null) {
+            if (!url && !relativePath) return;
             
-            // Extract relative path from absolute URL
-            const match = url.match(/uploads\/messages\/(.+)$/);
-            if (match) {
-                const relativePath = 'uploads/messages/' + match[1].split('?')[0];
-                const downloadUrl = `/messages/download-attachment?path=${encodeURIComponent(relativePath)}&name=${encodeURIComponent(filename || 'file')}`;
-                
+            let path = relativePath;
+            if (!path && url) {
+                // Extract relative path from absolute URL as fallback
+                const match = url.match(/(uploads\/messages|chat-images)\/(.+)$/);
+                if (match) {
+                    path = (match[1] === 'uploads/messages' ? 'uploads/messages/' : 'chat-images/') + match[2].split('?')[0];
+                }
+            }
+
+            if (path) {
+                const downloadUrl = `/messages/download-attachment?path=${encodeURIComponent(path)}&name=${encodeURIComponent(filename || 'file')}`;
                 const link = document.createElement('a');
                 link.href = downloadUrl;
                 link.style.display = 'none';
@@ -680,22 +686,24 @@
             }
 
             // Fallback for external or non-standard URLs
-            fetch(url).then(r => r.blob()).then(blob => {
-                const blobUrl = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = filename || 'download';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(blobUrl);
-            }).catch(err => {
-                console.error('Download fallback failed:', err);
-                window.location.href = url;
-            });
+            if (url) {
+                fetch(url).then(r => r.blob()).then(blob => {
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = filename || 'download';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(blobUrl);
+                }).catch(err => {
+                    console.error('Download fallback failed:', err);
+                    window.location.href = url;
+                });
+            }
         };
 
-        function buildAttachmentHtml(fileUrl, fileName, isMe) {
+        function buildAttachmentHtml(fileUrl, fileName, isMe, filePath = null) {
             if (!fileUrl) return '';
 
             const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -703,13 +711,14 @@
             const isImage = imageExts.includes(ext);
             const isAudio = ['webm', 'mp3', 'wav', 'ogg', 'm4a', 'aac'].includes(ext);
             const safeName = fileName || 'Download file';
+            const escapedFilePath = filePath ? filePath.replace(/'/g, "\\'") : '';
 
             if (isImage) {
                 return `
                     <div style="position: relative; margin-top: 10px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                         <img src="${fileUrl}" alt="${safeName}" onload="const cb = this.closest('.flex-1'); if(cb) cb.scrollTop = cb.scrollHeight" style="max-width:240px; display:block; border-radius:16px;">
                         ${!isMe ? `
-                        <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${safeName}')" style="position: absolute; bottom: 10px; right: 10px; display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; text-decoration: none; font-size: 12px; color: white; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.7)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'; this.style.transform='scale(1)'">
+                        <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${safeName}', '${escapedFilePath}')" style="position: absolute; bottom: 10px; right: 10px; display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; text-decoration: none; font-size: 12px; color: white; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.7)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'; this.style.transform='scale(1)'">
                             <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
@@ -747,7 +756,7 @@
                         </div>
                     </a>
                     ${!isMe ? `
-                    <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${safeName}')" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; text-decoration: none; font-size: 11px; color: #e11d48; font-weight: 800; transition: all 0.2s;" onmouseover="this.style.background='#ffe4e6'" onmouseout="this.style.background='#fff1f2'">
+                    <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${safeName}', '${escapedFilePath}')" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; text-decoration: none; font-size: 11px; color: #e11d48; font-weight: 800; transition: all 0.2s;" onmouseover="this.style.background='#ffe4e6'" onmouseout="this.style.background='#fff1f2'">
                         <svg xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
@@ -1043,7 +1052,8 @@
                     }
                     const fileUrl = message.file_url || '';
                     const fileName = message.file_name || 'Attachment';
-                    content += buildAttachmentHtml(fileUrl, fileName, isMe);
+                    const filePath = message.file_path || '';
+                    content += buildAttachmentHtml(fileUrl, fileName, isMe, filePath);
                     const time = message.created_at ? new Date(message.created_at).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit'

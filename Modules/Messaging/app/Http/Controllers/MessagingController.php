@@ -10,10 +10,14 @@ use Modules\Messaging\Models\ConversationParticipant;
 use Modules\Messaging\Helpers\AuthParticipant;
 use Modules\Messaging\Services\ConversationService;
 
+use Modules\Messaging\Services\UploadService;
+use Illuminate\Support\Facades\Storage;
+
 class MessagingController extends Controller
 {
     public function __construct(
-        protected ConversationService $conversationService
+        protected ConversationService $conversationService,
+        protected UploadService $uploadService
     ) {}
 
 
@@ -79,7 +83,7 @@ class MessagingController extends Controller
                 $sender = $msg->sender;
                 $msg->sender_name = $sender ? ($sender->name ?? 'Unknown') : 'Unknown';
                 if ($msg->file_path) {
-                    $msg->file_url = asset($msg->file_path);
+                    $msg->file_url = $this->uploadService->getUrl($msg->file_path);
                 }
                 $conversation = $msg->conversation()->first(['id', 'name', 'is_group']);
                 $msg->conversation_meta = [
@@ -128,7 +132,7 @@ class MessagingController extends Controller
                 $sender = $msg->sender;
                 $msg->sender_name = $sender ? ($sender->name ?? 'Unknown') : 'Unknown';
                 if ($msg->file_path) {
-                    $msg->file_url = asset($msg->file_path);
+                    $msg->file_url = $this->uploadService->getUrl($msg->file_path);
                 }
                 $conversation = $msg->conversation()->first(['id', 'name', 'is_group']);
                 $msg->conversation_meta = [

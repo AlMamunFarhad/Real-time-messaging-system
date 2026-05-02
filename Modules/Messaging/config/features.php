@@ -13,4 +13,9 @@ return [
         'online_status' => true,
         'pinning' => true,
     ],
+    'upload' => [
+        'disk' => 'public',
+        'base_folder' => 'chat-images',
+        'visibility' => 'public',
+    ],
 ];

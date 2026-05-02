@@ -91,8 +91,10 @@ class MessageSent implements ShouldBroadcast
         ];
 
         if ($this->message->file_path) {
-            $data['file_url'] = asset($this->message->file_path);
-            $data['file_name'] = basename($this->message->file_path);
+            $disk = config('messaging.upload.disk', 'public');
+            $data['file_url'] = \Illuminate\Support\Facades\Storage::disk($disk)->url($this->message->file_path);
+            $data['file_path'] = $this->message->file_path;
+            $data['file_name'] = $this->message->file_name ?: basename($this->message->file_path);
         }
 
         return $data;

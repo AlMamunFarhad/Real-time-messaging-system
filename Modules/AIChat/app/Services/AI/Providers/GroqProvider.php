@@ -1,0 +1,56 @@
+<?php
+
+namespace Modules\AIChat\app\Services\AI\Providers;
+
+use Illuminate\Support\Facades\Http;
+use Modules\AIChat\app\Services\AI\Contracts\AIProviderInterface;
+
+class GroqProvider implements AIProviderInterface
+{
+    protected $apiKey;
+    protected $model;
+    protected $endpoint;
+
+    public function __construct(array $config)
+    {
+        $this->apiKey = $config['key'];
+        $this->model = $config['model'];
+        $this->endpoint = $config['endpoint'];
+    }
+
+    public function getResponse(string $prompt, array $context = []): ?string
+    {
+        $messages = $this->buildMessages($prompt, $context);
+
+        $response = Http::withToken($this->apiKey)
+            ->post($this->endpoint, [
+                'model' => $this->model,
+                'messages' => $messages,
+                'max_tokens' => config('aichat.settings.max_tokens', 500),
+                'temperature' => config('aichat.settings.temperature', 0.7),
+            ]);
+
+        if ($response->failed()) {
+            \Log::error("Groq AI Error: " . $response->body());
+            return null;
+        }
+
+        return $response->json('choices.0.message.content');
+    }
+
+    protected function buildMessages(string $prompt, array $context): array
+    {
+        $messages = [
+            ['role' => 'system', 'content' => config('aichat.settings.system_prompt')]
+        ];
+
+        foreach ($context as $msg) {
+            $role = ($msg['sender_type'] === 'ai_bot') ? 'assistant' : 'user';
+            $messages[] = ['role' => $role, 'content' => $msg['body']];
+        }
+
+        $messages[] = ['role' => 'user', 'content' => $prompt];
+
+        return $messages;
+    }
+}

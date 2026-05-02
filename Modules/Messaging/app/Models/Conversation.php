@@ -14,10 +14,10 @@ class Conversation extends Model
     protected static function booted(): void
     {
         static::deleting(function (Conversation $conversation) {
+            $disk = config('messaging.upload.disk', 'public');
             foreach ($conversation->messages()->whereNotNull('file_path')->cursor() as $message) {
-                $absolutePath = public_path($message->file_path);
-                if (File::exists($absolutePath)) {
-                    File::delete($absolutePath);
+                if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($message->file_path)) {
+                    \Illuminate\Support\Facades\Storage::disk($disk)->delete($message->file_path);
                 }
             }
         });

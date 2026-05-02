@@ -1,0 +1,11 @@
+{
+    "name": "AIChat",
+    "alias": "aichat",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\AIChat\\app\\Providers\\AIChatServiceProvider"
+    ],
+    "files": []
+}

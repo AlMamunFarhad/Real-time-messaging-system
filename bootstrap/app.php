@@ -1,5 +1,33 @@
 <?php
 
+// Manual autoloader for Modules as a workaround for composer dump-autoload issues
+spl_autoload_register(function ($class) {
+    if (strpos($class, 'Modules\\') === 0) {
+        $parts = explode('\\', $class);
+        if (count($parts) >= 2) {
+            $module = $parts[1];
+            
+            // Try standard PSR-4 path (e.g. Modules/Name/app/...)
+            $pathWithApp = 'Modules/' . $module . '/app/' . implode('/', array_slice($parts, 2));
+            $fileWithApp = __DIR__ . '/../' . $pathWithApp . '.php';
+            if (file_exists($fileWithApp)) {
+                require_once $fileWithApp;
+                return;
+            }
+
+            // Try alternate path (e.g. Modules/Name/...)
+            $pathWithoutApp = 'Modules/' . implode('/', array_slice($parts, 1));
+            $fileWithoutApp = __DIR__ . '/../' . $pathWithoutApp . '.php';
+            if (file_exists($fileWithoutApp)) {
+                require_once $fileWithoutApp;
+                return;
+            }
+        }
+    }
+});
+
+
+
 use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
