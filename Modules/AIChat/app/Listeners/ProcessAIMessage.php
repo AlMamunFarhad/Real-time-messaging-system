@@ -34,6 +34,31 @@ class ProcessAIMessage
             return;
         }
 
+        // HUMAN HANDOVER LOGIC
+        // Check if any admin is currently online
+        $isAnyAdminOnline = false;
+        foreach (\App\Models\Admin::all() as $admin) {
+            if (\Illuminate\Support\Facades\Cache::has('online_admin_' . $admin->id)) {
+                $isAnyAdminOnline = true;
+                break;
+            }
+        }
+
+        // If an Admin is online AND has ever sent a message in this conversation, disable the AI bot.
+        // If all admins log out, the AI ignores previous admin messages and resumes responding.
+        if ($isAnyAdminOnline) {
+            $hasAdminReplied = \Modules\Messaging\Models\Message::where('conversation_id', $message->conversation_id)
+                ->where('sender_type', \App\Models\Admin::class)
+                ->exists();
+
+            if ($hasAdminReplied) {
+                \Log::info("Human agent (Admin) is online and has joined conversation {$message->conversation_id}. AI is disabled.");
+                return;
+            }
+        } else {
+            \Log::info("All Admins are offline. AI will handle conversation {$message->conversation_id}.");
+        }
+
         // Check decision engine
         if (!$this->aiGateway->shouldRespond($message->body)) {
             \Log::info("Decision engine decided NOT to respond.");
@@ -42,12 +67,20 @@ class ProcessAIMessage
 
         \Log::info("Decision engine decided TO respond. Getting AI response...");
 
-        // Get context
+        // Get context (Exclude current message since it's passed as prompt)
+        $aiUser = $this->getAIUser();
         $context = Message::where('conversation_id', $message->conversation_id)
+            ->where('id', '!=', $message->id)
             ->latest()
             ->take(config('aichat.settings.context_limit', 10))
             ->get()
             ->reverse()
+            ->map(function ($msg) use ($aiUser) {
+                return [
+                    'is_ai' => ($msg->sender_type === \App\Models\User::class && $msg->sender_id === $aiUser->id),
+                    'body' => $msg->body,
+                ];
+            })
             ->toArray();
 
         // Get AI Response

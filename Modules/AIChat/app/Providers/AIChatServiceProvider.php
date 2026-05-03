@@ -47,7 +47,7 @@ class AIChatServiceProvider extends ModuleServiceProvider
     {
         \Log::info("AIChatServiceProvider booted.");
         
-        // Listener for MessageSent is already registered in EventServiceProvider.
+        // Listener is registered via EventServiceProvider
     }
 
     protected function registerConfig(): void

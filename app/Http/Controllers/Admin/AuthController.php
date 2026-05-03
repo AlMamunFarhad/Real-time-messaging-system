@@ -20,7 +20,7 @@ class AuthController extends Controller
 
         if (Auth::guard('admin')->attempt($credentials)) {
             $request->session()->regenerate();
-            Cache::put('online_admin_' . Auth::guard('admin')->id(), true, now()->addSeconds(10));
+            Cache::put('online_admin_' . Auth::guard('admin')->id(), true, now()->addHours(12));
             return redirect('/admin/dashboard');
         }
 

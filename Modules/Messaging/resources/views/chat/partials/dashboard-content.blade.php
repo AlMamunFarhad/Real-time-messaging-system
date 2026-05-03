@@ -580,8 +580,27 @@
                                                     </div>
                                                 </template>
                                             </div>
-                                            <p class="mt-1.5 px-2 text-[11px] font-medium" :class="isMine(message) ? 'text-right text-blue-400' : 'text-left text-stone-400'" x-text="formatTime(message.created_at)"></p>
-                                        </div>
+                                            <div class="mt-1.5 px-2 flex items-center gap-1" :class="isMine(message) ? 'justify-end' : 'justify-start'">
+                                                <p class="text-[11px] font-medium" :class="isMine(message) ? 'text-blue-400' : 'text-stone-400'" x-text="formatTime(message.created_at)"></p>
+                                                <template x-if="isMine(message)">
+                                                    <div>
+                                                        <!-- Read Double Tick (Blue) -->
+                                                        <template x-if="message.read_at">
+                                                            <svg viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-[15px] h-[15px] text-[#4fc3f7]">
+                                                                <path d="M11 1L5 7L2 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                <path d="M15 1L9 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            </svg>
+                                                        </template>
+                                                        <!-- Unread Double Tick (Grey) -->
+                                                        <template x-if="!message.read_at">
+                                                            <svg viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-[15px] h-[15px] text-[#9ca3af]">
+                                                                <path d="M11 1L5 7L2 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                <path d="M15 1L9 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            </svg>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                            </div>
                                     </div>
                                 </template>
 

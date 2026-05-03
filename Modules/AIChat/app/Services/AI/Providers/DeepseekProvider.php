@@ -5,7 +5,7 @@ namespace Modules\AIChat\app\Services\AI\Providers;
 use Illuminate\Support\Facades\Http;
 use Modules\AIChat\app\Services\AI\Contracts\AIProviderInterface;
 
-class GroqProvider implements AIProviderInterface
+class DeepseekProvider implements AIProviderInterface
 {
     protected $apiKey;
     protected $model;
@@ -20,6 +20,11 @@ class GroqProvider implements AIProviderInterface
 
     public function getResponse(string $prompt, array $context = []): ?string
     {
+        if (empty($this->apiKey)) {
+            \Log::error("Deepseek AI Error: API Key is missing.");
+            return null;
+        }
+
         $messages = $this->buildMessages($prompt, $context);
 
         $response = Http::withToken($this->apiKey)
@@ -31,7 +36,7 @@ class GroqProvider implements AIProviderInterface
             ]);
 
         if ($response->failed()) {
-            \Log::error("Groq AI Error: " . $response->body());
+            \Log::error("Deepseek AI Error: " . $response->body());
             return null;
         }
 

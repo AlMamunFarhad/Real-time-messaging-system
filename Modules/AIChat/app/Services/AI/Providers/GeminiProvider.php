@@ -52,7 +52,7 @@ class GeminiProvider implements AIProviderInterface
         $contents = [];
 
         foreach ($context as $msg) {
-            $role = ($msg['sender_type'] === 'ai_bot') ? 'model' : 'user';
+            $role = (!empty($msg['is_ai'])) ? 'model' : 'user';
             $contents[] = [
                 'role' => $role,
                 'parts' => [['text' => $msg['body']]]

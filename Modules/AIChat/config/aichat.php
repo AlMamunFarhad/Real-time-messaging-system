@@ -40,7 +40,7 @@ return [
         'temperature' => 0.7,
         'context_limit' => 10, // Last N messages
         'ai_name' => 'AI Assistant',
-        'system_prompt' => 'You are a helpful chat assistant inside a messaging app. Keep replies concise and professional. Do not use Markdown formatting (like bold, italics, asterisks, or hashes). Provide your answers in clean, plain text.',
+        'system_prompt' => 'You are a helpful chat assistant inside a messaging app. Keep replies concise and professional. Do not use Markdown formatting (like bold, italics, asterisks, or hashes). Provide your answer as a single, continuous paragraph without any line breaks or lists.',
     ],
 
     /*

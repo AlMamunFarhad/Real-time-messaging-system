@@ -1063,10 +1063,22 @@
                         ? 'rounded-[24px] px-5 py-3.5 shadow-sm transform transition-all duration-300 hover:-translate-y-0.5 bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-[0_4px_14px_0_rgba(251,113,133,0.39)] rounded-br-md border border-rose-400/20'
                         : 'rounded-[24px] px-5 py-3.5 shadow-sm transform transition-all duration-300 hover:-translate-y-0.5 bg-white text-stone-800 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.08)] rounded-bl-md border border-orange-50';
 
-                    const timeClass = isMe ? 'mt-1.5 px-2 text-[11px] font-medium text-rose-300 text-right' : 'mt-1.5 px-2 text-[11px] font-medium text-rose-300 text-left';
+                    const timeClass = isMe ? 'text-[11px] font-medium text-rose-300' : 'text-[11px] font-medium text-rose-300';
                     const senderHtml = isMe ? '' : `<p class="mb-1 px-3 text-[11px] uppercase tracking-wider font-bold text-rose-400">${message.sender_name || this.activeUserName}</p>`;
 
-                    container.innerHTML = `${senderHtml}<div class="${bubbleClasses}">${content}</div><p class="${timeClass}">${time}</p>`;
+                    let timeHtml = '';
+                    if (isMe) {
+                        const tickColor = message.read_at ? '#4fc3f7' : '#9ca3af';
+                        const doubleTick = `<svg viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block; vertical-align:middle; width:15px; height:15px; color: ${tickColor};">
+                            <path d="M11 1L5 7L2 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M15 1L9 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>`;
+                        timeHtml = `<div class="mt-1.5 px-2 flex items-center justify-end gap-1"><p class="${timeClass}">${time}</p>${doubleTick}</div>`;
+                    } else {
+                        timeHtml = `<div class="mt-1.5 px-2 flex items-center justify-start gap-1"><p class="${timeClass}">${time}</p></div>`;
+                    }
+
+                    container.innerHTML = `${senderHtml}<div class="${bubbleClasses}">${content}</div>${timeHtml}`;
                     row.appendChild(container);
                     chatBox.appendChild(row);
                     if (autoScroll) {
