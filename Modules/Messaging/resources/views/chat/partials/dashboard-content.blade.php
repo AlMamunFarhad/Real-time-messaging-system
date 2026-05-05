@@ -1,3 +1,18 @@
+<style>
+    @keyframes shimmer {
+        0% {
+            transform: translateX(-100%);
+        }
+
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    .animate-shimmer {
+        animation: shimmer 2s infinite;
+    }
+</style>
 <div x-data="messagingDashboard({
     currentId: {{ (int) $currentParticipantId }},
     currentType: @js($currentParticipantTypeShort),
@@ -18,84 +33,117 @@
     features: @js(messaging_features())
 })" x-init="init()" class="-m-6 mt-6 mx-auto max-w-7xl overflow-hidden">
     @if (messaging_feature('notifications'))
-    <div class="pointer-events-none fixed right-4 top-4 z-[85] flex w-full max-w-sm flex-col gap-3 sm:right-6 sm:top-6">
-        <template x-for="toast in notificationToasts" :key="toast.id">
-            <button type="button" @click="openToastConversation(toast)"
-                class="pointer-events-auto overflow-hidden rounded-[24px] border border-white/80 bg-white/95 text-left shadow-[0_24px_60px_rgba(15,23,42,0.16)] ring-1 ring-orange-100/80 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(15,23,42,0.2)]">
-                <div class="h-1.5 bg-gradient-to-r from-rose-500 via-orange-400 to-amber-400"></div>
-                <div class="flex items-start gap-3 px-4 py-4">
-                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-lg shadow-orange-200/70">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <div class="flex items-center justify-between gap-3">
-                            <p class="text-[12px] font-black uppercase tracking-[0.2em] text-orange-500" x-text="toast.label"></p>
-                            <span class="rounded-full bg-orange-50 px-2 py-1 text-[10px] font-bold text-orange-500">Live</span>
+        <div
+            class="pointer-events-none fixed right-4 top-4 z-[85] flex w-full max-w-sm flex-col gap-3 sm:right-6 sm:top-6">
+            <template x-for="toast in notificationToasts" :key="toast.id">
+                <button type="button" @click="openToastConversation(toast)"
+                    class="pointer-events-auto overflow-hidden rounded-[24px] border border-white/80 bg-white/95 text-left shadow-[0_24px_60px_rgba(15,23,42,0.16)] ring-1 ring-orange-100/80 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(15,23,42,0.2)]">
+                    <div class="h-1.5 bg-gradient-to-r from-rose-500 via-orange-400 to-amber-400"></div>
+                    <div class="flex items-start gap-3 px-4 py-4">
+                        <div
+                            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-lg shadow-orange-200/70">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
                         </div>
-                        <p class="mt-1 truncate text-[15px] font-bold tracking-tight text-stone-800" x-text="toast.sender"></p>
-                        <p class="mt-1 line-clamp-2 text-[13px] leading-5 text-stone-500" x-text="toast.preview"></p>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-3">
+                                <p class="text-[12px] font-black uppercase tracking-[0.2em] text-orange-500"
+                                    x-text="toast.label"></p>
+                                <span
+                                    class="rounded-full bg-orange-50 px-2 py-1 text-[10px] font-bold text-orange-500">Live</span>
+                            </div>
+                            <p class="mt-1 truncate text-[15px] font-bold tracking-tight text-stone-800"
+                                x-text="toast.sender"></p>
+                            <p class="mt-1 line-clamp-2 text-[13px] leading-5 text-stone-500" x-text="toast.preview">
+                            </p>
+                        </div>
                     </div>
-                </div>
-            </button>
-        </template>
-    </div>
+                </button>
+            </template>
+        </div>
     @endif
 
-    <div x-show="isWorkspaceVisible" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="mx-3 my-3 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.35)] md:mx-4 md:my-4 lg:mx-0 lg:my-0 lg:rounded-[32px]">
-        <div class="relative flex h-[78vh] overflow-hidden md:grid md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[340px_minmax(0,1fr)]">
-            <aside class="flex h-full w-full flex-col overflow-hidden border-b border-stone-200 bg-[#fafafa] md:w-auto md:border-b-0 md:border-r">
+    <div x-show="isWorkspaceVisible" x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        class="mx-3 my-3 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.35)] md:mx-4 md:my-4 lg:mx-0 lg:my-0 lg:rounded-[32px]">
+        <div
+            class="relative flex h-[78vh] overflow-hidden md:grid md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[340px_minmax(0,1fr)]">
+            <aside
+                class="flex h-full w-full flex-col overflow-hidden border-b border-stone-200 bg-[#fafafa] md:w-auto md:border-b-0 md:border-r">
                 <div class="border-b border-stone-200/60 bg-white/80 backdrop-blur-xl px-6 py-[22px]">
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <p class="text-[10.5px] font-bold uppercase tracking-[0.2em] text-stone-400">Workspace</p>
-                            <h3 class="mt-0.5 text-[18px] font-extrabold tracking-tight text-stone-800">Chats & Groups</h3>
+                            <h3 class="mt-0.5 text-[18px] font-extrabold tracking-tight text-stone-800">Chats & Groups
+                            </h3>
                         </div>
                     </div>
 
-                    <div class="mt-6 flex items-center gap-1.5 rounded-[20px] bg-stone-100/70 p-1.5 ring-1 ring-stone-900/5 shadow-inner">
+                    <div
+                        class="mt-6 flex items-center gap-1.5 rounded-[20px] bg-stone-100/70 p-1.5 ring-1 ring-stone-900/5 shadow-inner">
                         <button type="button"
                             @click="activeTab = 'contacts'; showDirectPicker = true; $nextTick(() => $refs.directSearchInput?.focus())"
-                            :class="activeTab === 'contacts' ? 'bg-white text-stone-800 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] ring-1 ring-stone-200' : 'text-stone-500 hover:text-stone-800 hover:bg-white/60'"
+                            :class="activeTab === 'contacts' ?
+                                'bg-white text-stone-800 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] ring-1 ring-stone-200' :
+                                'text-stone-500 hover:text-stone-800 hover:bg-white/60'"
                             class="flex flex-1 items-center justify-center gap-1.5 rounded-[16px] py-2.5 text-[11px] font-bold transition-all duration-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
                             Contacts
                         </button>
-                        <button type="button"
-                            @click="activeTab = 'direct'; showDirectPicker = false"
-                            :class="activeTab === 'direct' ? 'bg-white text-stone-800 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] ring-1 ring-stone-200' : 'text-stone-500 hover:text-stone-800 hover:bg-white/60'"
+                        <button type="button" @click="activeTab = 'direct'; showDirectPicker = false"
+                            :class="activeTab === 'direct' ?
+                                'bg-white text-stone-800 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] ring-1 ring-stone-200' :
+                                'text-stone-500 hover:text-stone-800 hover:bg-white/60'"
                             class="flex flex-1 items-center justify-center gap-1.5 rounded-[16px] py-2.5 text-[11px] font-bold transition-all duration-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-3 3-3-3z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-3 3-3-3z" />
                             </svg>
                             Chats
                         </button>
                         @if (messaging_feature('groups'))
-                        <button type="button"
-                            @click="activeTab = 'groups'; showDirectPicker = false"
-                            :class="activeTab === 'groups' ? 'bg-white text-stone-800 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] ring-1 ring-stone-200' : 'text-stone-500 hover:text-stone-800 hover:bg-white/60'"
-                            class="flex flex-1 items-center justify-center gap-1.5 rounded-[16px] py-2.5 text-[11px] font-bold transition-all duration-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            Groups
-                        </button>
+                            <button type="button" @click="activeTab = 'groups'; showDirectPicker = false"
+                                :class="activeTab === 'groups' ?
+                                    'bg-white text-stone-800 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] ring-1 ring-stone-200' :
+                                    'text-stone-500 hover:text-stone-800 hover:bg-white/60'"
+                                class="flex flex-1 items-center justify-center gap-1.5 rounded-[16px] py-2.5 text-[11px] font-bold transition-all duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                Groups
+                            </button>
                         @endif
                     </div>
                 </div>
 
                 <div class="px-5 py-5 overflow-hidden">
                     <!-- Chats Tab -->
-                    <div x-show="activeTab === 'direct'" class="flex flex-col h-[52vh]" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
+                    <div x-show="activeTab === 'direct'" class="flex flex-col h-[52vh]"
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 -translate-x-2"
+                        x-transition:enter-end="opacity-100 translate-x-0">
                         <div class="mb-4 flex items-center justify-between px-1">
-                            <p class="text-[10.5px] font-bold uppercase tracking-[0.2em] text-stone-400">Recent Conversations</p>
+                            <p class="text-[10.5px] font-bold uppercase tracking-[0.2em] text-stone-400">Recent
+                                Conversations</p>
                             <template x-if="features.pinning && pinnedDirectConversations.length">
-                                <span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-rose-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z" />
+                                <span
+                                    class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-rose-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24"
+                                        fill="currentColor">
+                                        <path
+                                            d="M7 3.75A2.75 2.75 0 0 1 9.75 1h4.5A2.75 2.75 0 0 1 17 3.75V22a.75.75 0 0 1-1.2.6L12 19.75 8.2 22.6A.75.75 0 0 1 7 22V3.75Z" />
                                     </svg>
                                     Pinned
                                 </span>
@@ -104,77 +152,124 @@
 
                         <div class="flex-1 space-y-1.5 overflow-y-auto pr-1 custom-scrollbar">
                             <template x-if="!directConversations.length">
-                                <div class="rounded-[20px] border border-dashed border-stone-200 bg-stone-50 px-4 py-12 text-center mt-2">
-                                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-stone-100 text-stone-300 mb-3 shadow-sm">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                <div
+                                    class="rounded-[20px] border border-dashed border-stone-200 bg-stone-50 px-4 py-12 text-center mt-2">
+                                    <div
+                                        class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-stone-100 text-stone-300 mb-3 shadow-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                         </svg>
                                     </div>
-                                    <p class="text-[12.5px] font-medium text-stone-400 leading-relaxed">No chats found.<br>Go to Contacts to start one.</p>
+                                    <p class="text-[12.5px] font-medium text-stone-400 leading-relaxed">No chats
+                                        found.<br>Go to Contacts to start one.</p>
                                 </div>
                             </template>
                             <template x-if="features.pinning && pinnedDirectConversations.length">
                                 <div class="space-y-1.5">
-                                    <p class="px-1 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-rose-400">Pinned</p>
-                                    <template x-for="conversation in pinnedDirectConversations" :key="'pd-' + conversation.id">
-                                        <div role="button" tabindex="0" @click="selectConversation(conversation)" @keydown.enter.prevent="selectConversation(conversation)" @keydown.space.prevent="selectConversation(conversation)"
+                                    <p
+                                        class="px-1 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-rose-400">
+                                        Pinned</p>
+                                    <template x-for="conversation in pinnedDirectConversations"
+                                        :key="'pd-' + conversation.id">
+                                        <div role="button" tabindex="0" @click="selectConversation(conversation)"
+                                            @keydown.enter.prevent="selectConversation(conversation)"
+                                            @keydown.space.prevent="selectConversation(conversation)"
                                             class="group block w-full cursor-pointer rounded-[20px] px-4 py-3.5 text-left transition-all duration-300"
-                                            :class="activeConversationId === conversation.id ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-amber-200/80 scale-[1.01] z-10 relative' : 'bg-rose-50/60 text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
+                                            :class="activeConversationId === conversation.id ?
+                                                'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-amber-200/80 scale-[1.01] z-10 relative' :
+                                                'bg-rose-50/60 text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
                                             <div class="relative min-w-0 flex-1">
                                                 <div class="flex items-center justify-between gap-2">
                                                     <div class="flex items-center gap-2 min-w-0">
                                                         <template x-if="conversation.is_online">
-                                                            <span class="h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
+                                                            <span
+                                                                class="h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
                                                         </template>
-                                                        <div class="truncate text-[14.5px] font-bold tracking-tight text-stone-800" x-text="conversation.title"></div>
+                                                        <div class="truncate text-[14.5px] font-bold tracking-tight text-stone-800"
+                                                            x-text="conversation.title"></div>
                                                     </div>
                                                     <div class="flex items-center gap-1.5">
                                                         <template x-if="Number(conversation.unread_count || 0) > 0">
-                                                            <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm" x-text="conversation.unread_count"></span>
+                                                            <span
+                                                                class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm"
+                                                                x-text="conversation.unread_count"></span>
                                                         </template>
-                                                        <button x-show="features.pinning" @click.stop="togglePin(conversation)" type="button" class="group/pin flex h-9 w-9 items-center justify-center rounded-[12px] text-rose-400 transition-all duration-100" title="Unpin conversation">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 transition-transform duration-200 group-hover/pin:scale-110">
-                                                                <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
-                                                                <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
+                                                        <button x-show="features.pinning"
+                                                            @click.stop="togglePin(conversation)" type="button"
+                                                            class="group/pin flex h-9 w-9 items-center justify-center rounded-[12px] text-rose-400 transition-all duration-100"
+                                                            title="Unpin conversation">
+                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                viewBox="0 0 24 24" fill="currentColor"
+                                                                class="h-5 w-5 transition-transform duration-200 group-hover/pin:scale-110">
+                                                                <path
+                                                                    d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
+                                                                <path
+                                                                    d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
                                                             </svg>
                                                         </button>
                                                     </div>
                                                 </div>
-                                                <div class="mt-0.5 truncate text-[12px] font-medium transition-colors" :class="activeConversationId === conversation.id ? 'text-amber-600' : 'text-stone-500'" x-text="conversationPreview(conversation, 'No message yet')"></div>
+                                                <div class="mt-0.5 truncate text-[12px] font-medium transition-colors"
+                                                    :class="activeConversationId === conversation.id ? 'text-amber-600' :
+                                                        'text-stone-500'"
+                                                    x-text="conversationPreview(conversation, 'No message yet')"></div>
                                             </div>
                                         </div>
                                     </template>
                                 </div>
                             </template>
-                            <template x-if="features.pinning && otherDirectConversations.length && pinnedDirectConversations.length">
-                                <p class="px-1 pt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">All Chats</p>
+                            <template
+                                x-if="features.pinning && otherDirectConversations.length && pinnedDirectConversations.length">
+                                <p class="px-1 pt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+                                    All Chats</p>
                             </template>
-                            <template x-for="conversation in (pinnedDirectConversations.length ? otherDirectConversations : directConversations)" :key="conversation.id">
-                                <div role="button" tabindex="0" @click="selectConversation(conversation)" @keydown.enter.prevent="selectConversation(conversation)" @keydown.space.prevent="selectConversation(conversation)"
+                            <template
+                                x-for="conversation in (pinnedDirectConversations.length ? otherDirectConversations : directConversations)"
+                                :key="conversation.id">
+                                <div role="button" tabindex="0" @click="selectConversation(conversation)"
+                                    @keydown.enter.prevent="selectConversation(conversation)"
+                                    @keydown.space.prevent="selectConversation(conversation)"
                                     class="group block w-full cursor-pointer rounded-[20px] px-4 py-3.5 text-left transition-all duration-300"
-                                    :class="activeConversationId === conversation.id ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-stone-200/60 scale-[1.01] z-10 relative' : 'bg-transparent text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
+                                    :class="activeConversationId === conversation.id ?
+                                        'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-stone-200/60 scale-[1.01] z-10 relative' :
+                                        'bg-transparent text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
                                     <div class="relative min-w-0 flex-1">
                                         <div class="flex items-center justify-between gap-2">
                                             <div class="flex items-center gap-2 min-w-0">
                                                 <template x-if="conversation.is_online">
-                                                    <span class="h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
+                                                    <span
+                                                        class="h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
                                                 </template>
-                                                <div class="truncate text-[14.5px] font-bold tracking-tight text-stone-800" x-text="conversation.title"></div>
+                                                <div class="truncate text-[14.5px] font-bold tracking-tight text-stone-800"
+                                                    x-text="conversation.title"></div>
                                             </div>
                                             <template x-if="Number(conversation.unread_count || 0) > 0">
-                                                <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm transition-transform group-hover:scale-110" x-text="conversation.unread_count"></span>
+                                                <span
+                                                    class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm transition-transform group-hover:scale-110"
+                                                    x-text="conversation.unread_count"></span>
                                             </template>
-                                            <button x-show="features.pinning" @click.stop="togglePin(conversation)" type="button"
+                                            <button x-show="features.pinning" @click.stop="togglePin(conversation)"
+                                                type="button"
                                                 class="group/pin flex h-9 w-9 items-center justify-center rounded-[12px] to-rose-50 text-amber-600 transition-all duration-100"
-                                                :class="conversation.is_pinned ? 'via-orange-50 to-rose-50 text-amber-600 shadow-sm' : 'border-transparent bg-transparent text-stone-300 hover:text-amber-500'"
+                                                :class="conversation.is_pinned ?
+                                                    'via-orange-50 to-rose-50 text-amber-600 shadow-sm' :
+                                                    'border-transparent bg-transparent text-stone-300 hover:text-amber-500'"
                                                 :title="conversation.is_pinned ? 'Unpin conversation' : 'Pin conversation'">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 transition-transform duration-200 group-hover/pin:scale-110">
-                                                    <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
-                                                    <path x-show="conversation.is_pinned" d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="currentColor"
+                                                    class="h-5 w-5 transition-transform duration-200 group-hover/pin:scale-110">
+                                                    <path
+                                                        d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
+                                                    <path x-show="conversation.is_pinned"
+                                                        d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
                                                 </svg>
                                             </button>
                                         </div>
-                                        <div class="mt-0.5 truncate text-[12px] font-medium transition-colors" :class="activeConversationId === conversation.id ? 'text-rose-500' : 'text-stone-400'"
+                                        <div class="mt-0.5 truncate text-[12px] font-medium transition-colors"
+                                            :class="activeConversationId === conversation.id ? 'text-rose-500' :
+                                                'text-stone-400'"
                                             x-text="conversationPreview(conversation, 'No message yet')"></div>
                                     </div>
                                 </div>
@@ -184,111 +279,180 @@
 
                     <!-- Groups Tab -->
                     @if (messaging_feature('groups'))
-                    <div x-show="activeTab === 'groups'" class="flex flex-col h-[52vh]" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
-                        <div class="mb-5 flex items-center justify-between px-1">
-                            <p class="text-[10.5px] font-bold uppercase tracking-[0.2em] text-stone-400">Team Groups</p>
-                            <button type="button" @click="openCreateGroup()" class="inline-flex h-[30px] items-center justify-center rounded-xl bg-gradient-to-br from-rose-400 to-orange-400 px-3.5 text-[10.5px] font-black tracking-widest text-white shadow-md shadow-rose-200 transition-all hover:scale-105 hover:shadow-lg">
-                                + NEW
-                            </button>
-                        </div>
+                        <div x-show="activeTab === 'groups'" class="flex flex-col h-[52vh]" x-cloak
+                            x-transition:enter="transition ease-out duration-300"
+                            x-transition:enter-start="opacity-0 translate-x-2"
+                            x-transition:enter-end="opacity-100 translate-x-0">
+                            <div class="mb-5 flex items-center justify-between px-1">
+                                <p class="text-[10.5px] font-bold uppercase tracking-[0.2em] text-stone-400">Team
+                                    Groups</p>
+                                <button type="button" @click="openCreateGroup()"
+                                    class="inline-flex h-[30px] items-center justify-center rounded-xl bg-gradient-to-br from-rose-400 to-orange-400 px-3.5 text-[10.5px] font-black tracking-widest text-white shadow-md shadow-rose-200 transition-all hover:scale-105 hover:shadow-lg">
+                                    + NEW
+                                </button>
+                            </div>
 
-                        <div class="flex-1 space-y-1.5 overflow-y-auto pr-1 custom-scrollbar">
-                            <template x-if="!groupConversations.length">
-                                <div class="rounded-[20px] border border-dashed border-stone-200 bg-stone-50 px-4 py-12 text-center text-[12.5px] font-medium text-stone-400 mt-2">
-                                    Collaborate with your team<br>in group chats.
-                                </div>
-                            </template>
-                            <template x-if="features.pinning && pinnedGroupConversations.length">
-                                <div class="space-y-1.5">
-                                    <p class="px-1 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-rose-400">Pinned Groups</p>
-                                    <template x-for="conversation in pinnedGroupConversations" :key="'pg-' + conversation.id">
-                                        <div role="button" tabindex="0" @click="selectConversation(conversation)" @keydown.enter.prevent="selectConversation(conversation)" @keydown.space.prevent="selectConversation(conversation)"
-                                            class="group block w-full cursor-pointer rounded-[20px] px-4 py-3.5 text-left transition-all duration-300"
-                                            :class="activeConversationId === conversation.id ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-amber-200/80 scale-[1.01] z-10 relative' : 'bg-rose-50/60 text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
-                                            <div class="flex-1 min-w-0">
-                                                <div class="flex items-center justify-between gap-3">
-                                                    <div class="flex items-center gap-2 min-w-0">
-                                                        <div class="truncate text-[14.5px] font-bold tracking-tight text-stone-800" x-text="conversation.title"></div>
+                            <div class="flex-1 space-y-1.5 overflow-y-auto pr-1 custom-scrollbar">
+                                <template x-if="!groupConversations.length">
+                                    <div
+                                        class="rounded-[20px] border border-dashed border-stone-200 bg-stone-50 px-4 py-12 text-center text-[12.5px] font-medium text-stone-400 mt-2">
+                                        Collaborate with your team<br>in group chats.
+                                    </div>
+                                </template>
+                                <template x-if="features.pinning && pinnedGroupConversations.length">
+                                    <div class="space-y-1.5">
+                                        <p
+                                            class="px-1 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-rose-400">
+                                            Pinned Groups</p>
+                                        <template x-for="conversation in pinnedGroupConversations"
+                                            :key="'pg-' + conversation.id">
+                                            <div role="button" tabindex="0"
+                                                @click="selectConversation(conversation)"
+                                                @keydown.enter.prevent="selectConversation(conversation)"
+                                                @keydown.space.prevent="selectConversation(conversation)"
+                                                class="group block w-full cursor-pointer rounded-[20px] px-4 py-3.5 text-left transition-all duration-300"
+                                                :class="activeConversationId === conversation.id ?
+                                                    'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-amber-200/80 scale-[1.01] z-10 relative' :
+                                                    'bg-rose-50/60 text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center justify-between gap-3">
+                                                        <div class="flex items-center gap-2 min-w-0">
+                                                            <div class="truncate text-[14.5px] font-bold tracking-tight text-stone-800"
+                                                                x-text="conversation.title"></div>
+                                                        </div>
+                                                        <div class="flex items-center gap-1.5">
+                                                            <template
+                                                                x-if="Number(conversation.unread_count || 0) > 0">
+                                                                <span
+                                                                    class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm"
+                                                                    x-text="conversation.unread_count"></span>
+                                                            </template>
+                                                            <button x-show="features.pinning"
+                                                                @click.stop="togglePin(conversation)" type="button"
+                                                                class="group/pin flex h-5 w-5 items-center justify-center rounded-[12px] text-rose-400 transition-all duration-100"
+                                                                title="Unpin group">
+                                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                                    viewBox="0 0 24 24" fill="currentColor"
+                                                                    class="h-4.5 w-4.5 text-inherit transition-transform duration-200 group-hover/pin:scale-110">
+                                                                    <path
+                                                                        d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
+                                                                    <path
+                                                                        d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    <div class="flex items-center gap-1.5">
-                                                        <template x-if="Number(conversation.unread_count || 0) > 0">
-                                                            <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm" x-text="conversation.unread_count"></span>
-                                                        </template>
-                                                        <button x-show="features.pinning" @click.stop="togglePin(conversation)" type="button" class="group/pin flex h-5 w-5 items-center justify-center rounded-[12px] text-rose-400 transition-all duration-100" title="Unpin group">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4.5 w-4.5 text-inherit transition-transform duration-200 group-hover/pin:scale-110">
-                                                                <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
-                                                                <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
-                                                            </svg>
-                                                        </button>
+                                                    <div class="mt-0.5 truncate text-[12px] font-medium transition-colors"
+                                                        :class="activeConversationId === conversation.id ? 'text-amber-600' :
+                                                            'text-stone-500'"
+                                                        x-text="conversationPreview(conversation, 'Start a discussion')">
                                                     </div>
                                                 </div>
-                                                <div class="mt-0.5 truncate text-[12px] font-medium transition-colors" :class="activeConversationId === conversation.id ? 'text-amber-600' : 'text-stone-500'" x-text="conversationPreview(conversation, 'Start a discussion')"></div>
                                             </div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </template>
-                            <template x-if="features.pinning && otherGroupConversations.length && pinnedGroupConversations.length">
-                                <p class="px-1 pt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">All Groups</p>
-                            </template>
-                            <template x-for="conversation in (pinnedGroupConversations.length ? otherGroupConversations : groupConversations)" :key="conversation.id">
-                                <div role="button" tabindex="0" @click="selectConversation(conversation)" @keydown.enter.prevent="selectConversation(conversation)" @keydown.space.prevent="selectConversation(conversation)"
-                                    class="group block w-full cursor-pointer rounded-[20px] px-4 py-3.5 text-left transition-all duration-300"
-                                    :class="activeConversationId === conversation.id ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-stone-200/60 scale-[1.01] z-10 relative' : 'bg-transparent text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex items-center justify-between gap-3">
-                                            <div class="truncate text-[14.5px] font-bold tracking-tight text-stone-800" x-text="conversation.title"></div>
-                                            <template x-if="Number(conversation.unread_count || 0) > 0">
-                                                <span class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm transition-transform group-hover:scale-110" x-text="conversation.unread_count"></span>
-                                            </template>
-                                            <button x-show="features.pinning" @click.stop="togglePin(conversation)" type="button"
-                                                class="group/pin ml-1 flex h-9 w-9 items-center justify-center rounded-[12px] border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm"
-                                                :class="conversation.is_pinned ? 'border-amber-200/80 bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 text-rose-400 shadow-sm' : 'border-transparent bg-transparent text-stone-300 hover:border-rose-100 hover:bg-rose-50/80 hover:text-rose-400'"
-                                                :title="conversation.is_pinned ? 'Unpin group' : 'Pin group'">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 transition-transform duration-200 group-hover/pin:scale-110">
-                                                    <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
-                                                    <path x-show="conversation.is_pinned" d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                        <div class="mt-0.5 truncate text-[12px] font-medium transition-colors" :class="activeConversationId === conversation.id ? 'text-rose-500' : 'text-stone-400'" x-text="conversationPreview(conversation, 'Start a discussion')"></div>
+                                        </template>
                                     </div>
-                                </div>
-                            </template>
+                                </template>
+                                <template
+                                    x-if="features.pinning && otherGroupConversations.length && pinnedGroupConversations.length">
+                                    <p
+                                        class="px-1 pt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+                                        All Groups</p>
+                                </template>
+                                <template
+                                    x-for="conversation in (pinnedGroupConversations.length ? otherGroupConversations : groupConversations)"
+                                    :key="conversation.id">
+                                    <div role="button" tabindex="0" @click="selectConversation(conversation)"
+                                        @keydown.enter.prevent="selectConversation(conversation)"
+                                        @keydown.space.prevent="selectConversation(conversation)"
+                                        class="group block w-full cursor-pointer rounded-[20px] px-4 py-3.5 text-left transition-all duration-300"
+                                        :class="activeConversationId === conversation.id ?
+                                            'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-stone-200/60 scale-[1.01] z-10 relative' :
+                                            'bg-transparent text-stone-800 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]'">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center justify-between gap-3">
+                                                <div class="truncate text-[14.5px] font-bold tracking-tight text-stone-800"
+                                                    x-text="conversation.title"></div>
+                                                <template x-if="Number(conversation.unread_count || 0) > 0">
+                                                    <span
+                                                        class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-black text-white shadow-sm transition-transform group-hover:scale-110"
+                                                        x-text="conversation.unread_count"></span>
+                                                </template>
+                                                <button x-show="features.pinning"
+                                                    @click.stop="togglePin(conversation)" type="button"
+                                                    class="group/pin ml-1 flex h-9 w-9 items-center justify-center rounded-[12px] border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm"
+                                                    :class="conversation.is_pinned ?
+                                                        'border-amber-200/80 bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 text-rose-400 shadow-sm' :
+                                                        'border-transparent bg-transparent text-stone-300 hover:border-rose-100 hover:bg-rose-50/80 hover:text-rose-400'"
+                                                    :title="conversation.is_pinned ? 'Unpin group' : 'Pin group'">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                        fill="currentColor"
+                                                        class="h-5 w-5 transition-transform duration-200 group-hover/pin:scale-110">
+                                                        <path
+                                                            d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
+                                                        <path x-show="conversation.is_pinned"
+                                                            d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <div class="mt-0.5 truncate text-[12px] font-medium transition-colors"
+                                                :class="activeConversationId === conversation.id ? 'text-rose-500' :
+                                                    'text-stone-400'"
+                                                x-text="conversationPreview(conversation, 'Start a discussion')"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
-                    </div>
                     @endif
                     <!-- Contacts Tab -->
-                    <div x-show="activeTab === 'contacts'" class="flex flex-col h-[52vh]" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
-                        <p class="text-[10.5px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-4 px-1">Find Members</p>
+                    <div x-show="activeTab === 'contacts'" class="flex flex-col h-[52vh]" x-cloak
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 translate-x-2"
+                        x-transition:enter-end="opacity-100 translate-x-0">
+                        <p class="text-[10.5px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-4 px-1">Find
+                            Members</p>
 
                         <div class="relative px-1">
-                            <input x-ref="directSearchInput" x-model="directSearch" @input.debounce.250ms="loadDirectCandidates()" type="text" placeholder="Type a name..." class="w-full rounded-[16px] border border-transparent bg-white px-4 py-3 text-[13.5px] font-medium text-stone-700 outline-none focus:border-stone-200 focus:ring-4 focus:ring-stone-100 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] transition-all placeholder:text-stone-400">
+                            <input x-ref="directSearchInput" x-model="directSearch"
+                                @input.debounce.250ms="loadDirectCandidates()" type="text"
+                                placeholder="Type a name..."
+                                class="w-full rounded-[16px] border border-transparent bg-white px-4 py-3 text-[13.5px] font-medium text-stone-700 outline-none focus:border-stone-200 focus:ring-4 focus:ring-stone-100 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] transition-all placeholder:text-stone-400">
                             <div class="absolute right-5 top-1/2 -translate-y-1/2 text-stone-400">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </div>
                         </div>
 
                         <div class="flex-1 mt-5 space-y-1.5 overflow-y-auto pr-1 custom-scrollbar">
                             <template x-if="!directCandidates.length && directSearch">
-                                <div class="px-4 py-12 text-center text-[12.5px] font-medium text-stone-400">User not found. Try another name.</div>
+                                <div class="px-4 py-12 text-center text-[12.5px] font-medium text-stone-400">User not
+                                    found. Try another name.</div>
                             </template>
                             <template x-for="item in directCandidates" :key="item.type + '-' + item.id">
-                                <button type="button" @click="startDirectChat(item)" class="group flex w-full items-center justify-between rounded-[20px] bg-transparent px-4 py-3 text-left transition-all duration-300 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                                <button type="button" @click="startDirectChat(item)"
+                                    class="group flex w-full items-center justify-between rounded-[20px] bg-transparent px-4 py-3 text-left transition-all duration-300 hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
                                     <div class="min-w-0">
                                         <div class="flex items-center gap-2">
                                             <template x-if="item.is_online">
-                                                <span class="h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
+                                                <span
+                                                    class="h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
                                             </template>
-                                            <div class="truncate text-[14.5px] font-bold tracking-tight text-stone-800" x-text="item.name"></div>
+                                            <div class="truncate text-[14.5px] font-bold tracking-tight text-stone-800"
+                                                x-text="item.name"></div>
                                         </div>
-                                        <div class="mt-0.5 truncate text-[12px] font-medium text-stone-400" x-text="item.preview_text || item.subtitle"></div>
+                                        <div class="mt-0.5 truncate text-[12px] font-medium text-stone-400"
+                                            x-text="item.preview_text || item.subtitle"></div>
                                     </div>
-                                    <div class="flex h-8 w-8 items-center justify-center rounded-[12px] bg-stone-50 text-stone-400 shadow-sm transition-all duration-300 group-hover:bg-gradient-to-br group-hover:from-rose-400 group-hover:to-orange-300 group-hover:text-white group-hover:shadow-md">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                    <div
+                                        class="flex h-8 w-8 items-center justify-center rounded-[12px] bg-stone-50 text-stone-400 shadow-sm transition-all duration-300 group-hover:bg-gradient-to-br group-hover:from-rose-400 group-hover:to-orange-300 group-hover:text-white group-hover:shadow-md">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5"
+                                            viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                                clip-rule="evenodd" />
                                         </svg>
                                     </div>
                                 </button>
@@ -297,48 +461,62 @@
                     </div>
                 </div>
             </aside>
-            <section class="absolute inset-0 z-10 flex h-full w-full flex-col overflow-hidden bg-[#fcfbf9] transition-transform duration-300 ease-in-out md:static md:transform-none md:transition-none md:overflow-hidden"
-                :class="(isMobileChatOpen || window.innerWidth >= 768) && activeConversationId ? 'translate-x-0' : 'translate-x-full md:translate-x-0'">
+            <section
+                class="absolute inset-0 z-10 flex h-full w-full flex-col overflow-hidden bg-[#fcfbf9] transition-transform duration-300 ease-in-out md:static md:transform-none md:transition-none md:overflow-hidden"
+                :class="(isMobileChatOpen || window.innerWidth >= 768) && activeConversationId ? 'translate-x-0' :
+                    'translate-x-full md:translate-x-0'">
                 <template x-if="activeConversation">
                     <div class="flex h-full flex-col overflow-hidden bg-[#fcfbf9]">
                         <div class="border-b border-orange-100 bg-white/80 backdrop-blur-md px-6 py-[18px]">
                             <div class="flex flex-wrap items-start justify-between gap-4">
                                 <div class="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center">
                                     <div class="flex items-center">
-                                        <button type="button" @click="isMobileChatOpen = false" class="mr-3 flex h-10 w-10 items-center justify-center rounded-[14px] bg-stone-50 text-stone-500 transition hover:bg-stone-100 hover:text-stone-800 md:hidden" title="Back to chats">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                                        <button type="button" @click="isMobileChatOpen = false"
+                                            class="mr-3 flex h-10 w-10 items-center justify-center rounded-[14px] bg-stone-50 text-stone-500 transition hover:bg-stone-100 hover:text-stone-800 md:hidden"
+                                            title="Back to chats">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="2.5" d="M15 19l-7-7 7-7" />
                                             </svg>
                                         </button>
                                         <div class="flex items-center gap-4">
                                             <div class="relative">
-                                                <div class="flex h-12 w-12 items-center justify-center rounded-[20px] bg-gradient-to-br from-rose-400 to-orange-300 text-white shadow-sm ring-[3px] ring-rose-50">
-                                                    <span class="text-[16px] font-bold tracking-tight" x-text="initialFor(activeConversation.title)"></span>
+                                                <div
+                                                    class="flex h-12 w-12 items-center justify-center rounded-[20px] bg-gradient-to-br from-rose-400 to-orange-300 text-white shadow-sm ring-[3px] ring-rose-50">
+                                                    <span class="text-[16px] font-bold tracking-tight"
+                                                        x-text="initialFor(activeConversation.title)"></span>
                                                 </div>
                                                 <template x-if="activeConversation.is_online">
-                                                    <span class="absolute -right-0.5 -bottom-0.5 block h-3.5 w-3.5 rounded-full border-[2.5px] border-white bg-emerald-400 shadow-sm"></span>
+                                                    <span
+                                                        class="absolute -right-0.5 -bottom-0.5 block h-3.5 w-3.5 rounded-full border-[2.5px] border-white bg-emerald-400 shadow-sm"></span>
                                                 </template>
                                             </div>
                                             <div :class="activeConversation?.is_group ? 'cursor-pointer' : ''"
-                                                 @click="activeConversation?.is_group && openManageMembers()"
-                                                 :title="activeConversation?.is_group ? 'View group details' : ''"
-                                                 role="button" tabindex="0"
-                                                 @keydown.enter="activeConversation?.is_group && openManageMembers()"
-                                                 @keydown.space.prevent="activeConversation?.is_group && openManageMembers()">
+                                                @click="activeConversation?.is_group && openManageMembers()"
+                                                :title="activeConversation?.is_group ? 'View group details' : ''"
+                                                role="button" tabindex="0"
+                                                @keydown.enter="activeConversation?.is_group && openManageMembers()"
+                                                @keydown.space.prevent="activeConversation?.is_group && openManageMembers()">
                                                 <div class="flex items-center gap-2">
-                                                    <h3 class="text-[17.5px] font-bold text-stone-800 tracking-tight" x-text="activeConversation.title"></h3>
+                                                    <h3 class="text-[17.5px] font-bold text-stone-800 tracking-tight"
+                                                        x-text="activeConversation.title"></h3>
                                                     <template x-if="activeConversation?.is_group">
-                                                        <span class="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold tracking-[0.15em] text-slate-600">Group</span>
+                                                        <span
+                                                            class="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold tracking-[0.15em] text-slate-600">Group</span>
                                                     </template>
                                                 </div>
                                                 <p class="text-[12.5px] font-medium text-stone-500 mt-0.5 ml-1">
                                                     <template x-if="activeConversation.is_group">
-                                                        <span x-text="(groupDetails.members?.length || activeConversation.members_count || 0) + ' members'"></span>
+                                                        <span
+                                                            x-text="(groupDetails.members?.length || activeConversation.members_count || 0) + ' members'"></span>
                                                         <span class="mx-1 text-slate-400">&middot;</span>
-                                                        <span x-text="groupAdminName() ? 'Admin: ' + groupAdminName() : 'Loading group admin'"></span>
+                                                        <span
+                                                            x-text="groupAdminName() ? 'Admin: ' + groupAdminName() : 'Loading group admin'"></span>
                                                     </template>
                                                     <template x-if="!activeConversation.is_group">
-                                                        <span x-text="activeConversation.is_online ? 'Active now' : 'Personal chat'"></span>
+                                                        <span
+                                                            x-text="activeConversation.is_online ? 'Active now' : 'Personal chat'"></span>
                                                     </template>
                                                 </p>
                                             </div>
@@ -346,154 +524,233 @@
                                     </div>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-2 justify-end w-full sm:w-auto">
-                                    <template x-if="(features.audio_call || features.video_call) && !activeConversation.is_group">
+                                    <template
+                                        x-if="(features.audio_call || features.video_call) && !activeConversation.is_group">
                                         <div class="flex items-center gap-2">
-                                            <button x-show="features.audio_call" type="button" @click="startCall('audio')"
+                                            <button x-show="features.audio_call" type="button"
+                                                @click="startCall('audio')"
                                                 class="flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-rose-400 shadow-sm transition hover:bg-emerald-100 hover:shadow-md"
                                                 title="Audio call">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 0 1 2-2h2.28a2 2 0 0 1 1.948 1.553l.57 2.28a2 2 0 0 1-.502 1.86L7.414 10.586a16.001 16.001 0 0 0 6 6l1.893-1.882a2 2 0 0 1 1.86-.502l2.28.57A2 2 0 0 1 21 16.72V19a2 2 0 0 1-2 2h-1C9.716 21 3 14.284 3 6V5Z" />
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M3 5a2 2 0 0 1 2-2h2.28a2 2 0 0 1 1.948 1.553l.57 2.28a2 2 0 0 1-.502 1.86L7.414 10.586a16.001 16.001 0 0 0 6 6l1.893-1.882a2 2 0 0 1 1.86-.502l2.28.57A2 2 0 0 1 21 16.72V19a2 2 0 0 1-2 2h-1C9.716 21 3 14.284 3 6V5Z" />
                                                 </svg>
                                             </button>
-                                            <button x-show="features.video_call" type="button" @click="startCall('video')"
+                                            <button x-show="features.video_call" type="button"
+                                                @click="startCall('video')"
                                                 class="flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-rose-400 shadow-sm transition hover:bg-sky-100 hover:shadow-md"
                                                 title="Video call">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 10 4.553-2.276A1 1 0 0 1 21 8.618v6.764a1 1 0 0 1-1.447.894L15 14m-9 4h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2Z" />
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="m15 10 4.553-2.276A1 1 0 0 1 21 8.618v6.764a1 1 0 0 1-1.447.894L15 14m-9 4h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2Z" />
                                                 </svg>
                                             </button>
                                         </div>
                                     </template>
 
-                                    <button x-show="features.ai_summary" type="button" @click="toggleSummary()" :disabled="isFetchingSummary"
+                                    <button x-show="features.ai_summary" type="button" @click="toggleSummary()"
+                                        :disabled="isFetchingSummary"
                                         class="flex items-center justify-center gap-2 rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm disabled:opacity-50"
                                         title="View Conversation Summary">
                                         <template x-if="!isFetchingSummary">
                                             <div class="flex items-center gap-2">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-500"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                 </svg>
                                                 <span x-text="showSummary ? 'Hide Summary' : 'Summary'"></span>
                                             </div>
                                         </template>
                                         <template x-if="isFetchingSummary">
                                             <div class="flex items-center gap-2">
-                                                <svg class="h-4 w-4 animate-spin text-rose-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                <svg class="h-4 w-4 animate-spin text-rose-500"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                        stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                    </path>
                                                 </svg>
                                                 <span>Processing...</span>
                                             </div>
                                         </template>
                                     </button>
-                                    <template x-if="features.groups && activeConversation.is_group && groupDetails.can_manage"><button type="button" @click="openManageMembers()" class="rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm">Manage</button></template>
-                                   
-                                    <button x-show="features.pinning" @click.stop="togglePin(activeConversation)" type="button"
+                                    <template
+                                        x-if="features.groups && activeConversation.is_group && groupDetails.can_manage"><button
+                                            type="button" @click="openManageMembers()"
+                                            class="rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm">Manage</button></template>
+
+                                    <button x-show="features.pinning" @click.stop="togglePin(activeConversation)"
+                                        type="button"
                                         class="group/pin flex h-10 w-10 items-center justify-center rounded-[14px] border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                                        :class="activeConversation?.is_pinned ? 'border-rose-200 bg-rose-50 to-rose-50 text-rose-500' : 'border-stone-200/60 bg-white text-stone-400 hover:border-rose-100 hover:bg-rose-50/80 hover:text-rose-500'"
+                                        :class="activeConversation?.is_pinned ?
+                                            'border-rose-200 bg-rose-50 to-rose-50 text-rose-500' :
+                                            'border-stone-200/60 bg-white text-stone-400 hover:border-rose-100 hover:bg-rose-50/80 hover:text-rose-500'"
                                         :title="activeConversation?.is_pinned ? 'Pinned conversation' : 'Pin conversation'">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 transition-transform duration-100 group-hover/pin:scale-110">
-                                            <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
-                                            <path x-show="activeConversation?.is_pinned" d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                            fill="currentColor"
+                                            class="h-5 w-5 transition-transform duration-100 group-hover/pin:scale-110">
+                                            <path
+                                                d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
+                                            <path x-show="activeConversation?.is_pinned"
+                                                d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
                                         </svg>
                                     </button>
 
-                                    <button type="button" @click="clearConversation()" :disabled="isClearingConversation"
+                                    <button type="button" @click="clearConversation()"
+                                        :disabled="isClearingConversation"
                                         class="flex items-center justify-center gap-2 rounded-[14px] border border-rose-100 bg-rose-50 px-4 py-2 text-[13px] font-bold text-rose-500 transition hover:bg-rose-100 shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
                                         title="Clear chat">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7 5 7m5-3h4m-5 7v6m4-6v6m5-10v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7h12Z" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7 5 7m5-3h4m-5 7v6m4-6v6m5-10v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7h12Z" />
                                         </svg>
                                         <span>Clear Chat</span>
                                     </button>
-                                    <template x-if="features.groups && activeConversation.is_group"><button type="button" @click="leaveGroup()" class="rounded-[14px] border border-rose-100 bg-rose-50 px-4 py-2 text-[13px] font-bold text-rose-500 transition hover:bg-rose-100 shadow-sm">Leave</button></template>
-                                    <button type="button" @click="closeWorkspace()" class="hidden md:flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-stone-400 transition hover:bg-stone-50 hover:text-stone-800 shadow-sm" title="Close Workspace">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    <template x-if="features.groups && activeConversation.is_group"><button
+                                            type="button" @click="leaveGroup()"
+                                            class="rounded-[14px] border border-rose-100 bg-rose-50 px-4 py-2 text-[13px] font-bold text-rose-500 transition hover:bg-rose-100 shadow-sm">Leave</button></template>
+                                    <button type="button" @click="closeWorkspace()"
+                                        class="hidden md:flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-stone-400 transition hover:bg-stone-50 hover:text-stone-800 shadow-sm"
+                                        title="Close Workspace">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        <div id="messages-panel" class="flex-1 overflow-y-auto bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-50/50 via-white to-rose-50/30 px-4 py-4 md:px-6 md:py-6">
+                        <div id="messages-panel"
+                            class="flex-1 overflow-y-auto bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-50/50 via-white to-rose-50/30 px-4 py-4 md:px-6 md:py-6">
                             <template x-if="loadingMessages">
                                 <div class="space-y-6 pr-4">
                                     <div class="flex items-start gap-4">
-                                        <div class="h-11 w-11 flex-shrink-0 animate-pulse rounded-2xl bg-orange-100/60"></div>
+                                        <div
+                                            class="h-11 w-11 flex-shrink-0 animate-pulse rounded-2xl bg-orange-100/60">
+                                        </div>
                                         <div class="flex flex-col gap-2.5 w-full">
                                             <div class="h-3 w-24 animate-pulse rounded-full bg-orange-100/60"></div>
-                                            <div class="h-16 w-[65%] animate-pulse rounded-[22px] bg-white border border-rose-100/50 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.05)]"></div>
+                                            <div
+                                                class="h-16 w-[65%] animate-pulse rounded-[22px] bg-white border border-rose-100/50 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.05)]">
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="flex items-end justify-end">
-                                        <div class="h-14 w-[50%] animate-pulse rounded-[22px] bg-gradient-to-r from-rose-200 to-orange-200 opacity-60"></div>
+                                        <div
+                                            class="h-14 w-[50%] animate-pulse rounded-[22px] bg-gradient-to-r from-rose-200 to-orange-200 opacity-60">
+                                        </div>
                                     </div>
                                     <div class="flex items-start gap-4 pt-2">
-                                        <div class="h-11 w-11 flex-shrink-0 animate-pulse rounded-2xl bg-orange-100/60"></div>
+                                        <div
+                                            class="h-11 w-11 flex-shrink-0 animate-pulse rounded-2xl bg-orange-100/60">
+                                        </div>
                                         <div class="flex flex-col gap-2.5 w-full">
                                             <div class="h-3 w-20 animate-pulse rounded-full bg-orange-100/60"></div>
-                                            <div class="h-14 w-[40%] animate-pulse rounded-[22px] bg-white border border-rose-100/50 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.05)]"></div>
+                                            <div
+                                                class="h-14 w-[40%] animate-pulse rounded-[22px] bg-white border border-rose-100/50 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.05)]">
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="flex items-end justify-end">
-                                        <div class="h-12 w-[60%] animate-pulse rounded-[22px] bg-gradient-to-r from-rose-200 to-orange-200 opacity-60"></div>
+                                        <div
+                                            class="h-12 w-[60%] animate-pulse rounded-[22px] bg-gradient-to-r from-rose-200 to-orange-200 opacity-60">
+                                        </div>
                                     </div>
                                 </div>
                             </template>
                             <template x-if="!loadingMessages && !messages.length">
-                                <div class="rounded-[28px] border border-dashed border-slate-300 bg-white/80 px-6 py-12 text-center text-slate-500">
+                                <div
+                                    class="rounded-[28px] border border-dashed border-slate-300 bg-white/80 px-6 py-12 text-center text-slate-500">
                                     <p class="text-base font-semibold text-slate-700">Conversation is empty</p>
                                     <p class="mt-2 text-sm">Send the first message and start the discussion.</p>
                                 </div>
                             </template>
-                            <div id="messages-list" class="space-y-4" x-show="!loadingMessages" x-cloak>
+                            <div id="messages-list" class="flex flex-col gap-4" x-show="!loadingMessages" x-cloak>
                                 <template x-for="message in messages" :key="message.id">
-                                    <div class="flex" :class="isMine(message) ? 'justify-end' : 'justify-start'">
+                                    <div class="flex" :class="isMine(message) ? 'justify-end' : 'justify-start'"
+                                        x-transition:enter="transition ease-out duration-300"
+                                        x-transition:enter-start="opacity-0"
+                                        x-transition:enter-end="opacity-100">
                                         <div class="max-w-[80%] min-w-0 overflow-visible break-words">
                                             <template x-if="!isMine(message)">
-                                                <p class="mb-1 px-3 text-[11px] uppercase tracking-wider font-bold text-rose-400" x-text="message.sender_name"></p>
+                                                <p class="mb-1 px-3 text-[11px] uppercase tracking-wider font-bold text-rose-400"
+                                                    x-text="message.sender_name"></p>
                                             </template>
-                                            <div class="relative rounded-[24px] px-5 py-3.5 shadow-sm transform transition-all duration-300 hover:-translate-y-0.5 break-words whitespace-normal"
-                                                :class="[isMine(message) 
-                                                    ? 'bg-blue-50 text-blue-800 shadow-[0_4px_12px_rgba(37,99,235,0.05)] rounded-br-md border border-blue-100' 
-                                                    : 'bg-white text-stone-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-bl-md border border-stone-100',
-                                                    (isEditingMessage(message.id) || openMessageMenuId === message.id) ? 'z-10' : 'z-0']"
+                                            <div class="relative rounded-[24px] px-5 py-3.5 shadow-sm transform break-words whitespace-normal transition-transform duration-300 hover:-translate-y-0.5"
+                                                :class="[isMine(message) ?
+                                                    'bg-blue-50 text-blue-800 shadow-[0_4px_12px_rgba(37,99,235,0.05)] rounded-br-md border border-blue-100' :
+                                                    'bg-white text-stone-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-bl-md border border-stone-100',
+                                                    (isEditingMessage(message.id) || openMessageMenuId === message.id) ?
+                                                    'z-10' : 'z-0'
+                                                ]"
                                                 style="word-break: break-word; overflow-wrap: anywhere;">
 
                                                 <template x-if="isMine(message)">
-                                                    <div class="absolute right-3 top-3 z-10" @click.outside="closeMessageMenu(message.id)">
-                                                        <button type="button" @click.stop="toggleMessageMenu(message.id)"
+                                                    <div class="absolute right-3 top-3 z-10"
+                                                        @click.outside="closeMessageMenu(message.id)">
+                                                        <button type="button"
+                                                            @click.stop="toggleMessageMenu(message.id)"
                                                             class="flex h-8 w-8 items-center justify-center rounded-full transition"
-                                                            :class="openMessageMenuId === message.id ? 'bg-white text-blue-600 shadow-sm' : 'text-blue-400 hover:bg-white/80 hover:text-blue-600'">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                                                            :class="openMessageMenuId === message.id ?
+                                                                'bg-white text-blue-600 shadow-sm' :
+                                                                'text-blue-400 hover:bg-white/80 hover:text-blue-600'">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                                                                viewBox="0 0 24 24" fill="currentColor">
                                                                 <circle cx="12" cy="5" r="1.8" />
                                                                 <circle cx="12" cy="12" r="1.8" />
                                                                 <circle cx="12" cy="19" r="1.8" />
                                                             </svg>
                                                         </button>
-                                                        <div x-show="openMessageMenuId === message.id" x-cloak x-transition
+                                                        <div x-show="openMessageMenuId === message.id" x-cloak
+                                                            x-transition
                                                             class="absolute right-0 mt-2 w-36 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1.5 shadow-[0_18px_40px_rgba(15,23,42,0.14)] z-50">
                                                             <template x-if="message.body">
-                                                                <button type="button" @click="startInlineEdit(message)"
+                                                                <button type="button"
+                                                                    @click="startInlineEdit(message)"
                                                                     class="flex w-full items-center gap-2 px-3.5 py-2 text-left text-[12px] font-semibold text-stone-600 transition hover:bg-blue-50 hover:text-blue-700">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
+                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                        class="h-4 w-4" fill="none"
+                                                                        viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round"
+                                                                            stroke-linejoin="round" stroke-width="2"
+                                                                            d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
                                                                     </svg>
                                                                     <span>Edit</span>
                                                                 </button>
                                                             </template>
                                                             <template x-if="message.file_url">
-                                                                <a :href="message.file_url" :download="message.file_name || ''" class="flex w-full items-center gap-2 px-3.5 py-2 text-left text-[12px] font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-800">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 10l5 5 5-5M12 15V3" />
+                                                                <a :href="message.file_url"
+                                                                    :download="message.file_name || ''"
+                                                                    class="flex w-full items-center gap-2 px-3.5 py-2 text-left text-[12px] font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-800">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                        class="h-4 w-4" fill="none"
+                                                                        viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round"
+                                                                            stroke-linejoin="round" stroke-width="2"
+                                                                            d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 10l5 5 5-5M12 15V3" />
                                                                     </svg>
                                                                     <span>Download</span>
                                                                 </a>
                                                             </template>
-                                                            <button type="button" @click="requestDeleteMessage(message)"
+                                                            <button type="button"
+                                                                @click="requestDeleteMessage(message)"
                                                                 class="flex w-full items-center gap-2 px-3.5 py-2 text-left text-[12px] font-semibold text-rose-500 transition hover:bg-rose-50 hover:text-rose-600">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7 5 7m5-3h4m-5 7v6m4-6v6m5-10v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7h12Z" />
+                                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                                    class="h-4 w-4" fill="none"
+                                                                    viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round"
+                                                                        stroke-linejoin="round" stroke-width="2"
+                                                                        d="M19 7 5 7m5-3h4m-5 7v6m4-6v6m5-10v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7h12Z" />
                                                                 </svg>
                                                                 <span>Delete</span>
                                                             </button>
@@ -511,7 +768,8 @@
                                                                 class="rounded-full border border-stone-200 bg-white px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-stone-500 transition hover:bg-stone-50">
                                                                 Cancel
                                                             </button>
-                                                            <button type="button" @click="saveInlineEdit(message)" :disabled="isUpdatingMessage || !editingMessageDraft.trim()"
+                                                            <button type="button" @click="saveInlineEdit(message)"
+                                                                :disabled="isUpdatingMessage || !editingMessageDraft.trim()"
                                                                 class="rounded-full bg-blue-600 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
                                                                 Save
                                                             </button>
@@ -519,58 +777,118 @@
                                                     </div>
                                                 </template>
                                                 <template x-if="!isEditingMessage(message.id) && message.body">
-                                                    <p class="pr-10 whitespace-pre-wrap break-words break-all text-[14.5px] leading-relaxed font-medium w-full" x-text="message.body" style="word-wrap: break-word; word-break: break-word; overflow-wrap: anywhere;"></p>
+                                                    <p class="pr-10 whitespace-pre-wrap break-words break-all text-[14.5px] leading-relaxed font-medium w-full"
+                                                        x-text="message.body"
+                                                        style="word-wrap: break-word; word-break: break-word; overflow-wrap: anywhere;">
+                                                    </p>
                                                 </template>
                                                 <template x-if="message.file_url">
                                                     <div class="mt-2 text-left">
-                                                        <template x-if="message.file_url && (message.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i))">
-                                                            <div class="group relative mt-2 inline-block overflow-hidden rounded-[20px] shadow-md transition-all duration-300 hover:shadow-lg" :class="isMine(message) ? 'border border-white/20' : 'border border-rose-100'">
-                                                                <img :src="message.file_url" @load="const cb = $el.closest('.flex-1'); if(cb) cb.scrollTop = cb.scrollHeight;" class="max-h-52 max-w-[280px] w-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-105" @click="window.open(message.file_url, '_blank')" alt="Attachment">
-                                                                <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                                                        <template
+                                                            x-if="message.file_url && (message.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i))">
+                                                            <div class="group relative mt-2 inline-block overflow-hidden rounded-[20px] shadow-md transition-all duration-300 hover:shadow-lg"
+                                                                :class="isMine(message) ? 'border border-white/20' :
+                                                                    'border border-rose-100'">
+                                                                <img :src="message.file_url"
+                                                                    @load="const cb = $el.closest('.flex-1'); if(cb) cb.scrollTop = cb.scrollHeight;"
+                                                                    class="max-h-52 max-w-[280px] w-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-105"
+                                                                    @click="window.open(message.file_url, '_blank')"
+                                                                    alt="Attachment">
+                                                                <div
+                                                                    class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                                                                </div>
                                                                 <template x-if="!isMine(message)">
-                                                                    <a href="javascript:void(0)" @click="downloadFile(message.file_url, message.file_name, message.file_path)" class="absolute bottom-3 right-3 flex items-center gap-2 rounded-xl bg-black/50 px-3.5 py-2 text-[12px] font-bold text-white backdrop-blur-md border border-white/20 transition hover:bg-black/70 hover:scale-105 opacity-0 group-hover:opacity-100">
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                                    <a href="javascript:void(0)"
+                                                                        @click="downloadFile(message.file_url, message.file_name, message.file_path)"
+                                                                        class="absolute bottom-3 right-3 flex items-center gap-2 rounded-xl bg-black/50 px-3.5 py-2 text-[12px] font-bold text-white backdrop-blur-md border border-white/20 transition hover:bg-black/70 hover:scale-105 opacity-0 group-hover:opacity-100">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                                            class="h-4 w-4" fill="none"
+                                                                            viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path stroke-linecap="round"
+                                                                                stroke-linejoin="round"
+                                                                                stroke-width="2.5"
+                                                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                                         </svg>
                                                                         <span>Download</span>
                                                                     </a>
                                                                 </template>
                                                             </div>
                                                         </template>
-                                                        <template x-if="message.file_url && (message.file_url.match(/\.(webm|mp3|wav|ogg|m4a)$/i))">
-                                                            <div class="mt-2 flex flex-col gap-2 p-3 rounded-2xl bg-white/40 border border-white/20 shadow-sm">
+                                                        <template
+                                                            x-if="message.file_url && (message.file_url.match(/\.(webm|mp3|wav|ogg|m4a)$/i))">
+                                                            <div
+                                                                class="mt-2 flex flex-col gap-2 p-3 rounded-2xl bg-white/40 border border-white/20 shadow-sm">
                                                                 <div class="flex items-center gap-2 px-1">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                        class="h-4 w-4 text-rose-500" fill="none"
+                                                                        viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round"
+                                                                            stroke-linejoin="round" stroke-width="2"
+                                                                            d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                                                                     </svg>
-                                                                    <span class="text-[11px] font-bold uppercase tracking-widest text-rose-500">Voice Message</span>
+                                                                    <span
+                                                                        class="text-[11px] font-bold uppercase tracking-widest text-rose-500">Voice
+                                                                        Message</span>
                                                                 </div>
-                                                                <audio controls class="h-9 max-w-[240px] w-full outline-none" :src="message.file_url"></audio>
+                                                                <audio controls
+                                                                    class="h-9 max-w-[240px] w-full outline-none"
+                                                                    :src="message.file_url"></audio>
                                                                 <template x-if="!isMine(message)">
-                                                                    <a href="javascript:void(0)" @click="downloadFile(message.file_url, message.file_name, message.file_path)" class="mt-1 flex items-center justify-center gap-2 rounded-xl border border-rose-100 bg-white/60 py-2 text-[11px] font-bold text-rose-500 transition hover:bg-rose-50">
+                                                                    <a href="javascript:void(0)"
+                                                                        @click="downloadFile(message.file_url, message.file_name, message.file_path)"
+                                                                        class="mt-1 flex items-center justify-center gap-2 rounded-xl border border-rose-100 bg-white/60 py-2 text-[11px] font-bold text-rose-500 transition hover:bg-rose-50">
                                                                         Download Recording
                                                                     </a>
                                                                 </template>
                                                             </div>
                                                         </template>
-                                                        <template x-if="!(message.file_url && (message.file_url.match(/\.(jpg|jpeg|png|gif|webp|webm|mp3|wav|ogg|m4a)$/i)))">
+                                                        <template
+                                                            x-if="!(message.file_url && (message.file_url.match(/\.(jpg|jpeg|png|gif|webp|webm|mp3|wav|ogg|m4a)$/i)))">
                                                             <div class="mt-2 flex flex-col gap-1.5">
-                                                                <a :href="message.file_url" target="_blank" class="flex items-center gap-3 rounded-2xl border p-3 transition-all duration-300 hover:-translate-y-0.5"
-                                                                    :class="isMine(message) ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' : 'bg-stone-50 border-stone-200 text-stone-800 hover:bg-white hover:shadow-md'">
-                                                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" :class="isMine(message) ? 'bg-rose-50' : 'bg-white shadow-sm border border-stone-100'">
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" :class="isMine(message) ? 'text-rose-500' : 'text-rose-500'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                                <a :href="message.file_url" target="_blank"
+                                                                    class="flex items-center gap-3 rounded-2xl border p-3 transition-all duration-300 hover:-translate-y-0.5"
+                                                                    :class="isMine(message) ?
+                                                                        'bg-white/10 border-white/20 text-white hover:bg-white/20' :
+                                                                        'bg-stone-50 border-stone-200 text-stone-800 hover:bg-white hover:shadow-md'">
+                                                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                                                                        :class="isMine(message) ? 'bg-rose-50' :
+                                                                            'bg-white shadow-sm border border-stone-100'">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                                            class="h-5 w-5"
+                                                                            :class="isMine(message) ? 'text-rose-500' :
+                                                                                'text-rose-500'"
+                                                                            fill="none" viewBox="0 0 24 24"
+                                                                            stroke="currentColor">
+                                                                            <path stroke-linecap="round"
+                                                                                stroke-linejoin="round"
+                                                                                stroke-width="2"
+                                                                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                                                         </svg>
                                                                     </div>
                                                                     <div class="flex flex-col min-w-0">
-                                                                        <span class="truncate text-[13px] font-bold leading-tight" :class="isMine(message) ? 'text-rose-600' : 'text-stone-800'" x-text="message.file_name || 'Attachment'"></span>
-                                                                        <span class="text-[10px] font-bold uppercase tracking-wider opacity-70" :class="isMine(message) ? 'text-rose-500' : 'text-stone-500'">View Document</span>
+                                                                        <span
+                                                                            class="truncate text-[13px] font-bold leading-tight"
+                                                                            :class="isMine(message) ? 'text-rose-600' :
+                                                                                'text-stone-800'"
+                                                                            x-text="message.file_name || 'Attachment'"></span>
+                                                                        <span
+                                                                            class="text-[10px] font-bold uppercase tracking-wider opacity-70"
+                                                                            :class="isMine(message) ? 'text-rose-500' :
+                                                                                'text-stone-500'">View
+                                                                            Document</span>
                                                                     </div>
                                                                 </a>
                                                                 <template x-if="!isMine(message)">
-                                                                    <a href="javascript:void(0)" @click="downloadFile(message.file_url, message.file_name, message.file_path)" class="flex items-center justify-center gap-2 rounded-xl bg-rose-50 border border-rose-100 py-2.5 text-[11px] font-black text-rose-600 transition hover:bg-rose-100">
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                                    <a href="javascript:void(0)"
+                                                                        @click="downloadFile(message.file_url, message.file_name, message.file_path)"
+                                                                        class="flex items-center justify-center gap-2 rounded-xl bg-rose-50 border border-rose-100 py-2.5 text-[11px] font-black text-rose-600 transition hover:bg-rose-100">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                                            class="h-3.5 w-3.5" fill="none"
+                                                                            viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path stroke-linecap="round"
+                                                                                stroke-linejoin="round"
+                                                                                stroke-width="2.5"
+                                                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                                         </svg>
                                                                         DOWNLOAD FILE
                                                                     </a>
@@ -580,27 +898,65 @@
                                                     </div>
                                                 </template>
                                             </div>
-                                            <div class="mt-1.5 px-2 flex items-center gap-1" :class="isMine(message) ? 'justify-end' : 'justify-start'">
-                                                <p class="text-[11px] font-medium" :class="isMine(message) ? 'text-blue-400' : 'text-stone-400'" x-text="formatTime(message.created_at)"></p>
+                                            <div class="mt-1.5 px-2 flex items-center gap-1"
+                                                :class="isMine(message) ? 'justify-end' : 'justify-start'">
+                                                <p class="text-[11px] font-medium"
+                                                    :class="isMine(message) ? 'text-blue-400' : 'text-stone-400'"
+                                                    x-text="formatTime(message.created_at)"></p>
                                                 <template x-if="isMine(message)">
                                                     <div>
                                                         <!-- Read Double Tick (Blue) -->
                                                         <template x-if="message.read_at">
-                                                            <svg viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-[15px] h-[15px] text-[#4fc3f7]">
-                                                                <path d="M11 1L5 7L2 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                                <path d="M15 1L9 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <svg viewBox="0 0 16 11" fill="none"
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                class="w-[15px] h-[15px] text-[#4fc3f7]">
+                                                                <path d="M11 1L5 7L2 4" stroke="currentColor"
+                                                                    stroke-width="2" stroke-linecap="round"
+                                                                    stroke-linejoin="round" />
+                                                                <path d="M15 1L9 7" stroke="currentColor"
+                                                                    stroke-width="2" stroke-linecap="round"
+                                                                    stroke-linejoin="round" />
                                                             </svg>
                                                         </template>
                                                         <!-- Unread Double Tick (Grey) -->
                                                         <template x-if="!message.read_at">
-                                                            <svg viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-[15px] h-[15px] text-[#9ca3af]">
-                                                                <path d="M11 1L5 7L2 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                                <path d="M15 1L9 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <svg viewBox="0 0 16 11" fill="none"
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                class="w-[15px] h-[15px] text-[#9ca3af]">
+                                                                <path d="M11 1L5 7L2 4" stroke="currentColor"
+                                                                    stroke-width="2" stroke-linecap="round"
+                                                                    stroke-linejoin="round" />
+                                                                <path d="M15 1L9 7" stroke="currentColor"
+                                                                    stroke-width="2" stroke-linecap="round"
+                                                                    stroke-linejoin="round" />
                                                             </svg>
                                                         </template>
                                                     </div>
                                                 </template>
                                             </div>
+                                        </div>
+                                </template>
+
+                                <template x-for="sending in sendingMessages" :key="sending.tempId">
+                                    <div class="flex justify-end"
+                                        x-transition:enter="transition ease-out duration-300"
+                                        x-transition:enter-start="opacity-0"
+                                        x-transition:enter-end="opacity-100">
+                                        <div class="max-w-[80%] min-w-[40px] relative">
+                                            <div
+                                                class="relative overflow-hidden rounded-[24px] px-5 py-3.5 shadow-[0_4px_12px_rgba(37,99,235,0.05)] bg-blue-50 text-blue-800 rounded-br-md border border-blue-100">
+                                                <!-- Message Content -->
+                                                <template x-if="sending.body">
+                                                    <p class="whitespace-pre-wrap break-words text-[14.5px] font-medium"
+                                                        x-text="sending.body"></p>
+                                                </template>
+
+                                                <!-- Shimmering Overlay -->
+                                                <div
+                                                    class="absolute inset-0 pointer-events-none bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-shimmer">
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </template>
 
@@ -615,101 +971,149 @@
                                         class="relative mt-8 mb-4 overflow-hidden rounded-[28px] border border-orange-100 bg-white p-6 shadow-[0_20px_50px_rgba(251,146,60,0.12)] ring-1 ring-orange-50/50">
                                         <div class="flex items-start justify-between gap-4">
                                             <div class="flex items-center gap-3">
-                                                <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-md shadow-rose-200">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                <div
+                                                    class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-md shadow-rose-200">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                                     </svg>
                                                 </div>
                                                 <div>
-                                                    <h4 class="text-[15px] font-bold tracking-tight text-stone-800">Conversation Summary</h4>
+                                                    <h4 class="text-[15px] font-bold tracking-tight text-stone-800">
+                                                        Conversation Summary</h4>
                                                 </div>
                                             </div>
-                                            <button @click="showSummary = false" class="group flex h-8 w-8 items-center justify-center rounded-full hover:bg-rose-50 transition-colors">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-stone-400 group-hover:text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                                            <button @click="showSummary = false"
+                                                class="group flex h-8 w-8 items-center justify-center rounded-full hover:bg-rose-50 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                    class="h-4 w-4 text-stone-400 group-hover:text-rose-500"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
                                                 </svg>
                                             </button>
                                         </div>
-                                        <div class="mt-5 rounded-[20px] bg-gradient-to-br from-orange-50/30 to-rose-50/20 p-5 shadow-inner">
+                                        <div
+                                            class="mt-5 rounded-[20px] bg-gradient-to-br from-orange-50/30 to-rose-50/20 p-5 shadow-inner">
                                             <div class="prose prose-sm prose-stone max-w-none">
-                                                <div class="text-[14px] leading-relaxed text-stone-700" x-html="parseSummary(chatSummary)"></div>
+                                                <div class="text-[14px] leading-relaxed text-stone-700"
+                                                    x-html="parseSummary(chatSummary)"></div>
                                             </div>
                                         </div>
                                         <div class="mt-4 flex items-center justify-between px-2">
                                             <div class="flex items-center gap-3">
-                                                <p class="text-[11px] font-bold text-stone-400" x-text="'Refreshed on ' + new Date().toLocaleTimeString()"></p>
-                                                <button @click="navigator.clipboard.writeText(chatSummary); $el.textContent = 'Copied!'; setTimeout(() => $el.textContent = 'Copy', 2000)"
+                                                <p class="text-[11px] font-bold text-stone-400"
+                                                    x-text="'Refreshed on ' + new Date().toLocaleTimeString()"></p>
+                                                <button
+                                                    @click="navigator.clipboard.writeText(chatSummary); $el.textContent = 'Copied!'; setTimeout(() => $el.textContent = 'Copy', 2000)"
                                                     class="text-[11px] font-bold text-rose-500 hover:text-rose-600 underline decoration-rose-200 underline-offset-4">
                                                     Copy
                                                 </button>
                                             </div>
                                             <div class="flex items-center gap-1.5">
-                                                <span class="h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse"></span>
-                                                <span class="text-[11px] font-black tracking-tighter text-orange-500 uppercase">Live Summary</span>
+                                                <span
+                                                    class="h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+                                                <span
+                                                    class="text-[11px] font-black tracking-tighter text-orange-500 uppercase">Live
+                                                    Summary</span>
                                             </div>
                                         </div>
                                     </div>
                                 </template>
                             </div>
                         </div>
-                        <div class="shrink-0 border-t border-rose-100 bg-white/80 backdrop-blur-md px-4 py-4 md:px-6 md:py-5 shadow-[0_-10px_40px_-5px_rgba(251,146,60,0.05)]">
-                            <div x-show="selectedFileName" x-cloak class="mb-3 flex items-center justify-between rounded-2xl border px-4 py-3 shadow-sm" :class="isFileTooLarge ? 'border-rose-200 bg-rose-50' : 'border-orange-100 bg-orange-50/50'">
+                        <div
+                            class="shrink-0 border-t border-rose-100 bg-white/80 backdrop-blur-md px-4 py-4 md:px-6 md:py-5 shadow-[0_-10px_40px_-5px_rgba(251,146,60,0.05)]">
+                            <div x-show="selectedFileName" x-cloak
+                                class="mb-3 flex items-center justify-between rounded-2xl border px-4 py-3 shadow-sm"
+                                :class="isFileTooLarge ? 'border-rose-200 bg-rose-50' : 'border-orange-100 bg-orange-50/50'">
                                 <div class="flex items-center gap-3">
                                     <template x-if="selectedFilePreview">
-                                        <div class="h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-orange-200 shadow-sm">
-                                            <img :src="selectedFilePreview" class="h-full w-full object-cover" alt="Preview">
+                                        <div
+                                            class="h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-orange-200 shadow-sm">
+                                            <img :src="selectedFilePreview" class="h-full w-full object-cover"
+                                                alt="Preview">
                                         </div>
                                     </template>
                                     <div class="flex flex-col">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-sm font-semibold" :class="isFileTooLarge ? 'text-rose-600' : 'text-stone-700'" x-text="selectedFileName"></span>
+                                            <span class="text-sm font-semibold"
+                                                :class="isFileTooLarge ? 'text-rose-600' : 'text-stone-700'"
+                                                x-text="selectedFileName"></span>
                                             <template x-if="isSendingMessage && selectedFile">
-                                                <span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-1 text-[11px] font-semibold text-rose-600">
-                                                    <span class="h-2.5 w-2.5 rounded-full border border-rose-600 border-t-transparent animate-spin"></span>
-                                                    Sending...
+                                                <span
+                                                    class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-1 text-[11px] font-semibold text-rose-600">
+                                                    <span
+                                                        class="h-2.5 w-2.5 rounded-full border border-rose-600 border-t-transparent animate-spin"></span>
                                                 </span>
                                             </template>
                                         </div>
                                         <template x-if="isFileTooLarge">
-                                            <span class="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-500">File too large! Maximum limit is 10MB</span>
+                                            <span
+                                                class="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-500">File
+                                                too large! Maximum limit is 10MB</span>
                                         </template>
                                     </div>
                                 </div>
-                                <button type="button" @click="clearFile()" class="flex h-8 w-8 items-center justify-center rounded-full bg-white text-stone-400 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm">&times;</button>
+                                <button type="button" @click="clearFile()"
+                                    class="flex h-8 w-8 items-center justify-center rounded-full bg-white text-stone-400 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm">&times;</button>
                             </div>
                             <div class="relative flex items-center gap-3" x-data="{ showEmojiPicker: false }">
-                                <div x-show="showEmojiPicker" @click.away="showEmojiPicker = false" x-cloak x-transition class="absolute bottom-16 left-0 z-50 w-72 rounded-[24px] border border-orange-100 bg-white/95 p-3 shadow-2xl backdrop-blur-xl">
+                                <div x-show="showEmojiPicker" @click.away="showEmojiPicker = false" x-cloak
+                                    x-transition
+                                    class="absolute bottom-16 left-0 z-50 w-72 rounded-[24px] border border-orange-100 bg-white/95 p-3 shadow-2xl backdrop-blur-xl">
                                     <div class="grid grid-cols-6 gap-1 max-h-60 overflow-y-auto p-1 custom-scrollbar">
-                                        <template x-for="emoji in ['😊','😂','❤️','👍','😍','🙌','✨','🔥','✅','🚀','💡','👏','🙏','🎉','😎','🤔','😮','😢','🤝','📍','🤩','😇','🥳','🥺','🤫','🤯','😴','🧡','💛','💚','💙','💜','🤍','💘','❣️','🎈','🎁','💎','📱','💻','☕','🌍','⚡','💪','🌈','🌟','💯','🔥','✨','😀','😁','😆','😅','🤣','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾']" :key="emoji">
-                                            <button type="button" @click="addEmoji(emoji); showEmojiPicker = false" class="flex h-10 w-10 items-center justify-center rounded-xl text-xl transition hover:bg-orange-100 hover:scale-110 active:scale-95" x-text="emoji"></button>
+                                        <template
+                                            x-for="emoji in ['😊','😂','❤️','👍','😍','🙌','✨','🔥','✅','🚀','💡','👏','🙏','🎉','😎','🤔','😮','😢','🤝','📍','🤩','😇','🥳','🥺','🤫','🤯','😴','🧡','💛','💚','💙','💜','🤍','💘','❣️','🎈','🎁','💎','📱','💻','☕','🌍','⚡','💪','🌈','🌟','💯','🔥','✨','😀','😁','😆','😅','🤣','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾']"
+                                            :key="emoji">
+                                            <button type="button" @click="addEmoji(emoji); showEmojiPicker = false"
+                                                class="flex h-10 w-10 items-center justify-center rounded-xl text-xl transition hover:bg-orange-100 hover:scale-110 active:scale-95"
+                                                x-text="emoji"></button>
                                         </template>
                                     </div>
                                 </div>
 
-                                <input x-show="features.file_upload" type="file" x-ref="fileInput" class="hidden" @change="pickFile">
-                                <button x-show="features.file_upload" type="button" @click="$refs.fileInput.click()" class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-rose-50 text-rose-400 shadow-sm transition-all hover:bg-rose-100 hover:text-orange-600 hover:shadow-md active:scale-95" title="Attach file">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                <input x-show="features.file_upload" type="file" x-ref="fileInput" class="hidden"
+                                    @change="pickFile">
+                                <button x-show="features.file_upload" type="button" @click="$refs.fileInput.click()"
+                                    class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-rose-50 text-rose-400 shadow-sm transition-all hover:bg-rose-100 hover:text-orange-600 hover:shadow-md active:scale-95"
+                                    title="Attach file">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                     </svg>
                                 </button>
 
-                                <button type="button" @click="showEmojiPicker = !showEmojiPicker" class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-rose-50 text-rose-400 shadow-sm transition-all hover:bg-rose-100 hover:text-rose-500 hover:shadow-md active:scale-95" title="Add emoji">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <button type="button" @click="showEmojiPicker = !showEmojiPicker"
+                                    class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-rose-50 text-rose-400 shadow-sm transition-all hover:bg-rose-100 hover:text-rose-500 hover:shadow-md active:scale-95"
+                                    title="Add emoji">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </button>
 
                                 <div class="relative flex-1 group">
-                                    <textarea x-model="draftMessage" x-ref="messageInput" @keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); sendMessage(); }" rows="1" class="min-h-[52px] w-full rounded-[24px] border border-orange-100 bg-white px-5 py-3.5 text-[15px] text-stone-700 shadow-sm outline-none transition-all focus:border-rose-300 focus:bg-white focus:ring-4 focus:ring-rose-100/50 resize-none" placeholder="Type your message..."></textarea>
+                                    <textarea x-model="draftMessage" x-ref="messageInput"
+                                        @keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); sendMessage(); }" rows="1"
+                                        class="min-h-[52px] w-full rounded-[24px] border border-orange-100 bg-white px-5 py-3.5 text-[15px] text-stone-700 shadow-sm outline-none transition-all focus:border-rose-300 focus:bg-white focus:ring-4 focus:ring-rose-100/50 resize-none"
+                                        placeholder="Type your message..."></textarea>
                                 </div>
 
-                                <button x-show="features.file_upload && features.voice_chat" type="button" @click="toggleVoiceRecord()"
+                                <button x-show="features.file_upload && features.voice_chat" type="button"
+                                    @click="toggleVoiceRecord()"
                                     class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] shadow-[0_2px_8px_rgba(225,29,72,0.1)] border transition-all hover:scale-105 active:scale-95"
-                                    :class="isRecordingVoice ? 'border-rose-200 bg-rose-100 text-rose-600' : 'border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600'"
+                                    :class="isRecordingVoice ? 'border-rose-200 bg-rose-100 text-rose-600' :
+                                        'border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600'"
                                     title="Record Voice Message">
                                     <template x-if="!isRecordingVoice">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                                         </svg>
                                     </template>
                                     <template x-if="isRecordingVoice">
@@ -717,10 +1121,13 @@
                                     </template>
                                 </button>
 
-                                <button type="button" @click="sendMessage()" :disabled="isFileTooLarge || (!draftMessage.trim() && !selectedFile) || isSendingMessage"
+                                <button type="button" @click="sendMessage()"
+                                    :disabled="isFileTooLarge || (!draftMessage.trim() && !selectedFile) || isSendingMessage"
                                     class="group relative flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-[0_4px_14px_0_rgba(251,113,133,0.39)] transition-all hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(251,113,133,0.5)] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform"
+                                        viewBox="0 0 20 20" fill="currentColor">
+                                        <path
+                                            d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
                                     </svg>
                                 </button>
                             </div>
@@ -730,9 +1137,12 @@
                 <template x-if="!activeConversation">
                     <div class="flex h-full flex-1 items-center justify-center px-8 py-12">
                         <div class="max-w-lg text-center">
-                            <div class="mx-auto flex h-24 w-24 items-center justify-center rounded-[30px] bg-stone-50 border border-stone-100 text-4xl text-stone-400">💬</div>
+                            <div
+                                class="mx-auto flex h-24 w-24 items-center justify-center rounded-[30px] bg-stone-50 border border-stone-100 text-4xl text-stone-400">
+                                💬</div>
                             <h3 class="mt-6 text-2xl font-bold tracking-tight text-stone-800">Pick a conversation</h3>
-                            <p class="mt-3 text-[14px] font-medium leading-7 text-stone-500">Open a direct message, create a group, or search contacts to start chatting.</p>
+                            <p class="mt-3 text-[14px] font-medium leading-7 text-stone-500">Open a direct message,
+                                create a group, or search contacts to start chatting.</p>
                         </div>
                     </div>
                 </template>
@@ -740,38 +1150,56 @@
         </div>
     </div>
 
-    <div x-cloak x-show="showCreateGroupModal" class="fixed inset-0 z-50 flex items-start justify-center bg-slate-950/40 p-4 backdrop-blur-sm overflow-y-auto custom-scrollbar">
+    <div x-cloak x-show="showCreateGroupModal"
+        class="fixed inset-0 z-50 flex items-start justify-center bg-slate-950/40 p-4 backdrop-blur-sm overflow-y-auto custom-scrollbar">
         <div class="my-auto w-full max-w-2xl rounded-[28px] bg-white p-6 shadow-2xl transition-all">
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <h3 class="text-xl font-semibold text-slate-900">Create Group</h3>
                     <p class="mt-1 text-sm text-slate-500">Admins and users can join the same group.</p>
-                </div><button type="button" @click="closeCreateGroup()" class="text-2xl text-slate-400 hover:text-slate-700">&times;</button>
+                </div><button type="button" @click="closeCreateGroup()"
+                    class="text-2xl text-slate-400 hover:text-slate-700">&times;</button>
             </div>
             <div class="mt-6 grid gap-4">
                 <div>
-                    <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Group Name <span class="text-rose-500">*</span></label>
-                    <input x-model="groupForm.name" @input="groupNameError = false" type="text" placeholder="Enter group name..." class="w-full rounded-2xl border bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-all focus:border-slate-400 focus:ring-4 focus:ring-slate-200" :class="groupNameError ? 'border-rose-400 bg-rose-50' : 'border-slate-200'">
+                    <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Group Name
+                        <span class="text-rose-500">*</span></label>
+                    <input x-model="groupForm.name" @input="groupNameError = false" type="text"
+                        placeholder="Enter group name..."
+                        class="w-full rounded-2xl border bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-all focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                        :class="groupNameError ? 'border-rose-400 bg-rose-50' : 'border-slate-200'">
                     <template x-if="groupNameError">
-                        <p class="mt-1.5 px-1 text-xs font-medium text-rose-500">Group name is required to create a group.</p>
+                        <p class="mt-1.5 px-1 text-xs font-medium text-rose-500">Group name is required to create a
+                            group.</p>
                     </template>
                 </div>
                 <div>
-                    <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Description</label>
-                    <textarea x-model="groupForm.description" rows="3" placeholder="What is this group about? (Optional)" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"></textarea>
+                    <label
+                        class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Description</label>
+                    <textarea x-model="groupForm.description" rows="3" placeholder="What is this group about? (Optional)"
+                        class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"></textarea>
                 </div>
                 <div>
-                    <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Search Members</label>
-                    <input x-model="groupMemberSearch" @input.debounce.250ms="loadGroupCandidates()" type="text" placeholder="Search by name or email" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200">
+                    <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Search
+                        Members</label>
+                    <input x-model="groupMemberSearch" @input.debounce.250ms="loadGroupCandidates()" type="text"
+                        placeholder="Search by name or email"
+                        class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200">
                 </div>
             </div>
             <div class="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
-                <div class="max-h-72 space-y-2 overflow-y-auto rounded-3xl border border-slate-200 bg-slate-50 p-3"><template x-for="item in groupCandidates" :key="item.type + '-' + item.id"><button type="button" @click="toggleMember(item)" class="flex w-full items-center justify-between rounded-2xl bg-white px-4 py-3 text-left transition hover:bg-slate-100">
+                <div class="max-h-72 space-y-2 overflow-y-auto rounded-3xl border border-slate-200 bg-slate-50 p-3">
+                    <template x-for="item in groupCandidates" :key="item.type + '-' + item.id"><button type="button"
+                            @click="toggleMember(item)"
+                            class="flex w-full items-center justify-between rounded-2xl bg-white px-4 py-3 text-left transition hover:bg-slate-100">
                             <div>
                                 <div class="text-sm font-semibold text-slate-900" x-text="item.name"></div>
                                 <div class="text-xs text-slate-500" x-text="item.subtitle + '  ' + item.email"></div>
-                            </div><span class="rounded-full px-3 py-1 text-xs font-medium" :class="isSelectedMember(item) ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500'" x-text="isSelectedMember(item) ? 'Selected' : 'Add'"></span>
-                        </button></template></div>
+                            </div><span class="rounded-full px-3 py-1 text-xs font-medium"
+                                :class="isSelectedMember(item) ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500'"
+                                x-text="isSelectedMember(item) ? 'Selected' : 'Add'"></span>
+                        </button></template>
+                </div>
                 <div class="rounded-3xl border border-slate-200 bg-white p-4">
                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Selected</p>
                     <div class="mt-3 space-y-2"><template x-if="!groupForm.participants.length">
@@ -781,40 +1209,52 @@
                                 <div>
                                     <div class="text-sm font-medium text-slate-800" x-text="item.name"></div>
                                     <div class="text-xs text-slate-500" x-text="item.subtitle"></div>
-                                </div><button type="button" @click="toggleMember(item)" class="text-sm text-rose-500">Remove</button>
+                                </div><button type="button" @click="toggleMember(item)"
+                                    class="text-sm text-rose-500">Remove</button>
                             </div>
                         </template></div>
                 </div>
             </div>
-            <div class="mt-6 flex justify-end gap-3"><button type="button" @click="closeCreateGroup()" class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600">Cancel</button><button type="button" @click="createGroup()" class="rounded-2xl bg-slate-900 px-5 py-2 text-sm font-semibold text-white">Create group</button></div>
+            <div class="mt-6 flex justify-end gap-3"><button type="button" @click="closeCreateGroup()"
+                    class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600">Cancel</button><button
+                    type="button" @click="createGroup()"
+                    class="rounded-2xl bg-slate-900 px-5 py-2 text-sm font-semibold text-white">Create group</button>
+            </div>
         </div>
     </div>
 
-    <div x-cloak x-show="showManageMembersModal && activeConversation?.is_group" class="fixed inset-0 z-50 flex items-start justify-center bg-slate-950/40 p-4 backdrop-blur-sm overflow-y-auto custom-scrollbar">
+    <div x-cloak x-show="showManageMembersModal && activeConversation?.is_group"
+        class="fixed inset-0 z-50 flex items-start justify-center bg-slate-950/40 p-4 backdrop-blur-sm overflow-y-auto custom-scrollbar">
         <div class="my-auto w-full max-w-2xl rounded-[28px] bg-white p-6 shadow-2xl transition-all">
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <h3 class="text-xl font-semibold text-slate-900">Group Info</h3>
                     <p class="mt-1 text-sm text-slate-500" x-text="activeConversation?.title"></p>
-                </div><button type="button" @click="showManageMembersModal = false" class="text-2xl text-slate-400 hover:text-slate-700">&times;</button>
+                </div><button type="button" @click="showManageMembersModal = false"
+                    class="text-2xl text-slate-400 hover:text-slate-700">&times;</button>
             </div>
             <div class="mt-5 space-y-4">
                 <div class="grid gap-3 md:grid-cols-2">
                     <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
                         <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Group Admin</p>
-                        <p class="mt-2 text-sm font-semibold text-slate-900" x-text="groupAdminName() || 'Unknown'"></p>
+                        <p class="mt-2 text-sm font-semibold text-slate-900" x-text="groupAdminName() || 'Unknown'">
+                        </p>
                     </div>
                     <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
                         <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Members</p>
-                        <p class="mt-2 text-sm font-semibold text-slate-900" x-text="groupDetails.members?.length || 0"></p>
+                        <p class="mt-2 text-sm font-semibold text-slate-900"
+                            x-text="groupDetails.members?.length || 0"></p>
                     </div>
                 </div>
                 <div>
                     <template x-if="groupDetails.can_manage">
-                        <input x-model="manageMemberSearch" @input.debounce.250ms="loadGroupCandidates()" type="text" placeholder="Search users or admins to add" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200">
+                        <input x-model="manageMemberSearch" @input.debounce.250ms="loadGroupCandidates()"
+                            type="text" placeholder="Search users or admins to add"
+                            class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200">
                     </template>
                     <template x-if="!groupDetails.can_manage">
-                        <p class="text-sm text-slate-500">View group members and roles. Only admins can manage group membership.</p>
+                        <p class="text-sm text-slate-500">View group members and roles. Only admins can manage group
+                            membership.</p>
                     </template>
                 </div>
             </div>
@@ -825,22 +1265,29 @@
                             <div>
                                 <div class="flex items-center gap-2">
                                     <span class="text-sm font-semibold text-slate-900" x-text="member.name"></span>
-                                    <span x-show="member.role === 'admin'" class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-700">Admin</span>
+                                    <span x-show="member.role === 'admin'"
+                                        class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-700">Admin</span>
                                 </div>
-                                <div class="text-xs text-slate-500" x-text="member.type + ' • ' + (member.joined_at ? formatJoinDate(member.joined_at) : '')"></div>
+                                <div class="text-xs text-slate-500"
+                                    x-text="member.type + ' • ' + (member.joined_at ? formatJoinDate(member.joined_at) : '')">
+                                </div>
                             </div>
-                            <button type="button" x-show="groupDetails.can_manage && member.role !== 'admin'" @click="removeMember(member)" class="text-sm text-rose-500">Remove</button>
+                            <button type="button" x-show="groupDetails.can_manage && member.role !== 'admin'"
+                                @click="removeMember(member)" class="text-sm text-rose-500">Remove</button>
                         </div>
                     </template>
                 </div>
                 <template x-if="groupDetails.can_manage">
                     <div class="max-h-80 space-y-2 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-3">
                         <template x-for="item in availableNewMembers()" :key="item.type + '-' + item.id">
-                            <button type="button" @click="addMembers([item])" class="flex w-full items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-left transition hover:bg-slate-100">
+                            <button type="button" @click="addMembers([item])"
+                                class="flex w-full items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-left transition hover:bg-slate-100">
                                 <div>
                                     <div class="text-sm font-semibold text-slate-900" x-text="item.name"></div>
-                                    <div class="text-xs text-slate-500" x-text="item.subtitle + '  ' + item.email"></div>
-                                </div><span class="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500">Add</span>
+                                    <div class="text-xs text-slate-500" x-text="item.subtitle + '  ' + item.email">
+                                    </div>
+                                </div><span
+                                    class="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500">Add</span>
                             </button>
                         </template>
                     </div>
@@ -849,28 +1296,38 @@
         </div>
     </div>
 
-    <div x-cloak x-show="confirmDialog.open" class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
-        <div x-show="confirmDialog.open" x-transition class="w-full max-w-md overflow-hidden rounded-[30px] border border-white/70 bg-white shadow-[0_30px_80px_rgba(15,23,42,0.22)]">
+    <div x-cloak x-show="confirmDialog.open"
+        class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
+        <div x-show="confirmDialog.open" x-transition
+            class="w-full max-w-md overflow-hidden rounded-[30px] border border-white/70 bg-white shadow-[0_30px_80px_rgba(15,23,42,0.22)]">
             <div class="bg-gradient-to-br from-slate-50 via-white to-amber-50 px-6 py-6">
                 <div class="flex items-start gap-4">
-                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 via-orange-400 to-amber-400 text-white shadow-lg shadow-orange-200/80">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7 5 7m5-3h4m-5 7v6m4-6v6m5-10v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7h12Z" />
+                    <div
+                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 via-orange-400 to-amber-400 text-white shadow-lg shadow-orange-200/80">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7 5 7m5-3h4m-5 7v6m4-6v6m5-10v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7h12Z" />
                         </svg>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <h3 class="text-[20px] font-extrabold tracking-tight text-stone-900" x-text="confirmDialog.title"></h3>
+                        <h3 class="text-[20px] font-extrabold tracking-tight text-stone-900"
+                            x-text="confirmDialog.title"></h3>
                         <p class="mt-2 text-[14px] leading-6 text-stone-500" x-text="confirmDialog.description"></p>
                     </div>
-                    <button type="button" @click="closeConfirmDialog()" class="flex h-9 w-9 items-center justify-center rounded-full text-stone-400 transition hover:bg-white hover:text-stone-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                    <button type="button" @click="closeConfirmDialog()"
+                        class="flex h-9 w-9 items-center justify-center rounded-full text-stone-400 transition hover:bg-white hover:text-stone-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
             </div>
             <div class="px-6 pb-6">
-                <div class="rounded-[22px] border border-amber-100 bg-gradient-to-r from-amber-50 to-rose-50 px-4 py-3 text-[12px] font-semibold text-amber-700">
+                <div
+                    class="rounded-[22px] border border-amber-100 bg-gradient-to-r from-amber-50 to-rose-50 px-4 py-3 text-[12px] font-semibold text-amber-700">
                     This action cannot be undone.
                 </div>
                 <div class="mt-5 flex items-center justify-end gap-3">
@@ -878,7 +1335,8 @@
                         class="rounded-[16px] border border-stone-200 bg-white px-4 py-2.5 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-800">
                         Cancel
                     </button>
-                    <button type="button" @click="confirmDialog.onConfirm && confirmDialog.onConfirm()" :disabled="confirmDialog.loading"
+                    <button type="button" @click="confirmDialog.onConfirm && confirmDialog.onConfirm()"
+                        :disabled="confirmDialog.loading"
                         class="inline-flex items-center justify-center gap-2 rounded-[16px] bg-gradient-to-r from-rose-500 via-orange-400 to-amber-400 px-4 py-2.5 text-[13px] font-bold text-white shadow-lg shadow-orange-200/80 transition hover:translate-y-[-1px] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60">
                         <template x-if="!confirmDialog.loading">
                             <span x-text="confirmDialog.confirmText"></span>
@@ -892,50 +1350,75 @@
         </div>
     </div>
 
-    <div x-cloak x-show="showCallModal" class="fixed inset-0 z-[75] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
-        <div class="w-full max-w-4xl overflow-hidden rounded-[32px] border border-white/10 bg-slate-950 text-white shadow-[0_30px_100px_rgba(15,23,42,0.45)]">
+    <div x-cloak x-show="showCallModal"
+        class="fixed inset-0 z-[75] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+        <div
+            class="w-full max-w-4xl overflow-hidden rounded-[32px] border border-white/10 bg-slate-950 text-white shadow-[0_30px_100px_rgba(15,23,42,0.45)]">
             <div class="flex items-center justify-between border-b border-white/10 px-6 py-4">
                 <div>
-                    <p class="text-[11px] font-bold uppercase tracking-[0.25em] text-orange-300" x-text="callMode === 'video' ? 'Video Call' : 'Audio Call'"></p>
-                    <h3 class="mt-1 text-xl font-bold text-white" x-text="callPeerName || activeConversation?.title || 'Calling'"></h3>
+                    <p class="text-[11px] font-bold uppercase tracking-[0.25em] text-orange-300"
+                        x-text="callMode === 'video' ? 'Video Call' : 'Audio Call'"></p>
+                    <h3 class="mt-1 text-xl font-bold text-white"
+                        x-text="callPeerName || activeConversation?.title || 'Calling'"></h3>
                     <p class="mt-1 text-sm text-slate-300" x-text="callStatus"></p>
                     <template x-if="microphoneUnavailable && !callConnected">
-                        <p class="mt-1 text-sm text-rose-200">Microphone unavailable — you can hear the other side but cannot speak.</p>
+                        <p class="mt-1 text-sm text-rose-200">Microphone unavailable — you can hear the other side but
+                            cannot speak.</p>
                     </template>
                     <template x-if="cameraUnavailable && !callConnected">
-                        <p class="mt-1 text-sm text-amber-200">Camera unavailable — you can hear the side, but you will not be seen.</p>
+                        <p class="mt-1 text-sm text-amber-200">Camera unavailable — you can hear the side, but you will
+                            not be seen.</p>
                     </template>
                 </div>
-                <button type="button" @click="endCall()" class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18 18 6M6 6l12 12" />
+                <button type="button" @click="endCall()"
+                    class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M6 18 18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
             <div class="grid gap-4 bg-slate-900 p-4 md:grid-cols-[minmax(0,1fr)_220px]">
-                <div class="relative flex min-h-[320px] items-center justify-center overflow-hidden rounded-[28px] bg-slate-800">
-                    <video x-ref="remoteVideo" autoplay playsinline class="h-full min-h-[320px] w-full object-cover" :class="callMode === 'audio' ? 'hidden' : 'block'"></video>
-                    <div x-show="callMode === 'audio' || !remoteStreamActive" class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.2),_transparent_55%)]">
+                <div
+                    class="relative flex min-h-[320px] items-center justify-center overflow-hidden rounded-[28px] bg-slate-800">
+                    <video x-ref="remoteVideo" autoplay playsinline class="h-full min-h-[320px] w-full object-cover"
+                        :class="callMode === 'audio' ? 'hidden' : 'block'"></video>
+                    <div x-show="callMode === 'audio' || !remoteStreamActive"
+                        class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.2),_transparent_55%)]">
                         <div class="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 text-3xl font-bold text-white shadow-lg"
                             :class="incomingCall && !callConnected ? 'ring-4 ring-orange-300/60 animate-pulse' : ''"
                             x-text="initialFor(callPeerName || activeConversation?.title)"></div>
-                        <p class="text-lg font-semibold text-white" x-text="callPeerName || activeConversation?.title"></p>
+                        <p class="text-lg font-semibold text-white"
+                            x-text="callPeerName || activeConversation?.title"></p>
                     </div>
                 </div>
                 <div class="flex flex-col gap-4">
                     <div class="relative overflow-hidden rounded-[24px] bg-slate-800">
-                        <video x-ref="localVideo" autoplay playsinline muted class="h-[180px] w-full object-cover" :class="callMode === 'video' && !cameraUnavailable ? 'block' : 'hidden'"></video>
-                        <div x-show="callMode === 'video' && cameraUnavailable" class="flex h-[180px] items-center justify-center bg-slate-800 text-slate-300">Camera unavailable</div>
-                        <div x-show="callMode === 'audio'" class="flex h-[180px] items-center justify-center bg-slate-800 text-slate-300">Microphone only</div>
+                        <video x-ref="localVideo" autoplay playsinline muted class="h-[180px] w-full object-cover"
+                            :class="callMode === 'video' && !cameraUnavailable ? 'block' : 'hidden'"></video>
+                        <div x-show="callMode === 'video' && cameraUnavailable"
+                            class="flex h-[180px] items-center justify-center bg-slate-800 text-slate-300">Camera
+                            unavailable</div>
+                        <div x-show="callMode === 'audio'"
+                            class="flex h-[180px] items-center justify-center bg-slate-800 text-slate-300">Microphone
+                            only</div>
                     </div>
                     <div class="grid grid-cols-2 gap-3" x-show="incomingCall && !callConnected">
-                        <button type="button" @click="acceptIncomingCall()" class="rounded-[18px] bg-emerald-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-600">Accept</button>
-                        <button type="button" @click="rejectIncomingCall()" class="rounded-[18px] bg-rose-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-rose-600">Reject</button>
+                        <button type="button" @click="acceptIncomingCall()"
+                            class="rounded-[18px] bg-emerald-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-600">Accept</button>
+                        <button type="button" @click="rejectIncomingCall()"
+                            class="rounded-[18px] bg-rose-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-rose-600">Reject</button>
                     </div>
                     <div class="flex items-center gap-3" x-show="!incomingCall || callConnected">
-                        <button type="button" @click="toggleMute()" class="flex-1 rounded-[18px] bg-white/10 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/20" x-text="isMuted ? 'Unmute' : 'Mute'"></button>
-                        <button type="button" @click="toggleCamera()" x-show="callMode === 'video'" class="flex-1 rounded-[18px] bg-white/10 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/20" x-text="isCameraOff ? 'Camera On' : 'Camera Off'"></button>
-                        <button type="button" @click="endCall()" class="rounded-[18px] bg-rose-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-rose-600">End</button>
+                        <button type="button" @click="toggleMute()"
+                            class="flex-1 rounded-[18px] bg-white/10 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/20"
+                            x-text="isMuted ? 'Unmute' : 'Mute'"></button>
+                        <button type="button" @click="toggleCamera()" x-show="callMode === 'video'"
+                            class="flex-1 rounded-[18px] bg-white/10 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/20"
+                            x-text="isCameraOff ? 'Camera On' : 'Camera Off'"></button>
+                        <button type="button" @click="endCall()"
+                            class="rounded-[18px] bg-rose-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-rose-600">End</button>
                     </div>
                 </div>
             </div>
@@ -959,7 +1442,9 @@
             features: config.features || {},
             notificationToasts: [],
             seenConversationSnapshots: {},
-            activeConversationId: localStorage.getItem('user_active_conversation_id') && localStorage.getItem('user_active_conversation_id') !== 'null' ? localStorage.getItem('user_active_conversation_id') : (config.initialConversationId || null),
+            activeConversationId: localStorage.getItem('user_active_conversation_id') && localStorage.getItem(
+                'user_active_conversation_id') !== 'null' ? localStorage.getItem('user_active_conversation_id') : (
+                config.initialConversationId || null),
             activeConversation: null,
             currentConversationChannel: null,
             groupDetails: {
@@ -1001,6 +1486,7 @@
             isFileTooLarge: false,
             selectedFilePreview: null,
             isSendingMessage: false,
+            sendingMessages: [],
             isRecordingVoice: false,
             showCreateGroupModal: false,
             showManageMembersModal: false,
@@ -1038,18 +1524,20 @@
 
             downloadFile(url, filename, relativePath = null) {
                 if (!url && !relativePath) return;
-                
+
                 let path = relativePath;
                 if (!path && url) {
                     // Extract relative path from absolute URL as fallback
                     const match = url.match(/(uploads\/messages|chat-images)\/(.+)$/);
                     if (match) {
-                        path = (match[1] === 'uploads/messages' ? 'uploads/messages/' : 'chat-images/') + match[2].split('?')[0];
+                        path = (match[1] === 'uploads/messages' ? 'uploads/messages/' : 'chat-images/') + match[2]
+                            .split('?')[0];
                     }
                 }
 
                 if (path) {
-                    const downloadUrl = `/messages/download-attachment?path=${encodeURIComponent(path)}&name=${encodeURIComponent(filename || 'file')}`;
+                    const downloadUrl =
+                        `/messages/download-attachment?path=${encodeURIComponent(path)}&name=${encodeURIComponent(filename || 'file')}`;
                     const link = document.createElement('a');
                     link.href = downloadUrl;
                     link.style.display = 'none';
@@ -1203,7 +1691,8 @@
                 };
 
                 connection.onicecandidate = async (event) => {
-                    if (!event.candidate || !this.callPeerId || !this.callPeerType || !this.activeConversationId) return;
+                    if (!event.candidate || !this.callPeerId || !this.callPeerType || !this
+                        .activeConversationId) return;
                     await axios.post('/voice-call/ice-candidate', {
                         conversation_id: this.activeConversationId,
                         to_id: this.callPeerId,
@@ -1287,9 +1776,11 @@
                 await this.ensureMediaStream(mode);
             },
             async startCall(mode) {
-                if ((mode === 'audio' && !this.features.audio_call) || (mode === 'video' && !this.features.video_call)) return;
+                if ((mode === 'audio' && !this.features.audio_call) || (mode === 'video' && !this.features
+                        .video_call)) return;
                 if (!this.activeConversation || this.activeConversation.is_group) return;
-                await this.prepareCallUi(mode, this.activeConversation.other_participant_id, this.activeConversation.other_participant_type, this.activeConversation.title);
+                await this.prepareCallUi(mode, this.activeConversation.other_participant_id, this.activeConversation
+                    .other_participant_type, this.activeConversation.title);
                 if (this.microphoneUnavailable && this.cameraUnavailable) {
                     this.callStatus = 'Calling — microphone and camera unavailable';
                 } else if (this.microphoneUnavailable) {
@@ -1322,7 +1813,8 @@
 
                 if (signal.type === 'offer') {
                     if (!this.callModeEnabled(signal.call_mode || 'audio')) return;
-                    const conversation = this.conversations.find((item) => String(item.id) === String(signal.conversation_id));
+                    const conversation = this.conversations.find((item) => String(item.id) === String(signal
+                        .conversation_id));
                     if (conversation && String(this.activeConversationId) !== String(signal.conversation_id)) {
                         await this.selectConversation(conversation);
                     }
@@ -1332,7 +1824,8 @@
                     this.callPeerId = signal.from_id;
                     this.callPeerType = signal.from_type;
                     this.callPeerName = conversation?.title || 'Incoming call';
-                    this.callStatus = this.callMode === 'video' ? 'Incoming video call...' : 'Incoming audio call...';
+                    this.callStatus = this.callMode === 'video' ? 'Incoming video call...' :
+                        'Incoming audio call...';
                     this.showCallModal = true;
                     this.startRingTone();
                     await this.sendRingingSignal(signal);
@@ -1349,7 +1842,8 @@
 
                 if (signal.type === 'answer' && this.peerConnection) {
                     this.stopRingTone();
-                    await this.peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(signal.payload)));
+                    await this.peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(signal
+                        .payload)));
                     this.callConnected = true;
                     this.callStatus = 'Connected';
                     return;
@@ -1384,7 +1878,8 @@
                 this.incomingCall = false;
                 this.incomingCallRingingAckSent = false;
 
-                await this.prepareCallUi(signal.call_mode || 'audio', signal.from_id, signal.from_type, this.callPeerName);
+                await this.prepareCallUi(signal.call_mode || 'audio', signal.from_id, signal.from_type, this
+                    .callPeerName);
                 this.callStatus = this.microphoneUnavailable ? 'Connecting — listen only' : 'Connecting...';
 
                 const connection = this.createPeerConnection();
@@ -1509,7 +2004,8 @@
                 return message?.type === 'file' ? 'Attachment' : 'New message received';
             },
             notificationLabel(message) {
-                const conversation = this.conversations.find((item) => String(item.id) === String(message?.conversation_id));
+                const conversation = this.conversations.find((item) => String(item.id) === String(message
+                    ?.conversation_id));
                 return conversation?.title ? `Message from ${conversation.title}` : 'New Message';
             },
             connectNotificationListener(retryCount = 0) {
@@ -1550,19 +2046,15 @@
 
                 window.Echo.private(`conversation.${conversationId}`)
                     .listen('.message.sent', (message) => {
-                        if (!message || String(message.conversation_id) !== String(this.activeConversationId)) return;
+                        if (!message || String(message.conversation_id) !== String(this.activeConversationId))
+                            return;
                         const exists = this.messages.some(m => String(m.id) === String(message.id));
                         if (!exists) {
                             this.messages = [...this.messages, message];
                             this.$nextTick(() => {
                                 this.scrollToBottom(0, true);
                             });
-                            axios.post(config.routes.read, {
-                                conversation_id: this.activeConversationId
-                            });
-                            if (window.dispatchMessageCounterSync) window.dispatchMessageCounterSync('read', {
-                                conversationId: this.activeConversationId
-                            });
+                            this.markAsRead();
                         }
                     });
             },
@@ -1570,10 +2062,12 @@
                 if (!this.features.notifications) return;
                 if (window.__dashboardGlobalMessageNotifications) return;
                 const senderType = String(message?.sender_type || '').split('\\').pop().toLowerCase();
-                const isOwnMessage = String(message?.sender_id) === String(config.currentId) && senderType === config.currentType;
+                const isOwnMessage = String(message?.sender_id) === String(config.currentId) && senderType === config
+                    .currentType;
                 if (!message?.id || isOwnMessage) return;
 
-                const alreadyVisible = this.notificationToasts.some((item) => String(item.messageId) === String(message.id));
+                const alreadyVisible = this.notificationToasts.some((item) => String(item.messageId) === String(message
+                    .id));
                 if (alreadyVisible) return;
 
                 const toast = {
@@ -1604,9 +2098,12 @@
 
                     const previousSnapshot = this.seenConversationSnapshots[String(conversation.id)];
 
-                    if (!force && previousSnapshot && snapshot.lastMessageId && previousSnapshot.lastMessageId !== snapshot.lastMessageId) {
-                        const senderType = String(lastMessage?.sender_type || '').split('\\').pop().toLowerCase();
-                        const isMine = String(lastMessage?.sender_id) === String(config.currentId) && senderType === config.currentType;
+                    if (!force && previousSnapshot && snapshot.lastMessageId && previousSnapshot
+                        .lastMessageId !== snapshot.lastMessageId) {
+                        const senderType = String(lastMessage?.sender_type || '').split('\\').pop()
+                            .toLowerCase();
+                        const isMine = String(lastMessage?.sender_id) === String(config.currentId) &&
+                            senderType === config.currentType;
 
                         if (!isMine) {
                             this.pushNotificationToast({
@@ -1631,7 +2128,8 @@
                 if (!this.features.notifications) return;
                 this.notificationToasts = this.notificationToasts.filter((item) => item.id !== toast.id);
                 await this.loadConversations(true);
-                const conversation = this.conversations.find((item) => String(item.id) === String(toast.conversationId));
+                const conversation = this.conversations.find((item) => String(item.id) === String(toast
+                    .conversationId));
                 if (conversation) {
                     await this.selectConversation(conversation);
                 }
@@ -1683,28 +2181,48 @@
                     onConfirm: null
                 };
             },
-            scrollToBottom(delay = 50) {
+            markAsRead() {
+                if (!this.activeConversationId) return;
+
+                // Only mark as read if the document is visible and the window is focused
+                // This prevents marking as read when the user is in another tab or dashboard
+                if (document.visibilityState !== 'visible' || !document.hasFocus()) {
+                    return;
+                }
+
+                axios.post(config.routes.read, {
+                    conversation_id: this.activeConversationId
+                }).then(() => {
+                    if (window.dispatchMessageCounterSync) {
+                        window.dispatchMessageCounterSync('read', {
+                            conversationId: this.activeConversationId
+                        });
+                    }
+                }).catch(err => console.error('Mark as read failed', err));
+            },
+
+            scrollToBottom(delay = 10, force = false) {
                 this.$nextTick(() => {
                     const panel = document.getElementById('messages-panel');
                     if (!panel) return;
-                    
-                    const performScroll = (behavior = 'smooth') => {
-                        panel.scrollTo({ top: panel.scrollHeight, behavior: behavior });
+
+                    // Threshold to determine if user is "near bottom" (e.g., 150px)
+                    // If they are further up, we don't jump unless 'force' is true (like when sending)
+                    const threshold = 200;
+                    const isNearBottom = (panel.scrollHeight - panel.scrollTop - panel.clientHeight) < threshold;
+
+                    if (!force && !isNearBottom) {
+                        return;
+                    }
+
+                    const performScroll = () => {
+                        panel.scrollTop = panel.scrollHeight;
                     };
 
-                    setTimeout(() => {
-                        panel.scrollTop = panel.scrollHeight;
-                        requestAnimationFrame(() => performScroll('smooth'));
-                        
-                        panel.querySelectorAll('img').forEach(img => {
-                            if (!img.complete) img.addEventListener('load', () => performScroll('smooth'), { once: true });
-                        });
-
-                        setTimeout(() => performScroll('smooth'), 200);
-                        setTimeout(() => performScroll('smooth'), 600);
-                    }, delay);
+                    setTimeout(performScroll, delay);
                 });
             },
+
             init() {
                 if (!this.features.groups && this.activeTab === 'groups') {
                     this.activeTab = 'direct';
@@ -1715,10 +2233,25 @@
                 this.startPolling();
                 if (this.features.audio_call || this.features.video_call) this.startSignalPolling();
                 this.$watch('activeTab', value => localStorage.setItem('messaging_active_tab', value));
+                
+                let lastCombinedLength = this.messages.length + this.sendingMessages.length;
+                this.$watch('messages.length + sendingMessages.length', (newVal) => {
+                    // Only auto-scroll if message count increased
+                    if (newVal > lastCombinedLength) {
+                        this.scrollToBottom(10, false); // Normal auto-scroll (respects user position)
+                    }
+                    lastCombinedLength = newVal;
+                });
                 if (this.features.online_status) {
                     this.sendHeartbeat();
                     setInterval(() => this.sendHeartbeat(), 30000);
                 }
+
+                window.addEventListener('focus', () => {
+                    if (this.activeConversationId) {
+                        this.markAsRead();
+                    }
+                });
 
                 // Ensure only one audio plays at a time
                 document.addEventListener('play', (event) => {
@@ -1784,7 +2317,8 @@
                     return;
                 }
                 if (this.activeConversationId) {
-                    this.activeConversation = this.conversations.find((item) => item.id == this.activeConversationId) || null;
+                    this.activeConversation = this.conversations.find((item) => item.id == this
+                        .activeConversationId) || null;
                     if (this.activeConversation && this.messages.length === 0) {
                         await this.loadMessages(false);
                     } else if (force) {
@@ -1793,25 +2327,27 @@
                 }
             },
             async loadDirectCandidates() {
-                const response = await fetch(`${config.routes.participants}?mode=direct&q=${encodeURIComponent(this.directSearch)}`, {
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
+                const response = await fetch(
+                    `${config.routes.participants}?mode=direct&q=${encodeURIComponent(this.directSearch)}`, {
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
                 this.directCandidates = (await response.json()).items || [];
             },
             async loadGroupCandidates() {
                 if (!this.features.groups) return;
                 const search = this.showManageMembersModal ? this.manageMemberSearch : this.groupMemberSearch;
-                const response = await fetch(`${config.routes.participants}?mode=group&q=${encodeURIComponent(search)}`, {
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
+                const response = await fetch(
+                    `${config.routes.participants}?mode=group&q=${encodeURIComponent(search)}`, {
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
                 this.groupCandidates = (await response.json()).items || [];
             },
             async startDirectChat(item) {
@@ -1851,15 +2387,18 @@
                 // Allow immediate load if messages are empty (i.e. we just switched conversations)
                 if (!silent && this.messages.length > 0 && (now - this.lastLoadTime < this.loadDebounceMs)) return;
 
-                const showLoading = !silent && !this.loadedMessagesForConversation[this.activeConversationId] && this.messages.length === 0;
+                const showLoading = !silent && !this.loadedMessagesForConversation[this.activeConversationId] &&
+                    this.messages.length === 0;
                 if (showLoading) {
                     this.loadingMessages = true;
                 }
 
                 this.lastLoadTime = now;
                 try {
-                    const response = await axios.get(`${config.routes.messagesBase}/${this.activeConversationId}?t=${now}`);
-                    const newMessages = (response.data.messages || []).filter(m => String(m.conversation_id) === String(this.activeConversationId));
+                    const response = await axios.get(
+                        `${config.routes.messagesBase}/${this.activeConversationId}?t=${now}`);
+                    const newMessages = (response.data.messages || []).filter(m => String(m.conversation_id) ===
+                        String(this.activeConversationId));
                     const previousCount = this.messages.length;
                     this.messages = newMessages;
 
@@ -1880,8 +2419,41 @@
                     this.loadedMessagesForConversation[this.activeConversationId] = true;
                 }
             },
+            async loadMessages(silent = false) {
+                if (!this.activeConversationId) return;
+                if (this.loadingMessages) return;
+
+                const now = Date.now();
+
+                if (!silent && this.messages.length > 0 && (now - this.lastLoadTime < this.loadDebounceMs)) return;
+
+                const showLoading = !silent && !this.loadedMessagesForConversation[this.activeConversationId] &&
+                    this.messages.length === 0;
+                if (showLoading) this.loadingMessages = true;
+
+                this.lastLoadTime = now;
+
+                try {
+                    const response = await axios.get(
+                        `${config.routes.messagesBase}/${this.activeConversationId}?t=${now}`);
+                    const newMessages = (response.data.messages || []).filter(m => String(m.conversation_id) ===
+                        String(this.activeConversationId));
+
+                    this.messages = newMessages;
+
+                    this.$nextTick(() => {
+                        this.scrollToBottom(50);
+                    });
+
+                    this.markAsRead();
+                } finally {
+                    if (showLoading) this.loadingMessages = false;
+                    this.loadedMessagesForConversation[this.activeConversationId] = true;
+                }
+            },
             async saveInlineEdit(message) {
-                if (!message || !this.isMine(message) || this.isUpdatingMessage || !this.isEditingMessage(message.id)) return;
+                if (!message || !this.isMine(message) || this.isUpdatingMessage || !this.isEditingMessage(message
+                        .id)) return;
 
                 const trimmedBody = this.editingMessageDraft.trim();
                 if (!trimmedBody) {
@@ -1896,7 +2468,8 @@
 
                     const updatedMessage = response.data?.message;
                     if (updatedMessage) {
-                        this.messages = this.messages.map((item) => String(item.id) === String(updatedMessage.id) ? updatedMessage : item);
+                        this.messages = this.messages.map((item) => String(item.id) === String(updatedMessage.id) ?
+                            updatedMessage : item);
                     }
 
                     this.cancelInlineEdit();
@@ -1920,7 +2493,8 @@
                         this.isUpdatingMessage = true;
                         try {
                             await axios.delete(this.messageDeleteRoute(message.id));
-                            this.messages = this.messages.filter((item) => String(item.id) !== String(message.id));
+                            this.messages = this.messages.filter((item) => String(item.id) !== String(
+                                message.id));
                             if (this.isEditingMessage(message.id)) {
                                 this.cancelInlineEdit();
                             }
@@ -1970,10 +2544,31 @@
                 if (!this.draftMessage.trim() && !this.selectedFile) return;
                 if (this.selectedFile && !this.features.file_upload) return;
 
+                const tempId = Date.now();
+                const tempMessage = {
+                    tempId: tempId,
+                    body: this.draftMessage.trim(),
+                    is_file: !!this.selectedFile,
+                    fileName: this.selectedFileName,
+                    isSending: true
+                };
+
+                // Add to optimistic queue
+                this.sendingMessages = [...this.sendingMessages, tempMessage];
+
+                // Clear inputs immediately
+                const originalDraft = this.draftMessage.trim();
+                const originalFile = this.selectedFile;
+
+                this.draftMessage = '';
+                this.clearFile();
+                
+                this.scrollToBottom(10, true); // Force scroll when sending our own message
+
                 const formData = new FormData();
                 formData.append('conversation_id', this.activeConversationId);
-                if (this.draftMessage.trim()) formData.append('message', this.draftMessage.trim());
-                if (this.selectedFile) formData.append('file', this.selectedFile);
+                if (originalDraft) formData.append('message', originalDraft);
+                if (originalFile) formData.append('file', originalFile);
 
                 this.isSendingMessage = true;
                 try {
@@ -1983,16 +2578,14 @@
                         }
                     });
 
-                    console.log('Message sent successfully!', response.data);
+                    // Remove from optimistic queue
+                    this.sendingMessages = this.sendingMessages.filter(m => m.tempId !== tempId);
 
-                    // Use spread operator for guaranteed Alpine reactivity
+                    // Add real message to the list
                     this.messages = [...this.messages, response.data];
-                    this.draftMessage = '';
-                    this.clearFile();
 
-                    // Update polling timer to prevent immediate override
+                    // Update polling timer
                     this.lastLoadTime = Date.now();
-
                     await this.loadConversations(true);
 
                     if (window.dispatchMessageCounterSync) {
@@ -2001,12 +2594,14 @@
                         });
                     }
 
-                    this.scrollToBottom(50, true); // Force scroll after sending a message
                     this.$nextTick(() => {
                         this.$refs.messageInput?.focus();
                     });
                 } catch (error) {
                     console.error('Send failed', error);
+                    // Remove from optimistic queue on error
+                    this.sendingMessages = this.sendingMessages.filter(m => m.tempId !== tempId);
+                    // Restore draft if failed? Maybe just alert for now as per existing logic
                     alert('Failed to send message. Please try again.');
                 } finally {
                     this.isSendingMessage = false;
@@ -2137,11 +2732,18 @@
 
                 let html = text
                     .replace(/\*\*(.*?)\*\*/g, '<strong class="text-stone-900 font-bold">$1</strong>') // Bold text
-                    .replace(/^\s*###\s*(.*$)/gm, '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // H3 headings
-                    .replace(/^\s*##\s*(.*$)/gm, '<h4 class="text-[14px] font-bold text-stone-900 mt-4 mb-2 border-b border-stone-100 pb-1">$1</h4>') // H2 headings
-                    .replace(/^\s*#\s*(.*$)/gm, '<h3 class="text-[16px] font-extrabold text-stone-900 mt-5 mb-3">$1</h3>') // H1 headings
-                    .replace(/^\s*(\d+\.\s.*)$/gm, '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // Numbered headings
-                    .replace(/^\s*[-*]\s(.*)$/gm, '<div class="flex items-start gap-2 ml-2 my-0"><span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400"></span><span class="text-stone-700">$1</span></div>'); // Bullet points (removed margin)
+                    .replace(/^\s*###\s*(.*$)/gm,
+                        '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // H3 headings
+                    .replace(/^\s*##\s*(.*$)/gm,
+                        '<h4 class="text-[14px] font-bold text-stone-900 mt-4 mb-2 border-b border-stone-100 pb-1">$1</h4>'
+                    ) // H2 headings
+                    .replace(/^\s*#\s*(.*$)/gm,
+                        '<h3 class="text-[16px] font-extrabold text-stone-900 mt-5 mb-3">$1</h3>') // H1 headings
+                    .replace(/^\s*(\d+\.\s.*)$/gm,
+                        '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // Numbered headings
+                    .replace(/^\s*[-*]\s(.*)$/gm,
+                        '<div class="flex items-start gap-2 ml-2 my-0"><span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400"></span><span class="text-stone-700">$1</span></div>'
+                    ); // Bullet points (removed margin)
 
                 // Handle line breaks
                 html = html.split('\n').map(line => {
@@ -2172,10 +2774,12 @@
             toggleMember(item) {
                 const key = `${item.type}-${item.id}`;
                 const exists = this.groupForm.participants.find((entry) => `${entry.type}-${entry.id}` === key);
-                this.groupForm.participants = exists ? this.groupForm.participants.filter((entry) => `${entry.type}-${entry.id}` !== key) : [...this.groupForm.participants, item];
+                this.groupForm.participants = exists ? this.groupForm.participants.filter((entry) =>
+                    `${entry.type}-${entry.id}` !== key) : [...this.groupForm.participants, item];
             },
             isSelectedMember(item) {
-                return this.groupForm.participants.some((entry) => Number(entry.id) === Number(item.id) && entry.type === item.type);
+                return this.groupForm.participants.some((entry) => Number(entry.id) === Number(item.id) && entry
+                    .type === item.type);
             },
             async createGroup() {
                 if (!this.features.groups) return;
@@ -2193,7 +2797,8 @@
                 });
                 this.showCreateGroupModal = false;
                 await this.loadConversations(true);
-                const conversation = this.conversations.find((item) => Number(item.id) === Number(response.data.group_id));
+                const conversation = this.conversations.find((item) => Number(item.id) === Number(response.data
+                    .group_id));
                 if (conversation) await this.selectConversation(conversation);
             },
             async loadGroupDetails() {
@@ -2212,7 +2817,8 @@
                 this.loadGroupCandidates();
             },
             availableNewMembers() {
-                const existing = new Set((this.groupDetails.members || []).map((member) => `${member.type}-${member.id}`));
+                const existing = new Set((this.groupDetails.members || []).map((member) =>
+                    `${member.type}-${member.id}`));
                 return this.groupCandidates.filter((item) => !existing.has(`${item.type}-${item.id}`));
             },
             async addMembers(items) {
@@ -2228,7 +2834,9 @@
             },
             async removeMember(member) {
                 if (!this.features.groups) return;
-                await axios.delete(`${config.routes.groupsBase}/${this.activeConversationId}/members/${member.type}/${member.id}`);
+                await axios.delete(
+                    `${config.routes.groupsBase}/${this.activeConversationId}/members/${member.type}/${member.id}`
+                );
                 await this.loadConversations();
                 await this.loadGroupDetails();
             },
@@ -2263,7 +2871,8 @@
                 if (!this.activeConversationId) return;
                 this.isFetchingSummary = true;
                 try {
-                    const response = await axios.get(`${config.routes.summaryBase}/${this.activeConversationId}/summary`);
+                    const response = await axios.get(
+                        `${config.routes.summaryBase}/${this.activeConversationId}/summary`);
                     this.chatSummary = response.data.summary;
                     this.showSummary = true;
 
