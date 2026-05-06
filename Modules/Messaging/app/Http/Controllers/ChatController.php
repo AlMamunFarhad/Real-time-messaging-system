@@ -16,6 +16,7 @@ class ChatController extends Controller
 
     public function dashboard(Request $request)
     {
+        // dd($request->all());
         abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
 
         $participantId = AuthParticipant::id();

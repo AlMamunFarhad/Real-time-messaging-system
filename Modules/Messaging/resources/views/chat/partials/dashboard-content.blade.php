@@ -466,7 +466,73 @@
                 :class="(isMobileChatOpen || window.innerWidth >= 768) && activeConversationId ? 'translate-x-0' :
                     'translate-x-full md:translate-x-0'">
                 <template x-if="activeConversation">
-                    <div class="flex h-full flex-col overflow-hidden bg-[#fcfbf9]">
+                    <div class="relative flex h-full flex-col overflow-hidden bg-[#fcfbf9]">
+                        <!-- Edit modal anchored to message box -->
+                        <div x-show="editModalOpen" x-cloak
+                            class="absolute inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 transition-opacity duration-300"
+                            @click.self="cancelInlineEdit()" @keydown.escape.window.prevent="cancelInlineEdit()">
+                            <div x-show="editModalOpen" x-transition:enter="transition ease-out duration-300"
+                                x-transition:enter-start="opacity-0 translate-y-8 scale-95"
+                                x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                x-transition:leave="transition ease-in duration-200"
+                                x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                x-transition:leave-end="opacity-0 translate-y-8 scale-95"
+                                class="pointer-events-auto w-full max-w-lg overflow-hidden rounded-[28px] border border-rose-100/60 bg-white shadow-[0_40px_100px_-20px_rgba(244,63,94,0.2)] ring-1 ring-rose-200/50">
+                                <div
+                                    class="flex items-center justify-between border-b border-rose-100 bg-rose-50/40 px-7 py-5">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-md shadow-rose-200/50">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="2.5"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-[17px] font-extrabold tracking-tight text-stone-800">Edit
+                                                Message</h3>
+                                            <p class="text-[12.5px] font-medium text-rose-500">Make changes to your
+                                                sent message</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" @click="cancelInlineEdit()"
+                                        class="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-rose-100 text-rose-400 transition-all hover:bg-rose-100 hover:text-rose-600 hover:rotate-90 shadow-sm"
+                                        title="Close">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="p-6 bg-white">
+                                    <div class="relative">
+                                        <textarea id="edit-message-modal-input" x-model="editingMessageDraft" rows="4"
+                                            class="w-full resize-none rounded-[20px] border border-rose-200/60 bg-rose-50/30 px-5 py-4 text-[15px] leading-relaxed font-medium text-stone-800 outline-none transition-all focus:border-rose-400 focus:bg-white focus:ring-4 focus:ring-rose-100/50 shadow-[0_4px_12px_rgba(244,63,94,0.04)]"
+                                            placeholder="Type your new message here..." @keydown.escape.prevent="cancelInlineEdit()"
+                                            @keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); saveInlineEdit(editingMessageTarget); }"></textarea>
+                                    </div>
+                                    <div class="mt-6 flex items-center justify-end gap-3">
+                                        <button type="button" @click="cancelInlineEdit()"
+                                            class="rounded-[16px] border border-rose-100 bg-white px-5 py-2.5 text-[13px] font-bold text-rose-500 transition-all hover:bg-rose-50 hover:text-rose-700 shadow-sm hover:shadow">
+                                            Cancel
+                                        </button>
+                                        <button type="button" @click="saveInlineEdit(editingMessageTarget)"
+                                            :disabled="isUpdatingMessage || !editingMessageDraft.trim()"
+                                            class="flex items-center gap-2 rounded-[16px] bg-rose-500 px-6 py-2.5 text-[13px] font-black text-white shadow-md shadow-rose-500/30 transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-rose-500/40 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="border-b border-orange-100 bg-white/80 backdrop-blur-md px-6 py-[18px]">
                             <div class="flex flex-wrap items-start justify-between gap-4">
                                 <div class="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center">
@@ -631,7 +697,8 @@
                             </div>
                         </div>
                         <div id="messages-panel"
-                            class="flex-1 overflow-y-auto bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-50/50 via-white to-rose-50/30 px-4 py-4 md:px-6 md:py-6">
+                            class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-50/50 via-white to-rose-50/30 px-4 py-4 md:px-6 md:py-6"
+                            style="-webkit-overflow-scrolling: touch;">
                             <template x-if="loadingMessages">
                                 <div class="space-y-6 pr-4">
                                     <div class="flex items-start gap-4">
@@ -676,11 +743,11 @@
                                 </div>
                             </template>
                             <div id="messages-list" class="flex flex-col gap-4" x-show="!loadingMessages" x-cloak>
-                                <template x-for="message in messages" :key="message.id">
+                                <template x-for="message in [...messages, ...sendingMessages]"
+                                    :key="message.tempId || message.id">
                                     <div class="flex" :class="isMine(message) ? 'justify-end' : 'justify-start'"
                                         x-transition:enter="transition ease-out duration-300"
-                                        x-transition:enter-start="opacity-0"
-                                        x-transition:enter-end="opacity-100">
+                                        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
                                         <div class="max-w-[80%] min-w-0 overflow-visible break-words">
                                             <template x-if="!isMine(message)">
                                                 <p class="mb-1 px-3 text-[11px] uppercase tracking-wider font-bold text-rose-400"
@@ -691,11 +758,22 @@
                                                     'bg-blue-50 text-blue-800 shadow-[0_4px_12px_rgba(37,99,235,0.05)] rounded-br-md border border-blue-100' :
                                                     'bg-white text-stone-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-bl-md border border-stone-100',
                                                     (isEditingMessage(message.id) || openMessageMenuId === message.id) ?
-                                                    'z-10' : 'z-0'
+                                                    'z-10' : 'z-0',
+                                                    message.isSending ? 'opacity-70 grayscale-[0.5]' : ''
                                                 ]"
                                                 style="word-break: break-word; overflow-wrap: anywhere;">
 
-                                                <template x-if="isMine(message)">
+                                                <!-- Shimmering Overlay for Sending State -->
+                                                <template x-if="message.isSending">
+                                                    <div
+                                                        class="absolute inset-0 pointer-events-none overflow-hidden rounded-[24px]">
+                                                        <div
+                                                            class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-shimmer">
+                                                        </div>
+                                                    </div>
+                                                </template>
+
+                                                <template x-if="isMine(message) && !message.isSending">
                                                     <div class="absolute right-3 top-3 z-10"
                                                         @click.outside="closeMessageMenu(message.id)">
                                                         <button type="button"
@@ -757,26 +835,7 @@
                                                         </div>
                                                     </div>
                                                 </template>
-                                                <template x-if="isEditingMessage(message.id)">
-                                                    <div class="pr-10">
-                                                        <textarea x-model="editingMessageDraft" rows="3"
-                                                            class="w-full rounded-[18px] border border-blue-200 bg-white px-4 py-3 text-[14.5px] font-medium text-stone-700 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70 resize-none"
-                                                            @keydown.escape.prevent="cancelInlineEdit()"
-                                                            @keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); saveInlineEdit(message); }"></textarea>
-                                                        <div class="mt-3 flex items-center justify-end gap-2">
-                                                            <button type="button" @click="cancelInlineEdit()"
-                                                                class="rounded-full border border-stone-200 bg-white px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-stone-500 transition hover:bg-stone-50">
-                                                                Cancel
-                                                            </button>
-                                                            <button type="button" @click="saveInlineEdit(message)"
-                                                                :disabled="isUpdatingMessage || !editingMessageDraft.trim()"
-                                                                class="rounded-full bg-blue-600 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
-                                                                Save
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </template>
-                                                <template x-if="!isEditingMessage(message.id) && message.body">
+                                                <template x-if="message.body">
                                                     <p class="pr-10 whitespace-pre-wrap break-words break-all text-[14.5px] leading-relaxed font-medium w-full"
                                                         x-text="message.body"
                                                         style="word-wrap: break-word; word-break: break-word; overflow-wrap: anywhere;">
@@ -902,8 +961,9 @@
                                                 :class="isMine(message) ? 'justify-end' : 'justify-start'">
                                                 <p class="text-[11px] font-medium"
                                                     :class="isMine(message) ? 'text-blue-400' : 'text-stone-400'"
-                                                    x-text="formatTime(message.created_at)"></p>
-                                                <template x-if="isMine(message)">
+                                                    x-text="message.isSending ? 'Sending...' : formatTime(message.created_at)">
+                                                </p>
+                                                <template x-if="isMine(message) && !message.isSending">
                                                     <div>
                                                         <!-- Read Double Tick (Blue) -->
                                                         <template x-if="message.read_at">
@@ -937,28 +997,6 @@
                                         </div>
                                 </template>
 
-                                <template x-for="sending in sendingMessages" :key="sending.tempId">
-                                    <div class="flex justify-end"
-                                        x-transition:enter="transition ease-out duration-300"
-                                        x-transition:enter-start="opacity-0"
-                                        x-transition:enter-end="opacity-100">
-                                        <div class="max-w-[80%] min-w-[40px] relative">
-                                            <div
-                                                class="relative overflow-hidden rounded-[24px] px-5 py-3.5 shadow-[0_4px_12px_rgba(37,99,235,0.05)] bg-blue-50 text-blue-800 rounded-br-md border border-blue-100">
-                                                <!-- Message Content -->
-                                                <template x-if="sending.body">
-                                                    <p class="whitespace-pre-wrap break-words text-[14.5px] font-medium"
-                                                        x-text="sending.body"></p>
-                                                </template>
-
-                                                <!-- Shimmering Overlay -->
-                                                <div
-                                                    class="absolute inset-0 pointer-events-none bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-shimmer">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
 
                                 <!-- Conversation Summary Panel -->
                                 <template x-if="features.ai_summary && showSummary && chatSummary">
@@ -1021,6 +1059,7 @@
                                         </div>
                                     </div>
                                 </template>
+                                <div id="messages-end" aria-hidden="true"></div>
                             </div>
                         </div>
                         <div
@@ -1424,6 +1463,7 @@
             </div>
         </div>
     </div>
+
 </div>
 
 <script>
@@ -1496,6 +1536,8 @@
             openMessageMenuId: null,
             editingMessageId: null,
             editingMessageDraft: '',
+            editModalOpen: false,
+            editingMessageTarget: null,
             isFetchingSummary: false,
             isUpdatingMessage: false,
             isClearingConversation: false,
@@ -2048,12 +2090,13 @@
                     .listen('.message.sent', (message) => {
                         if (!message || String(message.conversation_id) !== String(this.activeConversationId))
                             return;
+                        const panel = document.getElementById('messages-panel');
+                        const wasNearBottom = panel ? this.isNearBottom(panel, 800) : true;
                         const exists = this.messages.some(m => String(m.id) === String(message.id));
                         if (!exists) {
                             this.messages = [...this.messages, message];
-                            this.$nextTick(() => {
-                                this.scrollToBottom(0, true);
-                            });
+                            // Receiver side: if user is already at/near bottom, always force-scroll to show new message
+                            this.scrollToBottom(0, wasNearBottom ? true : false);
                             this.markAsRead();
                         }
                     });
@@ -2149,11 +2192,19 @@
                 if (!message || !message.body) return;
                 this.editingMessageId = message.id;
                 this.editingMessageDraft = message.body;
+                this.editingMessageTarget = message;
+                this.editModalOpen = true;
                 this.closeMessageMenu(message.id);
+                this.$nextTick(() => {
+                    const input = document.getElementById('edit-message-modal-input');
+                    if (input) input.focus();
+                });
             },
             cancelInlineEdit() {
                 this.editingMessageId = null;
                 this.editingMessageDraft = '';
+                this.editingMessageTarget = null;
+                this.editModalOpen = false;
             },
             openConfirmDialog({
                 title,
@@ -2201,26 +2252,87 @@
                 }).catch(err => console.error('Mark as read failed', err));
             },
 
-            scrollToBottom(delay = 10, force = false) {
-                this.$nextTick(() => {
-                    const panel = document.getElementById('messages-panel');
-                    if (!panel) return;
-
-                    // Threshold to determine if user is "near bottom" (e.g., 150px)
-                    // If they are further up, we don't jump unless 'force' is true (like when sending)
-                    const threshold = 200;
-                    const isNearBottom = (panel.scrollHeight - panel.scrollTop - panel.clientHeight) < threshold;
-
-                    if (!force && !isNearBottom) {
-                        return;
-                    }
-
-                    const performScroll = () => {
-                        panel.scrollTop = panel.scrollHeight;
-                    };
-
-                    setTimeout(performScroll, delay);
+            isUserAtBottom: true,
+            _scrollListenerBound: false,
+            _scrollJob: null,
+            _scrollShouldScroll: false,
+            isNearBottom(panel, threshold = 420) {
+                if (!panel) return true;
+                return (panel.scrollHeight - panel.scrollTop - panel.clientHeight) <= threshold;
+            },
+            bindScrollListener() {
+                const panel = document.getElementById('messages-panel');
+                if (!panel || this._scrollListenerBound) return;
+                const update = () => {
+                    this.isUserAtBottom = this.isNearBottom(panel);
+                };
+                panel.addEventListener('scroll', update, {
+                    passive: true
                 });
+                update();
+                this._scrollListenerBound = true;
+            },
+
+            scrollToBottom(delay = 0, force = false) {
+                const panel = document.getElementById('messages-panel');
+                if (!panel) return;
+
+                const near = this.isNearBottom(panel);
+                this.isUserAtBottom = near;
+                const shouldScrollNow = force || near;
+                if (!shouldScrollNow) return;
+
+                this._scrollShouldScroll = this._scrollShouldScroll || shouldScrollNow;
+                if (this._scrollJob) return;
+
+                this._scrollJob = true;
+                this.$nextTick(() => {
+                    setTimeout(() => {
+                        const panelNow = document.getElementById('messages-panel');
+                        if (!panelNow) {
+                            this._scrollJob = null;
+                            this._scrollShouldScroll = false;
+                            return;
+                        }
+
+                        this._scrollJob = null;
+                        const shouldScroll = this._scrollShouldScroll;
+                        this._scrollShouldScroll = false;
+                        if (!shouldScroll) return;
+
+                        const anchor = document.getElementById('messages-end');
+                        const jump = () => {
+                            if (anchor) anchor.scrollIntoView({
+                                block: 'end',
+                                behavior: 'auto'
+                            });
+                            const targetTop = panelNow.scrollHeight;
+                            if (Math.abs(targetTop - panelNow.scrollTop) < 2) return;
+                            panelNow.scrollTop = targetTop;
+                        };
+
+                        jump();
+                        requestAnimationFrame(() => jump());
+                    }, Math.max(0, delay));
+                });
+            },
+            setupScrollObserver() {
+                if (this._scrollObserver) {
+                    this._scrollObserver.disconnect();
+                    this._scrollObserver = null;
+                }
+                const panel = document.getElementById('messages-panel');
+                if (panel) {
+                    this._scrollObserver = new MutationObserver(() => {
+                        if (this.editingMessageId) return;
+                        // No auto-scroll here; avoid jumpiness. Real-time + load handlers handle scrolling.
+                    });
+                    this._scrollObserver.observe(panel, {
+                        childList: true,
+                        subtree: true,
+                        characterData: true
+                    });
+                }
             },
 
             init() {
@@ -2233,14 +2345,14 @@
                 this.startPolling();
                 if (this.features.audio_call || this.features.video_call) this.startSignalPolling();
                 this.$watch('activeTab', value => localStorage.setItem('messaging_active_tab', value));
-                
-                let lastCombinedLength = this.messages.length + this.sendingMessages.length;
-                this.$watch('messages.length + sendingMessages.length', (newVal) => {
-                    // Only auto-scroll if message count increased
-                    if (newVal > lastCombinedLength) {
-                        this.scrollToBottom(10, false); // Normal auto-scroll (respects user position)
-                    }
-                    lastCombinedLength = newVal;
+
+                // Setup scroll observer initially and whenever conversation changes
+                this.$nextTick(() => {
+                    this.bindScrollListener();
+                    this.setupScrollObserver();
+                });
+                this.$watch('activeConversationId', () => {
+                    this.$nextTick(() => this.setupScrollObserver());
                 });
                 if (this.features.online_status) {
                     this.sendHeartbeat();
@@ -2275,6 +2387,7 @@
 
                     if (this.activeConversationId) {
                         this.subscribeToConversationChannel(this.activeConversationId);
+                        this.loadMessages(false);
                     }
                 }
             },
@@ -2321,8 +2434,6 @@
                         .activeConversationId) || null;
                     if (this.activeConversation && this.messages.length === 0) {
                         await this.loadMessages(false);
-                    } else if (force) {
-                        this.scrollToBottom(150, true);
                     }
                 }
             },
@@ -2395,15 +2506,36 @@
 
                 this.lastLoadTime = now;
                 try {
+                    const panel = document.getElementById('messages-panel');
+                    const wasNearBottom = panel ? this.isNearBottom(panel) : true;
+                    this.isUserAtBottom = wasNearBottom;
+                    const preserveDistanceFromBottom = panel && !wasNearBottom;
+                    const distanceFromBottom = preserveDistanceFromBottom ?
+                        (panel.scrollHeight - panel.scrollTop) :
+                        0;
+
                     const response = await axios.get(
                         `${config.routes.messagesBase}/${this.activeConversationId}?t=${now}`);
                     const newMessages = (response.data.messages || []).filter(m => String(m.conversation_id) ===
                         String(this.activeConversationId));
                     const previousCount = this.messages.length;
+                    const previousLastId = this.messages.length ? (this.messages[this.messages.length - 1]?.id ??
+                        null) : null;
                     this.messages = newMessages;
+                    const newLastId = newMessages.length ? (newMessages[newMessages.length - 1]?.id ?? null) : null;
 
-                    if (newMessages.length > previousCount) {
-                        this.scrollToBottom(100, !silent);
+                    // Preserve reading position when user scrolls up
+                    if (preserveDistanceFromBottom) {
+                        this.$nextTick(() => {
+                            const panelAfter = document.getElementById('messages-panel');
+                            if (!panelAfter) return;
+                            panelAfter.scrollTop = panelAfter.scrollHeight - distanceFromBottom;
+                        });
+                    } else if (newMessages.length > 0 && !this.editingMessageId) {
+                        const isFirstLoad = previousCount === 0;
+                        const hasNew = (newMessages.length > previousCount) || (String(newLastId ?? '') !== String(
+                            previousLastId ?? ''));
+                        if (isFirstLoad || hasNew) this.scrollToBottom(30, true);
                     }
 
                     axios.post(config.routes.read, {
@@ -2416,38 +2548,6 @@
                     if (showLoading) {
                         this.loadingMessages = false;
                     }
-                    this.loadedMessagesForConversation[this.activeConversationId] = true;
-                }
-            },
-            async loadMessages(silent = false) {
-                if (!this.activeConversationId) return;
-                if (this.loadingMessages) return;
-
-                const now = Date.now();
-
-                if (!silent && this.messages.length > 0 && (now - this.lastLoadTime < this.loadDebounceMs)) return;
-
-                const showLoading = !silent && !this.loadedMessagesForConversation[this.activeConversationId] &&
-                    this.messages.length === 0;
-                if (showLoading) this.loadingMessages = true;
-
-                this.lastLoadTime = now;
-
-                try {
-                    const response = await axios.get(
-                        `${config.routes.messagesBase}/${this.activeConversationId}?t=${now}`);
-                    const newMessages = (response.data.messages || []).filter(m => String(m.conversation_id) ===
-                        String(this.activeConversationId));
-
-                    this.messages = newMessages;
-
-                    this.$nextTick(() => {
-                        this.scrollToBottom(50);
-                    });
-
-                    this.markAsRead();
-                } finally {
-                    if (showLoading) this.loadingMessages = false;
                     this.loadedMessagesForConversation[this.activeConversationId] = true;
                 }
             },
@@ -2562,8 +2662,8 @@
 
                 this.draftMessage = '';
                 this.clearFile();
-                
-                this.scrollToBottom(10, true); // Force scroll when sending our own message
+
+                this.scrollToBottom(0, true); // Force scroll when sending our own message
 
                 const formData = new FormData();
                 formData.append('conversation_id', this.activeConversationId);
@@ -2582,7 +2682,11 @@
                     this.sendingMessages = this.sendingMessages.filter(m => m.tempId !== tempId);
 
                     // Add real message to the list
-                    this.messages = [...this.messages, response.data];
+                    const confirmedMessage = {
+                        ...response.data,
+                        tempId: tempId
+                    };
+                    this.messages = [...this.messages, confirmedMessage];
 
                     // Update polling timer
                     this.lastLoadTime = Date.now();
@@ -2669,6 +2773,7 @@
                 }
             },
             isMine(message) {
+                if (message.isSending) return true;
                 const senderType = String(message.sender_type || '').split('\\').pop().toLowerCase();
                 return String(message.sender_id) === String(config.currentId) && senderType === config.currentType;
             },

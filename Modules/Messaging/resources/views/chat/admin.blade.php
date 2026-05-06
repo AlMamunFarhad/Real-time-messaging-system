@@ -5,6 +5,16 @@
         </div>
     </x-slot>
 
+    <style>
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+            animation: shimmer 2s infinite;
+        }
+    </style>
+
     @php
         $participantId = \Modules\Messaging\Helpers\AuthParticipant::id();
         $participantType = \Modules\Messaging\Helpers\AuthParticipant::type();
@@ -37,35 +47,47 @@
         showChat: false,
         isFileTooLarge: false
     })" x-init="init()" class="-m-6 mx-auto max-w-7xl overflow-hidden">
-        <div class="pointer-events-none fixed right-4 top-4 z-[85] flex w-full max-w-sm flex-col gap-3 sm:right-6 sm:top-6">
+        <div
+            class="pointer-events-none fixed right-4 top-4 z-[85] flex w-full max-w-sm flex-col gap-3 sm:right-6 sm:top-6">
             <template x-for="toast in notificationToasts" :key="toast.id">
                 <button type="button" @click="openToastConversation(toast)"
                     class="pointer-events-auto overflow-hidden rounded-[24px] border border-white/80 bg-white/95 text-left shadow-[0_24px_60px_rgba(15,23,42,0.16)] ring-1 ring-orange-100/80 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(15,23,42,0.2)]">
                     <div class="h-1.5 bg-gradient-to-r from-rose-500 via-orange-400 to-amber-400"></div>
                     <div class="flex items-start gap-3 px-4 py-4">
-                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-lg shadow-orange-200/70">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        <div
+                            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-lg shadow-orange-200/70">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center justify-between gap-3">
-                                <p class="text-[12px] font-black uppercase tracking-[0.2em] text-orange-500" x-text="toast.label"></p>
-                                <span class="rounded-full bg-orange-50 px-2 py-1 text-[10px] font-bold text-orange-500">Live</span>
+                                <p class="text-[12px] font-black uppercase tracking-[0.2em] text-orange-500"
+                                    x-text="toast.label"></p>
+                                <span
+                                    class="rounded-full bg-orange-50 px-2 py-1 text-[10px] font-bold text-orange-500">Live</span>
                             </div>
-                            <p class="mt-1 truncate text-[15px] font-bold tracking-tight text-stone-800" x-text="toast.sender"></p>
-                            <p class="mt-1 line-clamp-2 text-[13px] leading-5 text-stone-500" x-text="toast.preview"></p>
+                            <p class="mt-1 truncate text-[15px] font-bold tracking-tight text-stone-800"
+                                x-text="toast.sender"></p>
+                            <p class="mt-1 line-clamp-2 text-[13px] leading-5 text-stone-500" x-text="toast.preview">
+                            </p>
                         </div>
                     </div>
                 </button>
             </template>
         </div>
-        <div class="mx-3 my-3 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.35)] md:mx-4 md:my-4 lg:mx-0 lg:my-0 lg:rounded-[28px]">
-            <div class="relative flex h-[88vh] overflow-hidden md:grid md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[340px_minmax(0,1fr)]">
-                <aside class="flex h-full w-full flex-col overflow-hidden border-b border-stone-200 bg-[#fafafa] md:w-auto md:border-b-0 md:border-r">
+        <div
+            class="mx-3 my-3 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_24px_80px_-28px_rgba(15,23,42,0.35)] md:mx-4 md:my-4 lg:mx-0 lg:my-0 lg:rounded-[28px]">
+            <div
+                class="relative flex h-[88vh] overflow-hidden md:grid md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[340px_minmax(0,1fr)]">
+                <aside
+                    class="flex h-full w-full flex-col overflow-hidden border-b border-stone-200 bg-[#fafafa] md:w-auto md:border-b-0 md:border-r">
                     <div class="shrink-0 border-b border-stone-200/60 bg-white/80 backdrop-blur-xl px-6 py-5">
                         <div class="flex items-center gap-4">
-                            <div class="flex h-[46px] w-[46px] items-center justify-center rounded-[16px] bg-stone-100 text-stone-700 shadow-sm border border-stone-200/50">
+                            <div
+                                class="flex h-[46px] w-[46px] items-center justify-center rounded-[16px] bg-stone-100 text-stone-700 shadow-sm border border-stone-200/50">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -74,7 +96,8 @@
                             </div>
                             <div>
                                 <h3 class="text-[17px] font-bold text-stone-800 tracking-tight">Conversations</h3>
-                                <p class="text-[11px] font-semibold text-stone-400 uppercase tracking-widest mt-0.5">Manage Users</p>
+                                <p class="text-[11px] font-semibold text-stone-400 uppercase tracking-widest mt-0.5">
+                                    Manage Users</p>
                             </div>
                         </div>
                         <div class="relative mt-5">
@@ -93,17 +116,27 @@
                     <div class="flex-1 overflow-y-auto px-4 py-4 space-y-1.5 custom-scrollbar">
                         <template x-if="loadingUsers">
                             <div class="space-y-3">
-                                <div class="h-[72px] animate-pulse rounded-[20px] bg-white border border-stone-100 shadow-sm"></div>
-                                <div class="h-[72px] animate-pulse rounded-[20px] bg-white border border-stone-100 shadow-sm"></div>
-                                <div class="h-[72px] animate-pulse rounded-[20px] bg-white border border-stone-100 shadow-sm"></div>
+                                <div
+                                    class="h-[72px] animate-pulse rounded-[20px] bg-white border border-stone-100 shadow-sm">
+                                </div>
+                                <div
+                                    class="h-[72px] animate-pulse rounded-[20px] bg-white border border-stone-100 shadow-sm">
+                                </div>
+                                <div
+                                    class="h-[72px] animate-pulse rounded-[20px] bg-white border border-stone-100 shadow-sm">
+                                </div>
                             </div>
                         </template>
 
                         <template x-if="!loadingUsers && users.length === 0">
-                            <div class="rounded-[20px] border border-dashed border-stone-200 bg-stone-50 px-4 py-12 text-center mt-2">
-                                <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white text-stone-400 mb-3 shadow-sm border border-stone-100">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            <div
+                                class="rounded-[20px] border border-dashed border-stone-200 bg-stone-50 px-4 py-12 text-center mt-2">
+                                <span
+                                    class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white text-stone-400 mb-3 shadow-sm border border-stone-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4" />
                                     </svg>
                                 </span>
                                 <p class="text-[13px] font-semibold text-stone-500">No users found</p>
@@ -114,11 +147,16 @@
                             <template x-if="pinnedUsers.length">
                                 <div class="space-y-1.5">
                                     <div class="flex items-center justify-between px-1 pt-1">
-                                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-rose-400">Pinned</p>
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-rose-400">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3 w-3">
-                                                <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
-                                                <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
+                                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-rose-400">Pinned
+                                        </p>
+                                        <span
+                                            class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-rose-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                fill="currentColor" class="h-3 w-3">
+                                                <path
+                                                    d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
+                                                <path
+                                                    d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
                                             </svg>
                                             Pinned
                                         </span>
@@ -126,26 +164,45 @@
                                     <template x-for="user in pinnedUsers" :key="'pinned-user-' + user.id">
                                         <button type="button" @click="selectUser(user)"
                                             class="group block w-full rounded-[20px] border border-rose-100 bg-rose-50/60 px-3.5 py-3 text-left transition-all duration-300 hover:bg-white hover:shadow-[0_2px_10px_-4_rgba(0,0,0,0.05)]"
-                                            :class="Number(activeUserId) === Number(user.id) ? 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-rose-200/80 scale-[1.01] z-10 relative' : 'text-stone-800'">
+                                            :class="Number(activeUserId) === Number(user.id) ?
+                                                'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-rose-200/80 scale-[1.01] z-10 relative' :
+                                                'text-stone-800'">
                                             <div class="flex items-center gap-3.5">
                                                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] text-[14px] font-bold shadow-sm transition-all duration-300"
-                                                    :class="Number(activeUserId) === Number(user.id) ? 'bg-gradient-to-br from-rose-400 to-orange-300 text-white shadow-md shadow-rose-200' : 'bg-rose-100 text-rose-500'"
+                                                    :class="Number(activeUserId) === Number(user.id) ?
+                                                        'bg-gradient-to-br from-rose-400 to-orange-300 text-white shadow-md shadow-rose-200' :
+                                                        'bg-rose-100 text-rose-500'"
                                                     x-text="initialFor(user.name)"></div>
                                                 <div class="min-w-0 flex-1">
                                                     <div class="flex items-center gap-1.5">
-                                                        <div class="truncate text-[14.5px] font-bold text-stone-800 tracking-tight" x-text="user.name"></div>
-                                                        <span class="inline-flex h-2 w-2 shrink-0 rounded-full transition-colors ml-1" :class="user.is_online ? 'bg-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.12)]' : 'bg-stone-200'"></span>
+                                                        <div class="truncate text-[14.5px] font-bold text-stone-800 tracking-tight"
+                                                            x-text="user.name"></div>
+                                                        <span
+                                                            class="inline-flex h-2 w-2 shrink-0 rounded-full transition-colors ml-1"
+                                                            :class="user.is_online ?
+                                                                'bg-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.12)]' :
+                                                                'bg-stone-200'"></span>
                                                     </div>
-                                                    <div class="truncate text-[12px] mt-0.5 font-medium transition-colors" :class="Number(activeUserId) === Number(user.id) ? 'text-amber-600' : 'text-stone-500'" x-text="userPreview(user)"></div>
+                                                    <div class="truncate text-[12px] mt-0.5 font-medium transition-colors"
+                                                        :class="Number(activeUserId) === Number(user.id) ? 'text-amber-600' :
+                                                            'text-stone-500'"
+                                                        x-text="userPreview(user)"></div>
                                                 </div>
                                                 <div class="flex-shrink-0 flex items-center gap-2">
                                                     <template x-if="Number(user.unseen_count || 0) > 0">
-                                                        <span class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-bold text-white shadow-sm" x-text="Number(user.unseen_count) > 99 ? '99+' : user.unseen_count"></span>
+                                                        <span
+                                                            class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-orange-400 px-1.5 text-[10px] font-bold text-white shadow-sm"
+                                                            x-text="Number(user.unseen_count) > 99 ? '99+' : user.unseen_count"></span>
                                                     </template>
-                                                    <button @click.stop="togglePin(user)" type="button" class="p-1.5 rounded-lg text-rose-400 transition-all duration-200 hover:bg-rose-100" title="Unpin conversation">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
-                                                            <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
-                                                            <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
+                                                    <button @click.stop="togglePin(user)" type="button"
+                                                        class="p-1.5 rounded-lg text-rose-400 transition-all duration-200 hover:bg-rose-100"
+                                                        title="Unpin conversation">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                            fill="currentColor" class="h-4 w-4">
+                                                            <path
+                                                                d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
+                                                            <path
+                                                                d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
                                                         </svg>
                                                     </button>
                                                 </div>
@@ -155,7 +212,8 @@
                                 </div>
                             </template>
                             <template x-if="otherUsers.length && pinnedUsers.length">
-                                <p class="px-1 pt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">All Conversations</p>
+                                <p class="px-1 pt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+                                    All Conversations</p>
                             </template>
                             <template x-for="user in (pinnedUsers.length ? otherUsers : users)" :key="user.id">
                                 <button type="button" @click="selectUser(user)"
@@ -165,13 +223,16 @@
                                         'bg-transparent hover:bg-white hover:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] text-stone-800'">
                                     <div class="flex items-center gap-3.5">
                                         <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] text-[14px] font-bold shadow-sm transition-all duration-300"
-                                            :class="Number(activeUserId) === Number(user.id) ? 'bg-gradient-to-br from-rose-400 to-orange-300 text-white shadow-md shadow-rose-200' :
+                                            :class="Number(activeUserId) === Number(user.id) ?
+                                                'bg-gradient-to-br from-rose-400 to-orange-300 text-white shadow-md shadow-rose-200' :
                                                 'bg-[#f4efe8] text-stone-600 group-hover:bg-[#f0ece5]'"
                                             x-text="initialFor(user.name)"></div>
                                         <div class="min-w-0 flex-1">
                                             <div class="flex items-center gap-1.5">
-                                                <div class="truncate text-[14.5px] font-bold text-stone-800 tracking-tight" x-text="user.name"></div>
-                                                <span class="inline-flex h-2 w-2 shrink-0 rounded-full transition-colors ml-1"
+                                                <div class="truncate text-[14.5px] font-bold text-stone-800 tracking-tight"
+                                                    x-text="user.name"></div>
+                                                <span
+                                                    class="inline-flex h-2 w-2 shrink-0 rounded-full transition-colors ml-1"
                                                     :class="user.is_online ?
                                                         'bg-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.12)]' :
                                                         'bg-stone-200'"></span>
@@ -186,17 +247,25 @@
                                             <template x-if="Number(user.unseen_count || 0) > 0">
                                                 <span
                                                     class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10px] font-bold shadow-sm transition-transform group-hover:scale-110"
-                                                    :class="Number(activeUserId) === Number(user.id) ? 'bg-rose-100 text-rose-600' :
+                                                    :class="Number(activeUserId) === Number(user.id) ?
+                                                        'bg-rose-100 text-rose-600' :
                                                         'bg-gradient-to-br from-rose-500 to-orange-400 text-white'"
                                                     x-text="Number(user.unseen_count) > 99 ? '99+' : user.unseen_count"></span>
                                             </template>
-                                            <button @click.stop="togglePin(user)" type="button" 
+                                            <button @click.stop="togglePin(user)" type="button"
                                                 class="p-1.5 rounded-lg transition-all duration-200 hover:bg-amber-50 group/pin"
-                                                :class="user.is_pinned ? 'text-amber-500' : 'text-stone-300 hover:text-amber-500'">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 transition-transform group-hover/pin:scale-110">
-                                                    <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
-                                                    <path x-show="user.is_pinned" d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
-                                                    <path x-show="!user.is_pinned" fill-rule="evenodd" d="M11.47 2.47a.75.75 0 0 1 1.06 0l4.5 4.5a.75.75 0 0 1-1.06 1.06l-3.22-3.22V16.5a.75.75 0 0 1-1.5 0V4.81L8.03 8.03a.75.75 0 0 1-1.06-1.06l4.5-4.5ZM3 15.75a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd" style="display: none;"/>
+                                                :class="user.is_pinned ? 'text-amber-500' :
+                                                    'text-stone-300 hover:text-amber-500'">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                    fill="currentColor"
+                                                    class="h-4 w-4 transition-transform group-hover/pin:scale-110">
+                                                    <path
+                                                        d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
+                                                    <path x-show="user.is_pinned"
+                                                        d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
+                                                    <path x-show="!user.is_pinned" fill-rule="evenodd"
+                                                        d="M11.47 2.47a.75.75 0 0 1 1.06 0l4.5 4.5a.75.75 0 0 1-1.06 1.06l-3.22-3.22V16.5a.75.75 0 0 1-1.5 0V4.81L8.03 8.03a.75.75 0 0 1-1.06-1.06l4.5-4.5ZM3 15.75a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z"
+                                                        clip-rule="evenodd" style="display: none;" />
                                                 </svg>
                                             </button>
                                         </div>
@@ -209,15 +278,20 @@
 
                 <section
                     class="absolute inset-0 z-10 flex h-full w-full flex-col overflow-hidden bg-[#fcfbf9] transition-transform duration-300 ease-in-out md:static md:transform-none md:transition-none"
-                    :class="(isMobileChatOpen || window.innerWidth >= 768) && activeConversationId ? 'translate-x-0' : 'translate-x-full md:translate-x-0'">
+                    :class="(isMobileChatOpen || window.innerWidth >= 768) && activeConversationId ? 'translate-x-0' :
+                        'translate-x-full md:translate-x-0'">
                     <template x-if="activeConversationId">
                         <div class="flex h-full flex-col overflow-hidden bg-[#fcfbf9]">
                             <div class="border-b border-orange-100 bg-white/80 backdrop-blur-md px-6 py-[18px]">
                                 <div class="flex items-center justify-between gap-4">
                                     <div class="flex items-center">
-                                        <button type="button" @click="isMobileChatOpen = false" class="mr-3 flex h-10 w-10 items-center justify-center rounded-[14px] bg-stone-50 text-stone-500 transition hover:bg-stone-100 hover:text-stone-800 md:hidden" title="Back to list">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                                        <button type="button" @click="isMobileChatOpen = false"
+                                            class="mr-3 flex h-10 w-10 items-center justify-center rounded-[14px] bg-stone-50 text-stone-500 transition hover:bg-stone-100 hover:text-stone-800 md:hidden"
+                                            title="Back to list">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="2.5" d="M15 19l-7-7 7-7" />
                                             </svg>
                                         </button>
                                         <div class="flex items-center gap-4">
@@ -228,47 +302,70 @@
                                             </div>
                                             <div class="flex flex-col">
                                                 <div class="flex items-center gap-2">
-                                                    <div id="online-dot" class="h-2.5 w-2.5 rounded-full bg-stone-300 transition-colors duration-300 shadow-[0_0_0_3px_rgba(214,211,209,0.2)] ml-0.5"></div>
-                                                    <h3 class="text-[17.5px] font-bold text-stone-800 tracking-tight" x-text="activeUserName || 'User'"></h3>
-                                                    <div id="online-text" class="text-[11px] font-bold uppercase tracking-widest text-stone-400 ml-1">Offline</div>
+                                                    <div id="online-dot"
+                                                        class="h-2.5 w-2.5 rounded-full bg-stone-300 transition-colors duration-300 shadow-[0_0_0_3px_rgba(214,211,209,0.2)] ml-0.5">
+                                                    </div>
+                                                    <h3 class="text-[17.5px] font-bold text-stone-800 tracking-tight"
+                                                        x-text="activeUserName || 'User'"></h3>
+                                                    <div id="online-text"
+                                                        class="text-[11px] font-bold uppercase tracking-widest text-stone-400 ml-1">
+                                                        Offline</div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <button type="button" @click="toggleSummary()" :disabled="isFetchingSummary" 
-                                                class="flex items-center justify-center gap-2 rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm disabled:opacity-50" 
-                                                title="View Conversation Summary">
+                                        <button type="button" @click="toggleSummary()" :disabled="isFetchingSummary"
+                                            class="flex items-center justify-center gap-2 rounded-[14px] border border-stone-200/60 bg-white px-4 py-2 text-[13px] font-bold text-stone-600 transition hover:bg-stone-50 hover:text-stone-900 shadow-sm disabled:opacity-50"
+                                            title="View Conversation Summary">
                                             <template x-if="!isFetchingSummary">
                                                 <div class="flex items-center gap-2">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        class="h-4 w-4 text-rose-500" fill="none"
+                                                        viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                     </svg>
                                                     <span x-text="showSummary ? 'Hide Summary' : 'Summary'"></span>
                                                 </div>
                                             </template>
                                             <template x-if="isFetchingSummary">
                                                 <div class="flex items-center gap-2">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 text-rose-500 animate-spin">
-                                                        <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                        fill="currentColor"
+                                                        class="h-4 w-4 text-rose-500 animate-spin">
+                                                        <path
+                                                            d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
                                                     </svg>
                                                     <span>...</span>
                                                 </div>
                                             </template>
                                         </button>
 
-                                        <button @click.stop="togglePin(users.find(u => Number(u.id) === Number(activeUserId)))" type="button" 
+                                        <button
+                                            @click.stop="togglePin(users.find(u => Number(u.id) === Number(activeUserId)))"
+                                            type="button"
                                             class="flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white shadow-sm transition hover:bg-stone-50"
-                                            :class="users.find(u => Number(u.id) === Number(activeUserId))?.is_pinned ? 'border-rose-200 bg-rose-50 text-rose-500' : 'text-stone-400 hover:text-rose-500'"
-                                            :title="users.find(u => Number(u.id) === Number(activeUserId))?.is_pinned ? 'Pinned conversation' : 'Pin conversation'">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
-                                                <path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
-                                                <path x-show="users.find(u => Number(u.id) === Number(activeUserId))?.is_pinned" d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
+                                            :class="users.find(u => Number(u.id) === Number(activeUserId))?.is_pinned ?
+                                                'border-rose-200 bg-rose-50 text-rose-500' :
+                                                'text-stone-400 hover:text-rose-500'"
+                                            :title="users.find(u => Number(u.id) === Number(activeUserId))?.is_pinned ?
+                                                'Pinned conversation' : 'Pin conversation'">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                fill="currentColor" class="h-5 w-5">
+                                                <path
+                                                    d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" />
+                                                <path
+                                                    x-show="users.find(u => Number(u.id) === Number(activeUserId))?.is_pinned"
+                                                    d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v3.153l-1.082 1.082a.75.75 0 0 0 .53 1.28h3.354a.75.75 0 0 0 .53-1.28l-1.082-1.082V4.125c0-1.035-.84-1.875-1.875-1.875Z" />
                                             </svg>
                                         </button>
 
-                                        <button type="button" @click="activeConversationId = 0; localStorage.removeItem('admin_active_conversation_id');"
-                                            class="hidden md:flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-stone-400 transition hover:bg-stone-50 hover:text-stone-800 shadow-sm" title="Close chat">
+                                        <button type="button"
+                                            @click="activeConversationId = 0; localStorage.removeItem('admin_active_conversation_id');"
+                                            class="hidden md:flex h-10 w-10 items-center justify-center rounded-[14px] border border-stone-200/60 bg-white text-stone-400 transition hover:bg-stone-50 hover:text-stone-800 shadow-sm"
+                                            title="Close chat">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -281,88 +378,122 @@
 
                             <!-- Conversation Summary Panel -->
                             <template x-if="showSummary && chatSummary">
-                                <div x-transition:enter="transition ease-out duration-300" 
-                                     x-transition:enter-start="opacity-0 -translate-y-4" 
-                                     x-transition:enter-end="opacity-100 translate-y-0"
-                                     x-transition:leave="transition ease-in duration-200"
-                                     x-transition:leave-start="opacity-100 translate-y-0"
-                                     x-transition:leave-end="opacity-0 -translate-y-4"
-                                     class="relative border-b border-orange-100 bg-white p-6 shadow-sm z-20 max-h-[40vh] overflow-y-auto custom-scrollbar">
+                                <div x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 -translate-y-4"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 -translate-y-4"
+                                    class="relative border-b border-orange-100 bg-white p-6 shadow-sm z-20 max-h-[40vh] overflow-y-auto custom-scrollbar">
                                     <div class="flex items-start justify-between gap-4">
                                         <div class="flex items-center gap-3">
-                                            <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-md shadow-rose-200">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            <div
+                                                class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-md shadow-rose-200">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                                 </svg>
                                             </div>
                                             <div>
-                                                <h4 class="text-[15px] font-bold tracking-tight text-stone-800">Conversation Summary</h4>
+                                                <h4 class="text-[15px] font-bold tracking-tight text-stone-800">
+                                                    Conversation Summary</h4>
                                             </div>
                                         </div>
-                                        <button @click="showSummary = false" class="group flex h-8 w-8 items-center justify-center rounded-full hover:bg-rose-50 transition-colors">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-stone-400 group-hover:text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                                        <button @click="showSummary = false"
+                                            class="group flex h-8 w-8 items-center justify-center rounded-full hover:bg-rose-50 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                class="h-4 w-4 text-stone-400 group-hover:text-rose-500"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
                                             </svg>
                                         </button>
                                     </div>
-                                    <div class="mt-5 rounded-[20px] bg-gradient-to-br from-orange-50/30 to-rose-50/20 p-5 shadow-inner">
+                                    <div
+                                        class="mt-5 rounded-[20px] bg-gradient-to-br from-orange-50/30 to-rose-50/20 p-5 shadow-inner">
                                         <div class="prose prose-sm prose-stone max-w-none">
-                                            <div class="text-[14px] leading-relaxed text-stone-700" x-html="parseSummary(chatSummary)"></div>
+                                            <div class="text-[14px] leading-relaxed text-stone-700"
+                                                x-html="parseSummary(chatSummary)"></div>
                                         </div>
                                     </div>
                                     <div class="mt-4 flex items-center justify-between px-2">
                                         <div class="flex items-center gap-3">
-                                            <p class="text-[11px] font-bold text-stone-400" x-text="'Refreshed on ' + new Date().toLocaleTimeString()"></p>
-                                            <button @click="navigator.clipboard.writeText(chatSummary); $el.textContent = 'Copied!'; setTimeout(() => $el.textContent = 'Copy', 2000)" 
-                                                    class="text-[11px] font-bold text-rose-500 hover:text-rose-600 underline decoration-rose-200 underline-offset-4">
+                                            <p class="text-[11px] font-bold text-stone-400"
+                                                x-text="'Refreshed on ' + new Date().toLocaleTimeString()"></p>
+                                            <button
+                                                @click="navigator.clipboard.writeText(chatSummary); $el.textContent = 'Copied!'; setTimeout(() => $el.textContent = 'Copy', 2000)"
+                                                class="text-[11px] font-bold text-rose-500 hover:text-rose-600 underline decoration-rose-200 underline-offset-4">
                                                 Copy
                                             </button>
                                         </div>
                                         <div class="flex items-center gap-1.5">
                                             <span class="h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse"></span>
-                                            <span class="text-[11px] font-black tracking-tighter text-orange-500 uppercase">Live Summary</span>
+                                            <span
+                                                class="text-[11px] font-black tracking-tighter text-orange-500 uppercase">Live
+                                                Summary</span>
                                         </div>
                                     </div>
                                 </div>
                             </template>
 
-                            <div id="chat-box" class="flex-1 overflow-y-auto bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-50/50 via-white to-rose-50/30 px-4 py-4 md:px-6 md:py-6 transition-opacity duration-300" style="opacity: 0;">
+                            <div id="chat-box"
+                                class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-50/50 via-white to-rose-50/30 px-4 py-4 md:px-6 md:py-6 transition-opacity duration-300"
+                                style="opacity: 0; -webkit-overflow-scrolling: touch;">
                                 <!-- messages injected by JS -->
                                 <template x-if="isLoadingMessages">
                                     <div class="space-y-6 pr-4">
                                         <div class="flex items-start gap-4">
-                                            <div class="h-11 w-11 flex-shrink-0 animate-pulse rounded-2xl bg-orange-100/60"></div>
+                                            <div
+                                                class="h-11 w-11 flex-shrink-0 animate-pulse rounded-2xl bg-orange-100/60">
+                                            </div>
                                             <div class="flex flex-col gap-2.5 w-full">
-                                                <div class="h-3 w-24 animate-pulse rounded-full bg-orange-100/60"></div>
-                                                <div class="h-16 w-[65%] animate-pulse rounded-[22px] bg-white border border-rose-100/50 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.05)]"></div>
+                                                <div class="h-3 w-24 animate-pulse rounded-full bg-orange-100/60">
+                                                </div>
+                                                <div
+                                                    class="h-16 w-[65%] animate-pulse rounded-[22px] bg-white border border-rose-100/50 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.05)]">
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="flex items-end justify-end">
-                                             <div class="h-14 w-[50%] animate-pulse rounded-[22px] bg-gradient-to-r from-rose-200 to-orange-200 opacity-60"></div>
+                                            <div
+                                                class="h-14 w-[50%] animate-pulse rounded-[22px] bg-gradient-to-r from-rose-200 to-orange-200 opacity-60">
+                                            </div>
                                         </div>
                                         <div class="flex items-start gap-4 pt-2">
-                                            <div class="h-11 w-11 flex-shrink-0 animate-pulse rounded-2xl bg-orange-100/60"></div>
+                                            <div
+                                                class="h-11 w-11 flex-shrink-0 animate-pulse rounded-2xl bg-orange-100/60">
+                                            </div>
                                             <div class="flex flex-col gap-2.5 w-full">
-                                                <div class="h-3 w-20 animate-pulse rounded-full bg-orange-100/60"></div>
-                                                <div class="h-14 w-[40%] animate-pulse rounded-[22px] bg-white border border-rose-100/50 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.05)]"></div>
+                                                <div class="h-3 w-20 animate-pulse rounded-full bg-orange-100/60">
+                                                </div>
+                                                <div
+                                                    class="h-14 w-[40%] animate-pulse rounded-[22px] bg-white border border-rose-100/50 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.05)]">
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="flex items-end justify-end">
-                                             <div class="h-12 w-[60%] animate-pulse rounded-[22px] bg-gradient-to-r from-rose-200 to-orange-200 opacity-60"></div>
+                                            <div
+                                                class="h-12 w-[60%] animate-pulse rounded-[22px] bg-gradient-to-r from-rose-200 to-orange-200 opacity-60">
+                                            </div>
                                         </div>
                                     </div>
                                 </template>
                             </div>
 
-                            <div class="shrink-0 border-t border-rose-100 bg-white/80 backdrop-blur-md px-4 py-4 md:px-6 md:py-5 shadow-[0_-10px_40px_-5px_rgba(251,146,60,0.05)]">
+                            <div
+                                class="shrink-0 border-t border-rose-100 bg-white/80 backdrop-blur-md px-4 py-4 md:px-6 md:py-5 shadow-[0_-10px_40px_-5px_rgba(251,146,60,0.05)]">
                                 <div id="file-preview" x-cloak
                                     class="mb-3 hidden items-center justify-between rounded-2xl border px-4 py-3 shadow-sm"
                                     :class="isFileTooLarge ? 'border-rose-200 bg-rose-50' : 'border-orange-100 bg-orange-50/50'">
                                     <div class="flex items-center gap-3">
                                         <div class="flex flex-col">
-                                            <span id="file-name" class="flex items-center gap-2 text-sm font-semibold" :class="isFileTooLarge ? 'text-rose-600' : 'text-stone-700'"></span>
+                                            <span id="file-name" class="flex items-center gap-2 text-sm font-semibold"
+                                                :class="isFileTooLarge ? 'text-rose-600' : 'text-stone-700'"></span>
                                             <template x-if="isFileTooLarge">
-                                                <span class="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-500">File too large! Maximum limit is 10MB</span>
+                                                <span
+                                                    class="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-500">File
+                                                    too large! Maximum limit is 10MB</span>
                                             </template>
                                         </div>
                                     </div>
@@ -370,13 +501,16 @@
                                         class="flex h-8 w-8 items-center justify-center rounded-full bg-white text-stone-400 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm">&times;</button>
                                 </div>
                                 <div class="relative flex items-end gap-3" x-data="{ showEmojiPicker: false }">
-                                    <div x-show="showEmojiPicker" @click.away="showEmojiPicker = false" x-cloak x-transition
+                                    <div x-show="showEmojiPicker" @click.away="showEmojiPicker = false" x-cloak
+                                        x-transition
                                         class="absolute bottom-16 left-0 z-50 w-72 rounded-[24px] border border-orange-100 bg-white/95 p-3 shadow-2xl backdrop-blur-xl">
-                                        <div class="grid grid-cols-6 gap-1 max-h-60 overflow-y-auto p-1 custom-scrollbar">
+                                        <div
+                                            class="grid grid-cols-6 gap-1 max-h-60 overflow-y-auto p-1 custom-scrollbar">
                                             <template
                                                 x-for="emoji in ['😊','😂','❤️','👍','😍','🙌','✨','🔥','✅','🚀','💡','👏','🙏','🎉','😎','🤔','😮','😢','🤝','📍','🤩','😇','🥳','🥺']"
                                                 :key="emoji">
-                                                <button type="button" @click="addEmoji(emoji); showEmojiPicker = false"
+                                                <button type="button"
+                                                    @click="addEmoji(emoji); showEmojiPicker = false"
                                                     class="flex h-10 w-10 items-center justify-center rounded-xl text-xl transition hover:bg-orange-100 hover:scale-110 active:scale-95"
                                                     x-text="emoji"></button>
                                             </template>
@@ -406,29 +540,35 @@
                                     </button>
 
                                     <div class="relative flex-1 group">
-                                        <textarea id="message-input" x-model="draftMessage"
-                                            @keydown.enter.prevent="sendMessage()" rows="1"
+                                        <textarea id="message-input" x-model="draftMessage" @keydown.enter.prevent="sendMessage()" rows="1"
                                             class="min-h-[52px] w-full rounded-[24px] border border-orange-100 bg-white px-5 py-3.5 text-[15px] text-stone-700 shadow-sm outline-none transition-all focus:border-rose-300 focus:bg-white focus:ring-4 focus:ring-rose-100/50 resize-none"
                                             placeholder="Type your message..."></textarea>
                                     </div>
                                     <button type="button" @click="toggleVoiceRecord()"
                                         class="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] shadow-[0_2px_8px_rgba(225,29,72,0.1)] border transition-all hover:scale-105 active:scale-95"
-                                        :class="isRecordingVoice ? 'border-rose-200 bg-rose-100 text-rose-600' : 'border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600'"
+                                        :class="isRecordingVoice ? 'border-rose-200 bg-rose-100 text-rose-600' :
+                                            'border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600'"
                                         title="Record Voice Message">
                                         <template x-if="!isRecordingVoice">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                                             </svg>
                                         </template>
                                         <template x-if="isRecordingVoice">
-                                            <span class="block h-3.5 w-3.5 rounded-sm bg-rose-600 animate-pulse"></span>
+                                            <span
+                                                class="block h-3.5 w-3.5 rounded-sm bg-rose-600 animate-pulse"></span>
                                         </template>
                                     </button>
                                     <button type="button" @click="sendMessage()"
-                                        :disabled="isFileTooLarge || (!draftMessage.trim() && !document.getElementById('file-input')?.files[0])"
+                                        :disabled="isFileTooLarge || (!draftMessage.trim() && !document.getElementById(
+                                            'file-input')?.files[0])"
                                         class="group relative flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[20px] bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-[0_4px_14px_0_rgba(251,113,133,0.39)] transition-all hover:translate-y-[-2px] hover:shadow-[0_6px_20px_rgba(251,113,133,0.5)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:pointer-events-none">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path
+                                                d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
                                         </svg>
                                     </button>
                                 </div>
@@ -448,7 +588,8 @@
                                     </svg>
                                 </div>
                                 <h3 class="mt-6 text-xl font-bold tracking-tight text-stone-800">Message box blank</h3>
-                                <p class="mt-2 text-[14px] font-medium leading-6 text-stone-500">Select a user from the left sidebar to
+                                <p class="mt-2 text-[14px] font-medium leading-6 text-stone-500">Select a user from the
+                                    left sidebar to
                                     open chat here.</p>
                             </div>
                         </div>
@@ -476,44 +617,55 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                        class="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-                                        aria-label="Close chat">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
+                                    class="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                                    aria-label="Close chat">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
                                     </button>
                                 </div>
                             </div>
 
-                            <div id="chat-box-modal" class="flex-1 h-[calc(100dvh-220px)] min-h-[300px] overflow-y-auto px-6 py-6 transition-opacity duration-300" style="opacity: 0;">
+                            <div id="chat-box-modal"
+                                class="flex-1 min-h-0 h-[calc(100dvh-220px)] min-h-[300px] overflow-y-auto overflow-x-hidden overscroll-contain px-6 py-6 transition-opacity duration-300"
+                                style="opacity: 0; -webkit-overflow-scrolling: touch;">
                                 <template x-if="isLoadingMessages">
                                     <div class="space-y-5">
                                         <div class="flex items-start gap-2">
-                                            <div class="h-8 w-8 flex-shrink-0 animate-pulse rounded-xl bg-slate-200"></div>
-                                            <div class="h-12 w-[70%] animate-pulse rounded-2xl bg-white border border-slate-200"></div>
+                                            <div class="h-8 w-8 flex-shrink-0 animate-pulse rounded-xl bg-slate-200">
+                                            </div>
+                                            <div
+                                                class="h-12 w-[70%] animate-pulse rounded-2xl bg-white border border-slate-200">
+                                            </div>
                                         </div>
                                         <div class="flex justify-end">
                                             <div class="h-10 w-[50%] animate-pulse rounded-2xl bg-slate-800"></div>
                                         </div>
                                         <div class="flex items-start gap-2">
-                                            <div class="h-8 w-8 flex-shrink-0 animate-pulse rounded-xl bg-slate-200"></div>
-                                            <div class="h-14 w-[40%] animate-pulse rounded-2xl bg-white border border-slate-200"></div>
+                                            <div class="h-8 w-8 flex-shrink-0 animate-pulse rounded-xl bg-slate-200">
+                                            </div>
+                                            <div
+                                                class="h-14 w-[40%] animate-pulse rounded-2xl bg-white border border-slate-200">
+                                            </div>
                                         </div>
                                     </div>
                                 </template>
                             </div>
 
                             <div class="border-t border-slate-200 bg-white px-6 py-2">
-                                <div id="file-preview-modal" x-cloak
-                                    class="mb-3 hidden rounded-2xl border px-4 py-3"
+                                <div id="file-preview-modal" x-cloak class="mb-3 hidden rounded-2xl border px-4 py-3"
                                     :class="isFileTooLarge ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-slate-50'">
                                     <div class="flex items-center justify-between gap-3">
                                         <div class="flex flex-col">
-                                            <span id="file-name-modal" class="flex items-center gap-2 text-sm font-medium" :class="isFileTooLarge ? 'text-rose-600' : 'text-slate-600'"></span>
+                                            <span id="file-name-modal"
+                                                class="flex items-center gap-2 text-sm font-medium"
+                                                :class="isFileTooLarge ? 'text-rose-600' : 'text-slate-600'"></span>
                                             <template x-if="isFileTooLarge">
-                                                <span class="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-500">File too large! Maximum limit is 10MB</span>
+                                                <span
+                                                    class="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-500">File
+                                                    too large! Maximum limit is 10MB</span>
                                             </template>
                                         </div>
                                         <button type="button" @click="removeFile()"
@@ -521,63 +673,71 @@
                                     </div>
                                 </div>
                                 <div class="flex items-end gap-3">
-                                <div class="relative flex items-end gap-3" x-data="{ showEmojiPicker: false }">
-                                    <div x-show="showEmojiPicker" @click.away="showEmojiPicker = false" x-cloak x-transition
-                                        class="absolute bottom-16 left-0 z-50 w-64 rounded-[24px] border border-slate-200 bg-white/95 p-3 shadow-2xl backdrop-blur-md">
-                                        <div class="grid grid-cols-5 gap-1">
-                                            <template
-                                                x-for="emoji in ['😊','😂','❤️','👍','😍','🙌','✨','🔥','✅','🚀','💡','👏','🙏','🎉','😎','🤔','😮','😢','🤝','📍']"
-                                                :key="emoji">
-                                                <button type="button" @click="addEmoji(emoji); showEmojiPicker = false"
-                                                    class="flex h-10 w-10 items-center justify-center rounded-xl text-xl transition hover:bg-slate-100"
-                                                    x-text="emoji"></button>
-                                            </template>
+                                    <div class="relative flex items-end gap-3" x-data="{ showEmojiPicker: false }">
+                                        <div x-show="showEmojiPicker" @click.away="showEmojiPicker = false" x-cloak
+                                            x-transition
+                                            class="absolute bottom-16 left-0 z-50 w-64 rounded-[24px] border border-slate-200 bg-white/95 p-3 shadow-2xl backdrop-blur-md">
+                                            <div class="grid grid-cols-5 gap-1">
+                                                <template
+                                                    x-for="emoji in ['😊','😂','❤️','👍','😍','🙌','✨','🔥','✅','🚀','💡','👏','🙏','🎉','😎','🤔','😮','😢','🤝','📍']"
+                                                    :key="emoji">
+                                                    <button type="button"
+                                                        @click="addEmoji(emoji); showEmojiPicker = false"
+                                                        class="flex h-10 w-10 items-center justify-center rounded-xl text-xl transition hover:bg-slate-100"
+                                                        x-text="emoji"></button>
+                                                </template>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <input type="file" id="file-input-modal" class="hidden"
-                                        @change="handleFileSelect($event)">
-                                    <button type="button" @click="openFilePicker()"
-                                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100"
-                                        title="Attach file">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                        </svg>
-                                    </button>
-
-                                    <button type="button" @click="showEmojiPicker = !showEmojiPicker"
-                                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:bg-slate-100"
-                                        title="Add emoji">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </button>
-                                    <input type="text" id="message-input-modal" x-model="draftMessage"
-                                        @keydown.enter.prevent="sendMessage()"
-                                        class="h-12 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
-                                        placeholder="Write a message...">
-                                    
-                                    <button type="button" @click="toggleVoiceRecord()"
-                                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition shadow-sm"
-                                        :class="isRecordingVoice ? 'border-rose-300 bg-rose-100 text-rose-600' : 'border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600'"
-                                        title="Record Voice Message">
-                                        <template x-if="!isRecordingVoice">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                        <input type="file" id="file-input-modal" class="hidden"
+                                            @change="handleFileSelect($event)">
+                                        <button type="button" @click="openFilePicker()"
+                                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100"
+                                            title="Attach file">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                             </svg>
-                                        </template>
-                                        <template x-if="isRecordingVoice">
-                                            <span class="block h-3.5 w-3.5 rounded-sm bg-rose-600 animate-pulse"></span>
-                                        </template>
-                                    </button>
-                                    <button type="button" @click="sendMessage()"
-                                        :disabled="isFileTooLarge || (!draftMessage.trim() && !document.getElementById('file-input-modal')?.files[0])"
-                                        class="inline-flex h-12 shrink-0 items-center gap-2 rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed">Send</button>
-                                </div>
+                                        </button>
+
+                                        <button type="button" @click="showEmojiPicker = !showEmojiPicker"
+                                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:bg-slate-100"
+                                            title="Add emoji">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </button>
+                                        <input type="text" id="message-input-modal" x-model="draftMessage"
+                                            @keydown.enter.prevent="sendMessage()"
+                                            class="h-12 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+                                            placeholder="Write a message...">
+
+                                        <button type="button" @click="toggleVoiceRecord()"
+                                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition shadow-sm"
+                                            :class="isRecordingVoice ? 'border-rose-300 bg-rose-100 text-rose-600' :
+                                                'border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600'"
+                                            title="Record Voice Message">
+                                            <template x-if="!isRecordingVoice">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                                </svg>
+                                            </template>
+                                            <template x-if="isRecordingVoice">
+                                                <span
+                                                    class="block h-3.5 w-3.5 rounded-sm bg-rose-600 animate-pulse"></span>
+                                            </template>
+                                        </button>
+                                        <button type="button" @click="sendMessage()"
+                                            :disabled="isFileTooLarge || (!draftMessage.trim() && !document.getElementById(
+                                                'file-input-modal')?.files[0])"
+                                            class="inline-flex h-12 shrink-0 items-center gap-2 rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed">Send</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -664,18 +824,20 @@
 
         window.downloadFile = function(url, filename, relativePath = null) {
             if (!url && !relativePath) return;
-            
+
             let path = relativePath;
             if (!path && url) {
                 // Extract relative path from absolute URL as fallback
                 const match = url.match(/(uploads\/messages|chat-images)\/(.+)$/);
                 if (match) {
-                    path = (match[1] === 'uploads/messages' ? 'uploads/messages/' : 'chat-images/') + match[2].split('?')[0];
+                    path = (match[1] === 'uploads/messages' ? 'uploads/messages/' : 'chat-images/') + match[2].split(
+                        '?')[0];
                 }
             }
 
             if (path) {
-                const downloadUrl = `/messages/download-attachment?path=${encodeURIComponent(path)}&name=${encodeURIComponent(filename || 'file')}`;
+                const downloadUrl =
+                    `/messages/download-attachment?path=${encodeURIComponent(path)}&name=${encodeURIComponent(filename || 'file')}`;
                 const link = document.createElement('a');
                 link.href = downloadUrl;
                 link.style.display = 'none';
@@ -718,12 +880,12 @@
                     <div style="position: relative; margin-top: 10px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                         <img src="${fileUrl}" alt="${safeName}" onload="const cb = this.closest('.flex-1'); if(cb) cb.scrollTop = cb.scrollHeight" style="max-width:240px; display:block; border-radius:16px;">
                         ${!isMe ? `
-                        <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${safeName}', '${escapedFilePath}')" style="position: absolute; bottom: 10px; right: 10px; display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; text-decoration: none; font-size: 12px; color: white; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.7)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'; this.style.transform='scale(1)'">
-                            <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            Download
-                        </a>` : ''}
+                            <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${safeName}', '${escapedFilePath}')" style="position: absolute; bottom: 10px; right: 10px; display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; text-decoration: none; font-size: 12px; color: white; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.7)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'; this.style.transform='scale(1)'">
+                                <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Download
+                            </a>` : ''}
                     </div>
                 `;
             }
@@ -756,12 +918,12 @@
                         </div>
                     </a>
                     ${!isMe ? `
-                    <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${safeName}', '${escapedFilePath}')" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; text-decoration: none; font-size: 11px; color: #e11d48; font-weight: 800; transition: all 0.2s;" onmouseover="this.style.background='#ffe4e6'" onmouseout="this.style.background='#fff1f2'">
-                        <svg xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        DOWNLOAD FILE
-                    </a>` : ''}
+                        <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${safeName}', '${escapedFilePath}')" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; text-decoration: none; font-size: 11px; color: #e11d48; font-weight: 800; transition: all 0.2s;" onmouseover="this.style.background='#ffe4e6'" onmouseout="this.style.background='#fff1f2'">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            DOWNLOAD FILE
+                        </a>` : ''}
                 </div>
             `;
         }
@@ -776,10 +938,13 @@
                 search: '',
                 loadingUsers: true,
                 activeUserId: Number(localStorage.getItem('admin_active_user_id')) || config.initialActiveUserId || 0,
-                activeConversationId: Number(localStorage.getItem('admin_active_conversation_id')) || config.initialConversationId || 0,
+                activeConversationId: Number(localStorage.getItem('admin_active_conversation_id')) || config
+                    .initialConversationId || 0,
                 activeUserName: localStorage.getItem('admin_active_user_name') || config.initialOtherUserName || '',
-                otherParticipantId: Number(localStorage.getItem('admin_other_participant_id')) || config.initialOtherParticipantId || 0,
-                otherParticipantType: localStorage.getItem('admin_other_participant_type') || config.initialOtherParticipantType || '',
+                otherParticipantId: Number(localStorage.getItem('admin_other_participant_id')) || config
+                    .initialOtherParticipantId || 0,
+                otherParticipantType: localStorage.getItem('admin_other_participant_type') || config
+                    .initialOtherParticipantType || '',
                 draftMessage: '',
                 isMobileChatOpen: false,
                 showChat: Boolean(localStorage.getItem('admin_active_user_id')) || Boolean(config.showChat),
@@ -794,8 +959,10 @@
                 isFetchingSummary: false,
                 chatSummary: '',
                 showSummary: false,
-                lastLoadTime: 0, loadDebounceMs: 2000,
-                lastUserLoadTime: 0, userLoadDebounceMs: 2500,
+                lastLoadTime: 0,
+                loadDebounceMs: 2000,
+                lastUserLoadTime: 0,
+                userLoadDebounceMs: 2500,
                 isFileTooLarge: false,
                 isRecordingVoice: false,
                 voiceMediaRecorder: null,
@@ -815,10 +982,12 @@
                 pushNotificationToast(payload) {
                     if (window.__dashboardGlobalMessageNotifications) return;
                     const senderType = String(payload?.sender_type || '').split('\\').pop().toLowerCase();
-                    const isOwnMessage = String(payload?.sender_id) === String(config.userId) && senderType === config.userTypeShort;
+                    const isOwnMessage = String(payload?.sender_id) === String(config.userId) && senderType === config
+                        .userTypeShort;
                     if (!payload?.id || isOwnMessage) return;
 
-                    const alreadyVisible = this.notificationToasts.some((item) => String(item.messageId) === String(payload.id));
+                    const alreadyVisible = this.notificationToasts.some((item) => String(item.messageId) === String(payload
+                        .id));
                     if (alreadyVisible) return;
 
                     const toast = {
@@ -848,7 +1017,8 @@
                         };
 
                         const previousSnapshot = this.seenUserSnapshots[String(user.id)];
-                        if (!force && previousSnapshot && snapshot.lastMessageId && previousSnapshot.lastMessageId !== snapshot.lastMessageId) {
+                        if (!force && previousSnapshot && snapshot.lastMessageId && previousSnapshot
+                            .lastMessageId !== snapshot.lastMessageId) {
                             this.pushNotificationToast({
                                 id: lastMessage.id,
                                 conversation_id: user.conversation_id || this.activeConversationId || 0,
@@ -877,25 +1047,41 @@
                         }
                     }
                 },
-                scrollToBottom(delay = 50) {
+                scrollToBottom(panelOrDelay = 50, smoothOrForce = false) {
                     this.$nextTick(() => {
-                        const panel = document.getElementById('chat-box') || document.getElementById('chat-box-modal');
+                        const panel = (panelOrDelay && typeof panelOrDelay === 'object' && 'scrollHeight' in panelOrDelay)
+                            ? panelOrDelay
+                            : (document.getElementById('chat-box') || document.getElementById('chat-box-modal'));
                         if (!panel) return;
-                        
+
+                        const delay = (typeof panelOrDelay === 'number') ? panelOrDelay : 50;
+                        const force = (typeof smoothOrForce === 'boolean') ? smoothOrForce : false;
+                        const behavior = (typeof smoothOrForce === 'boolean' && smoothOrForce) ? 'smooth' : 'smooth';
+
+                        const threshold = 420; // px
+                        const isNearBottom = (panel.scrollHeight - panel.scrollTop - panel.clientHeight) <= threshold;
+                        if (!force && !isNearBottom) return;
+
                         const performScroll = (behavior = 'smooth') => {
-                            panel.scrollTo({ top: panel.scrollHeight, behavior: behavior });
+                            panel.scrollTo({
+                                top: panel.scrollHeight,
+                                behavior: behavior
+                            });
                         };
 
                         setTimeout(() => {
                             panel.scrollTop = panel.scrollHeight;
-                            requestAnimationFrame(() => performScroll('smooth'));
-                            
+                            requestAnimationFrame(() => performScroll(behavior));
+
                             panel.querySelectorAll('img').forEach(img => {
-                                if (!img.complete) img.addEventListener('load', () => performScroll('smooth'), { once: true });
+                                if (!img.complete) img.addEventListener('load', () => performScroll(
+                                    behavior), {
+                                    once: true
+                                });
                             });
 
-                            setTimeout(() => performScroll('smooth'), 200);
-                            setTimeout(() => performScroll('smooth'), 600);
+                            setTimeout(() => performScroll(behavior), 200);
+                            setTimeout(() => performScroll(behavior), 600);
                         }, delay);
                     });
                 },
@@ -925,7 +1111,7 @@
 
                     if (this.activeConversationId) {
                         this.loadMessages().then(() => {
-                            this.scrollToBottom();
+                            this.scrollToBottom(50, true);
                         });
                         this.startPolling();
                         this.checkOnlineStatus();
@@ -939,7 +1125,8 @@
                 messagePreview(lastMessage, fallback = 'No message yet') {
                     if (!lastMessage) return fallback;
                     if (lastMessage.body && String(lastMessage.body).trim() !== '') return String(lastMessage.body).trim();
-                    if (lastMessage.file_path) return /\.(webm|mp3|wav|ogg|m4a|aac)$/i.test(lastMessage.file_path) ? 'Voice Message' : 'Photo';
+                    if (lastMessage.file_path) return /\.(webm|mp3|wav|ogg|m4a|aac)$/i.test(lastMessage.file_path) ?
+                        'Voice Message' : 'Photo';
                     return fallback;
                 },
                 userPreview(user) {
@@ -951,7 +1138,10 @@
                 },
                 startUsersRefreshLoop() {
                     if (this.usersRefreshTimer) clearInterval(this.usersRefreshTimer);
-                    this.usersRefreshTimer = setInterval(() => { const now = Date.now(); if (now - this.lastUserLoadTime >= this.userLoadDebounceMs) this.loadUsers(false); }, 3000);
+                    this.usersRefreshTimer = setInterval(() => {
+                        const now = Date.now();
+                        if (now - this.lastUserLoadTime >= this.userLoadDebounceMs) this.loadUsers(false);
+                    }, 3000);
                 },
                 syncCounterState(reason = 'refresh') {
                     try {
@@ -1012,18 +1202,18 @@
                         this.otherParticipantId = response.data.other_participant.id || 0;
                         this.otherParticipantType = response.data.other_participant.type || '';
                         this.activeUserName = response.data.other_participant.name || user.name;
-                        
+
                         localStorage.setItem('admin_active_conversation_id', this.activeConversationId);
                         localStorage.setItem('admin_other_participant_id', this.otherParticipantId);
                         localStorage.setItem('admin_other_participant_type', this.otherParticipantType);
-                        
+
                         history.replaceState({}, '', `{{ route('admin.messages') }}?user=${user.id}`);
-                        
+
                         const chatBox = document.getElementById('chat-box');
                         const chatBoxModal = document.getElementById('chat-box-modal');
                         if (chatBox) chatBox.style.opacity = '0';
                         if (chatBoxModal) chatBoxModal.style.opacity = '0';
-                        
+
                         await this.loadMessages();
                         await this.loadUsers(false);
                         this.startPolling();
@@ -1034,11 +1224,41 @@
                         this.showChat = false;
                     }
                 },
-                renderMessage(message, autoScroll = true) {
+                renderSendingMessage(tempId, body, file = null) {
+                    const isLargeScreen = window.innerWidth >= 1024;
+                    const chatBox = isLargeScreen ? document.getElementById('chat-box') : document.getElementById('chat-box-modal');
+                    if (!chatBox) return;
+
+                    const row = document.createElement('div');
+                    row.id = `sending-${tempId}`;
+                    row.className = 'w-full flex justify-end mb-4';
+
+                    const container = document.createElement('div');
+                    container.className = 'max-w-[80%] flex flex-col opacity-70 grayscale-[0.5]';
+
+                    let content = body || '';
+                    if (content) {
+                        content = `<p class="whitespace-pre-wrap text-[14.5px] leading-relaxed font-medium">${content}</p>`;
+                    }
+                    if (file) {
+                        content += `<div class="mt-2 text-left italic text-[11px] font-bold">Sending attachment...</div>`;
+                    }
+
+                    const bubbleClasses = 'rounded-[24px] px-5 py-3.5 shadow-sm bg-gradient-to-br from-rose-500/80 to-orange-400/80 text-white rounded-br-md border border-rose-400/20 relative overflow-hidden';
+                    const shimmer = '<div class="absolute inset-0 pointer-events-none bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer"></div>';
+
+                    container.innerHTML = `<div class="${bubbleClasses}">${content}${shimmer}</div><div class="mt-1.5 px-2 flex justify-end"><p class="text-[11px] font-medium text-rose-300">Sending...</p></div>`;
+                    row.appendChild(container);
+                    chatBox.appendChild(row);
+                    this.scrollToBottom(50, true);
+                },
+                renderMessage(message, autoScroll = true, replaceElement = null) {
                     const isLargeScreen = window.innerWidth >= 1024; // lg breakpoint
                     const chatBox = isLargeScreen ? document.getElementById('chat-box') : document.getElementById(
                         'chat-box-modal');
                     if (!chatBox) return;
+                    const threshold = 420;
+                    const wasNearBottom = (chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight) <= threshold;
                     const typeShort = message.sender_type ? message.sender_type.split('\\').pop().toLowerCase() : '';
                     const isMe = message.sender_id == config.userId && typeShort === config.userTypeShort;
                     const row = document.createElement('div');
@@ -1058,13 +1278,15 @@
                         hour: '2-digit',
                         minute: '2-digit'
                     }) : '';
-                    
-                    const bubbleClasses = isMe 
-                        ? 'rounded-[24px] px-5 py-3.5 shadow-sm transform transition-all duration-300 hover:-translate-y-0.5 bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-[0_4px_14px_0_rgba(251,113,133,0.39)] rounded-br-md border border-rose-400/20'
-                        : 'rounded-[24px] px-5 py-3.5 shadow-sm transform transition-all duration-300 hover:-translate-y-0.5 bg-white text-stone-800 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.08)] rounded-bl-md border border-orange-50';
 
-                    const timeClass = isMe ? 'text-[11px] font-medium text-rose-300' : 'text-[11px] font-medium text-rose-300';
-                    const senderHtml = isMe ? '' : `<p class="mb-1 px-3 text-[11px] uppercase tracking-wider font-bold text-rose-400">${message.sender_name || this.activeUserName}</p>`;
+                    const bubbleClasses = isMe ?
+                        'rounded-[24px] px-5 py-3.5 shadow-sm transform transition-all duration-300 hover:-translate-y-0.5 bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-[0_4px_14px_0_rgba(251,113,133,0.39)] rounded-br-md border border-rose-400/20' :
+                        'rounded-[24px] px-5 py-3.5 shadow-sm transform transition-all duration-300 hover:-translate-y-0.5 bg-white text-stone-800 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.08)] rounded-bl-md border border-orange-50';
+
+                    const timeClass = isMe ? 'text-[11px] font-medium text-rose-300' :
+                        'text-[11px] font-medium text-rose-300';
+                    const senderHtml = isMe ? '' :
+                        `<p class="mb-1 px-3 text-[11px] uppercase tracking-wider font-bold text-rose-400">${message.sender_name || this.activeUserName}</p>`;
 
                     let timeHtml = '';
                     if (isMe) {
@@ -1073,19 +1295,27 @@
                             <path d="M11 1L5 7L2 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M15 1L9 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>`;
-                        timeHtml = `<div class="mt-1.5 px-2 flex items-center justify-end gap-1"><p class="${timeClass}">${time}</p>${doubleTick}</div>`;
+                        timeHtml =
+                            `<div class="mt-1.5 px-2 flex items-center justify-end gap-1"><p class="${timeClass}">${time}</p>${doubleTick}</div>`;
                     } else {
-                        timeHtml = `<div class="mt-1.5 px-2 flex items-center justify-start gap-1"><p class="${timeClass}">${time}</p></div>`;
+                        timeHtml =
+                            `<div class="mt-1.5 px-2 flex items-center justify-start gap-1"><p class="${timeClass}">${time}</p></div>`;
                     }
 
                     container.innerHTML = `${senderHtml}<div class="${bubbleClasses}">${content}</div>${timeHtml}`;
                     row.appendChild(container);
-                    chatBox.appendChild(row);
+                    
+                    if (replaceElement) {
+                        replaceElement.replaceWith(row);
+                    } else {
+                        chatBox.appendChild(row);
+                    }
+
                     if (autoScroll) {
-                        this.scrollToBottom(chatBox, true);
+                        if (wasNearBottom) this.scrollToBottom(chatBox, true);
                     }
                 },
-async loadMessages() {
+                async loadMessages() {
                     if (!this.activeConversationId) return;
                     const now = Date.now();
                     if (now - this.lastLoadTime < this.loadDebounceMs) return;
@@ -1096,13 +1326,13 @@ async loadMessages() {
                         const messages = response.data.messages || [];
                         const chatBox = document.getElementById('chat-box');
                         const chatBoxModal = document.getElementById('chat-box-modal');
-                        
+
                         const isFirstLoad = this.loadedMessageIds.size === 0;
                         if (isFirstLoad) {
                             if (chatBox) chatBox.innerHTML = '';
                             if (chatBoxModal) chatBoxModal.innerHTML = '';
                         }
-                        
+
                         let newMessagesCount = 0;
                         messages.forEach((message) => {
                             if (!this.loadedMessageIds.has(message.id)) {
@@ -1111,13 +1341,13 @@ async loadMessages() {
                                 newMessagesCount++;
                             }
                         });
-                        
+
                         // Scroll to bottom after rendering
                         if (isFirstLoad || newMessagesCount > 0) {
                             this.scrollToBottom(chatBox, !isFirstLoad);
                             this.scrollToBottom(chatBoxModal, !isFirstLoad);
                         }
-                        
+
                         if (isFirstLoad || newMessagesCount > 0) {
                             setTimeout(() => {
                                 if (chatBox) chatBox.style.opacity = '1';
@@ -1137,10 +1367,11 @@ async loadMessages() {
                 async togglePin(user) {
                     try {
                         let conversationId = user.conversation_id;
-                        
+
                         if (!conversationId) {
                             // Fallback if not loaded
-                            const response = await axios.get(`{{ route('admin.messages.conversation') }}?user=${user.id}`);
+                            const response = await axios.get(
+                                `{{ route('admin.messages.conversation') }}?user=${user.id}`);
                             conversationId = response.data.conversation.id;
                         }
 
@@ -1173,7 +1404,7 @@ async loadMessages() {
                         const response = await axios.get(`/messages/${this.activeConversationId}/summary`);
                         this.chatSummary = response.data.summary;
                         this.showSummary = true;
-                        
+
                         // Scroll to bottom to show the summary panel
                         this.scrollToBottom(document.getElementById('chat-box'), true);
                     } catch (error) {
@@ -1185,22 +1416,29 @@ async loadMessages() {
                 },
                 parseSummary(text) {
                     if (!text) return '';
-                    
+
                     let html = text
                         .replace(/\*\*(.*?)\*\*/g, '<strong class="text-stone-900 font-bold">$1</strong>') // Bold text
-                        .replace(/^\s*###\s*(.*$)/gm, '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // H3 headings
-                        .replace(/^\s*##\s*(.*$)/gm, '<h4 class="text-[14px] font-bold text-stone-900 mt-4 mb-2 border-b border-stone-100 pb-1">$1</h4>') // H2 headings
-                        .replace(/^\s*#\s*(.*$)/gm, '<h3 class="text-[16px] font-extrabold text-stone-900 mt-5 mb-3">$1</h3>') // H1 headings
-                        .replace(/^\s*(\d+\.\s.*)$/gm, '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // Numbered headings
-                        .replace(/^\s*[-*]\s(.*)$/gm, '<div class="flex items-start gap-2 ml-2 my-0"><span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400"></span><span class="text-stone-700">$1</span></div>'); // Bullet points
-                    
+                        .replace(/^\s*###\s*(.*$)/gm,
+                        '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // H3 headings
+                        .replace(/^\s*##\s*(.*$)/gm,
+                            '<h4 class="text-[14px] font-bold text-stone-900 mt-4 mb-2 border-b border-stone-100 pb-1">$1</h4>'
+                            ) // H2 headings
+                        .replace(/^\s*#\s*(.*$)/gm,
+                            '<h3 class="text-[16px] font-extrabold text-stone-900 mt-5 mb-3">$1</h3>') // H1 headings
+                        .replace(/^\s*(\d+\.\s.*)$/gm,
+                        '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // Numbered headings
+                        .replace(/^\s*[-*]\s(.*)$/gm,
+                            '<div class="flex items-start gap-2 ml-2 my-0"><span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400"></span><span class="text-stone-700">$1</span></div>'
+                            ); // Bullet points
+
                     html = html.split('\n').map(line => {
                         const trimmed = line.trim();
                         if (trimmed === '') return '';
                         if (line.includes('<div') || line.includes('<h')) return line;
                         return line + '<br>';
                     }).join('\n');
-                    
+
                     return html.replace(/(<\/div>|<\/h[1-6]>)<br>/g, '$1').replace(/<br>\n<div/g, '\n<div').trim();
                 },
                 async sendMessage() {
@@ -1211,10 +1449,15 @@ async loadMessages() {
                     const file = fileInput ? fileInput.files[0] : null;
                     const message = this.draftMessage.trim();
                     if (!message && !file) return;
+                    
+                    const tempId = Date.now();
+                    this.renderSendingMessage(tempId, message, file);
+
                     const formData = new FormData();
                     if (message) formData.append('message', message);
                     if (file) formData.append('file', file);
                     formData.append('conversation_id', this.activeConversationId);
+
                     try {
                         const response = await axios.post('/send-message', formData, {
                             headers: {
@@ -1228,11 +1471,21 @@ async loadMessages() {
                         if (previewEl) previewEl.style.display = 'none';
                         this.loadedMessageIds.add(response.data.id);
                         this.lastMessageId = Math.max(this.lastMessageId, response.data.id);
-                        this.renderMessage(response.data);
+                        
+                        const sendingRow = document.getElementById(`sending-${tempId}`);
+                        this.renderMessage(response.data, true, sendingRow);
+                        this.scrollToBottom(10, true);
+                        
                         await this.loadUsers(false);
                         this.syncCounterState('sent');
                     } catch (error) {
                         console.error('Send error:', error);
+                        const sendingRow = document.getElementById(`sending-${tempId}`);
+                        if (sendingRow) {
+                            sendingRow.style.opacity = '1';
+                            sendingRow.querySelector('.text-rose-300').textContent = 'Failed to send';
+                            sendingRow.querySelector('.text-rose-300').className = 'text-[11px] font-bold text-rose-600';
+                        }
                     }
                 },
                 openFilePicker() {
@@ -1246,7 +1499,7 @@ async loadMessages() {
                     if (!file) return;
 
                     this.isFileTooLarge = file.size > 10 * 1024 * 1024;
-                    
+
                     const isLargeScreen = window.innerWidth >= 1024;
                     const nameEl = isLargeScreen ? document.getElementById('file-name') : document.getElementById(
                         'file-name-modal');
@@ -1300,7 +1553,9 @@ async loadMessages() {
                     }
 
                     try {
-                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        const stream = await navigator.mediaDevices.getUserMedia({
+                            audio: true
+                        });
                         this.voiceMediaRecorder = new MediaRecorder(stream);
                         this.voiceAudioChunks = [];
 
@@ -1312,8 +1567,12 @@ async loadMessages() {
                             stream.getTracks().forEach(track => track.stop());
                             if (this.voiceAudioChunks.length === 0) return;
 
-                            const audioBlob = new Blob(this.voiceAudioChunks, { type: 'audio/webm' });
-                            const file = new File([audioBlob], `voice_${Date.now()}.webm`, { type: 'audio/webm' });
+                            const audioBlob = new Blob(this.voiceAudioChunks, {
+                                type: 'audio/webm'
+                            });
+                            const file = new File([audioBlob], `voice_${Date.now()}.webm`, {
+                                type: 'audio/webm'
+                            });
 
                             this.sendVoiceFile(file);
                         };
@@ -1333,7 +1592,9 @@ async loadMessages() {
 
                     try {
                         const response = await axios.post('/send-message', formData, {
-                            headers: { 'Content-Type': 'multipart/form-data' }
+                            headers: {
+                                'Content-Type': 'multipart/form-data'
+                            }
                         });
                         if (response.data && response.data.id) {
                             this.loadedMessageIds.add(response.data.id);
@@ -1378,6 +1639,7 @@ async loadMessages() {
                                     }
                                 });
                                 this.lastMessageId = newestId;
+                                this.scrollToBottom(10, false);
                                 await this.markConversationAsRead();
                                 await this.loadUsers(false);
                             }
@@ -1406,7 +1668,8 @@ async loadMessages() {
                 addEmoji(emoji) {
                     this.draftMessage += emoji;
                     const isLargeScreen = window.innerWidth >= 1024;
-                    const input = isLargeScreen ? document.getElementById('message-input') : document.getElementById('message-input-modal');
+                    const input = isLargeScreen ? document.getElementById('message-input') : document.getElementById(
+                        'message-input-modal');
                     if (input) input.focus();
                 },
                 async checkOnlineStatus() {
@@ -1430,7 +1693,9 @@ async loadMessages() {
                     this.activeUserName = '';
                     this.otherParticipantId = 0;
                     this.otherParticipantType = '';
-                    ['admin_active_user_id', 'admin_active_user_name', 'admin_active_conversation_id', 'admin_other_participant_id', 'admin_other_participant_type'].forEach(k => localStorage.removeItem(k));
+                    ['admin_active_user_id', 'admin_active_user_name', 'admin_active_conversation_id',
+                        'admin_other_participant_id', 'admin_other_participant_type'
+                    ].forEach(k => localStorage.removeItem(k));
                     this.loadedMessageIds = new Set();
                     this.lastMessageId = 0;
                     const chatBox = document.getElementById('chat-box');
@@ -1463,7 +1728,8 @@ async loadMessages() {
                     </div>
                 `;
             }
-            const btnClass = isMe ? 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm' : 'bg-orange-50 text-orange-700 hover:bg-orange-100';
+            const btnClass = isMe ? 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm' :
+                'bg-orange-50 text-orange-700 hover:bg-orange-100';
             return `
                 <div class="mt-2 text-left">
                     <a href="${url}" target="_blank" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold shadow-sm transition-transform hover:scale-105 ${btnClass}">
@@ -1477,12 +1743,12 @@ async loadMessages() {
         }
     </script>
     <script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('adminMessagesApp', (config) => ({
-            ...adminMessagesApp(config)
-        }));
-    });
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('adminMessagesApp', (config) => ({
+                ...adminMessagesApp(config)
+            }));
+        });
     </script>
 </x-admin-layout>
-    </script>
+</script>
 </x-admin-layout>

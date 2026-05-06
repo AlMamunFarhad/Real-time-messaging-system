@@ -765,3 +765,19 @@
 
 
 </x-messaging::layouts.master>
+        .animate-message-in {
+            animation: scaleFadeIn 0.2s ease-out forwards;
+        }
+        @keyframes scaleFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+            animation: shimmer 2s infinite;
+        }
+    </style>
+</x-messaging::layouts.master>
