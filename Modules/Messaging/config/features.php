@@ -8,6 +8,7 @@ return [
         'audio_call' => true,
         'video_call' => true,
         'ai_summary' => true,
+        'ai_chat_bot' => true,
         'file_upload' => true,
         'notifications' => true,
         'online_status' => true,

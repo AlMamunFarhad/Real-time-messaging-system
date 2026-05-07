@@ -24,6 +24,12 @@ class ProcessAIMessage
 
     public function handle(MessageSent $event)
     {
+        // Check if ai_chat_bot feature is enabled in messaging config
+        if (!function_exists('messaging_feature') || !messaging_feature('ai_chat_bot', true)) {
+            \Log::info("AI Chat Bot is disabled via config/features.php. Skipping AI response.");
+            return;
+        }
+
         $message = $event->message;
         \Log::info("ProcessAIMessage listener triggered for message: " . $message->id);
 

@@ -16,8 +16,7 @@ class ChatController extends Controller
 
     public function dashboard(Request $request)
     {
-        // dd($request->all());
-        abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
+                abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
 
         $participantId = AuthParticipant::id();
         $participantType = AuthParticipant::type();
@@ -34,6 +33,7 @@ class ChatController extends Controller
 
     public function directConversation(Request $request)
     {
+
         abort_unless(messaging_feature('enabled'), 403, 'Messaging feature disabled.');
 
         $request->validate([
@@ -68,13 +68,13 @@ class ChatController extends Controller
             $targetType
         );
 
+
         $otherParticipant = $conversation->participants->first(function ($participant) use ($participantId, $participantType) {
             return !(
                 (int) $participant->participant_id === (int) $participantId
                 && $this->conversationService->matchesParticipantType($participant->participant_type, $participantType)
             );
         });
-
         return response()->json([
             'conversation' => [
                 'id' => $conversation->id,
