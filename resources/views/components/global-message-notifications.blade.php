@@ -126,6 +126,22 @@
                 if (!auth.feedUrl) return;
 
                 try {
+                    if (typeof window.axios === 'undefined') {
+                        window.axios = {
+                            get: async (targetUrl) => {
+                                const res = await fetch(targetUrl, { credentials: 'same-origin' });
+                                const contentType = res.headers.get('content-type') || '';
+                                const data = contentType.includes('application/json') ? await res.json() : await res.text();
+                                if (!res.ok) {
+                                    const err = new Error('Request failed');
+                                    err.response = { status: res.status, data };
+                                    throw err;
+                                }
+                                return { status: res.status, data };
+                            }
+                        };
+                    }
+
                     const url = new URL(auth.feedUrl, window.location.origin);
                     if (lastSeenAt) {
                         url.searchParams.set('since', lastSeenAt);

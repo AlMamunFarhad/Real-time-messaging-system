@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\AIChat\app\Services\AI;
+namespace Modules\AIChat\Services\AI;
 
 use Illuminate\Support\Str;
-use Modules\AIChat\app\Services\AI\Providers\GroqProvider;
-use Modules\AIChat\app\Services\AI\Providers\GeminiProvider;
+use Modules\AIChat\Services\AI\Providers\GroqProvider;
+use Modules\AIChat\Services\AI\Providers\GeminiProvider;
 
 class AIGatewayService
 {

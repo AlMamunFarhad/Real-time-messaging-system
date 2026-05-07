@@ -1,9 +1,9 @@
 <?php
 
-namespace Modules\AIChat\app\Listeners;
+namespace Modules\AIChat\Listeners;
 
 use Modules\Messaging\Events\MessageSent;
-use Modules\AIChat\app\Services\AI\AIGatewayService;
+use Modules\AIChat\Services\AI\AIGatewayService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\DB;

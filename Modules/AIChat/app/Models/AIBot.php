@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\AIChat\app\Models;
+namespace Modules\AIChat\Models;
 
 use Illuminate\Database\Eloquent\Model;
 

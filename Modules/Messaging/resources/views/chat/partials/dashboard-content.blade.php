@@ -17,6 +17,7 @@
     currentId: {{ (int) $currentParticipantId }},
     currentType: @js($currentParticipantTypeShort),
     initialConversationId: {{ (int) $initialConversationId }},
+    csrfToken: @js(csrf_token()),
     routes: {
         conversations: @js(route('messages.conversations')),
         messagesBase: @js(url('/messages')),
@@ -1467,6 +1468,61 @@
 </div>
 
 <script>
+    // Some deployments don't load the global axios bundle on this page.
+    // Provide a tiny fetch-based fallback so messaging continues to work.
+    (function ensureAxios() {
+        if (typeof window.axios !== 'undefined') return;
+
+        async function parseResponse(response) {
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) return await response.json();
+            return await response.text();
+        }
+
+        async function request(method, url, data, config = {}) {
+            const headers = Object.assign({}, config.headers || {});
+            const fetchOptions = {
+                method,
+                headers,
+                credentials: 'same-origin',
+            };
+
+            if (data instanceof FormData) {
+                fetchOptions.body = data;
+                // Let the browser set the multipart boundary
+                delete fetchOptions.headers['Content-Type'];
+                delete fetchOptions.headers['content-type'];
+            } else if (data !== undefined) {
+                fetchOptions.headers['Content-Type'] = fetchOptions.headers['Content-Type'] || 'application/json';
+                fetchOptions.body = typeof data === 'string' ? data : JSON.stringify(data);
+            }
+
+            const response = await fetch(url, fetchOptions);
+            const payload = await parseResponse(response);
+
+            if (!response.ok) {
+                const error = new Error('Request failed');
+                error.response = {
+                    status: response.status,
+                    data: payload,
+                };
+                throw error;
+            }
+
+            return {
+                status: response.status,
+                data: payload,
+            };
+        }
+
+        window.axios = {
+            get: (url, config) => request('GET', url, undefined, config),
+            delete: (url, config) => request('DELETE', url, undefined, config),
+            post: (url, data, config) => request('POST', url, data, config),
+            patch: (url, data, config) => request('PATCH', url, data, config),
+        };
+    })();
+
     function messagingDashboard(config) {
         return {
             conversations: [],
@@ -2674,7 +2730,8 @@
                 try {
                     const response = await axios.post(config.routes.send, formData, {
                         headers: {
-                            'Content-Type': 'multipart/form-data'
+                            'Content-Type': 'multipart/form-data',
+                            'X-CSRF-TOKEN': config.csrfToken
                         }
                     });
 
@@ -2706,7 +2763,9 @@
                     // Remove from optimistic queue on error
                     this.sendingMessages = this.sendingMessages.filter(m => m.tempId !== tempId);
                     // Restore draft if failed? Maybe just alert for now as per existing logic
-                    alert('Failed to send message. Please try again.');
+                    const serverMessage = error?.response?.data?.error || error?.response?.data?.message || null;
+                    const status = error?.response?.status || null;
+                    alert(serverMessage ? `Failed to send message (${status ?? 'error'}): ${serverMessage}` : 'Failed to send message. Please try again.');
                 } finally {
                     this.isSendingMessage = false;
                 }

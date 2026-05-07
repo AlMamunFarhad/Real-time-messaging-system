@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\AIChat\app\Providers;
+namespace Modules\AIChat\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -13,7 +13,7 @@ class EventServiceProvider extends ServiceProvider
      */
     protected $listen = [
         \Modules\Messaging\Events\MessageSent::class => [
-            \Modules\AIChat\app\Listeners\ProcessAIMessage::class,
+            \Modules\AIChat\Listeners\ProcessAIMessage::class,
         ],
     ];
 

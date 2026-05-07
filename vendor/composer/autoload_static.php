@@ -240,6 +240,10 @@ class ComposerStaticInitf5fef90b6f1218a20b4cd79ac6ad352e
             'Modules\\Messaging\\Database\\Seeders\\' => 35,
             'Modules\\Messaging\\Database\\Factories\\' => 37,
             'Modules\\Messaging\\' => 18,
+            'Modules\\AIChat\\Tests\\' => 21,
+            'Modules\\AIChat\\Database\\Seeders\\' => 32,
+            'Modules\\AIChat\\Database\\Factories\\' => 34,
+            'Modules\\AIChat\\' => 15,
             'Modules\\' => 8,
             'Mockery\\' => 8,
             'Masterminds\\' => 12,
@@ -642,6 +646,22 @@ class ComposerStaticInitf5fef90b6f1218a20b4cd79ac6ad352e
         'Modules\\Messaging\\' => 
         array (
             0 => __DIR__ . '/../..' . '/Modules/Messaging/app',
+        ),
+        'Modules\\AIChat\\Tests\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/Modules/AIChat/tests',
+        ),
+        'Modules\\AIChat\\Database\\Seeders\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/Modules/AIChat/database/seeders',
+        ),
+        'Modules\\AIChat\\Database\\Factories\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/Modules/AIChat/database/factories',
+        ),
+        'Modules\\AIChat\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/Modules/AIChat/app',
         ),
         'Modules\\' => 
         array (
@@ -4495,9 +4515,22 @@ class ComposerStaticInitf5fef90b6f1218a20b4cd79ac6ad352e
         'Mockery\\Undefined' => __DIR__ . '/..' . '/mockery/mockery/library/Mockery/Undefined.php',
         'Mockery\\VerificationDirector' => __DIR__ . '/..' . '/mockery/mockery/library/Mockery/VerificationDirector.php',
         'Mockery\\VerificationExpectation' => __DIR__ . '/..' . '/mockery/mockery/library/Mockery/VerificationExpectation.php',
+        'Modules\\AIChat\\Database\\Seeders\\AIChatDatabaseSeeder' => __DIR__ . '/../..' . '/Modules/AIChat/database/seeders/AIChatDatabaseSeeder.php',
+        'Modules\\AIChat\\Http\\Controllers\\AIChatController' => __DIR__ . '/../..' . '/Modules/AIChat/app/Http/Controllers/AIChatController.php',
+        'Modules\\AIChat\\Listeners\\ProcessAIMessage' => __DIR__ . '/../..' . '/Modules/AIChat/app/Listeners/ProcessAIMessage.php',
+        'Modules\\AIChat\\Models\\AIBot' => __DIR__ . '/../..' . '/Modules/AIChat/app/Models/AIBot.php',
+        'Modules\\AIChat\\Providers\\AIChatServiceProvider' => __DIR__ . '/../..' . '/Modules/AIChat/app/Providers/AIChatServiceProvider.php',
+        'Modules\\AIChat\\Providers\\EventServiceProvider' => __DIR__ . '/../..' . '/Modules/AIChat/app/Providers/EventServiceProvider.php',
+        'Modules\\AIChat\\Providers\\RouteServiceProvider' => __DIR__ . '/../..' . '/Modules/AIChat/app/Providers/RouteServiceProvider.php',
+        'Modules\\AIChat\\Services\\AI\\AIGatewayService' => __DIR__ . '/../..' . '/Modules/AIChat/app/Services/AI/AIGatewayService.php',
+        'Modules\\AIChat\\Services\\AI\\Contracts\\AIProviderInterface' => __DIR__ . '/../..' . '/Modules/AIChat/app/Services/AI/Contracts/AIProviderInterface.php',
+        'Modules\\AIChat\\Services\\AI\\Providers\\DeepseekProvider' => __DIR__ . '/../..' . '/Modules/AIChat/app/Services/AI/Providers/DeepseekProvider.php',
+        'Modules\\AIChat\\Services\\AI\\Providers\\GeminiProvider' => __DIR__ . '/../..' . '/Modules/AIChat/app/Services/AI/Providers/GeminiProvider.php',
+        'Modules\\AIChat\\Services\\AI\\Providers\\GroqProvider' => __DIR__ . '/../..' . '/Modules/AIChat/app/Services/AI/Providers/GroqProvider.php',
         'Modules\\Messaging\\Database\\Seeders\\MessagingDatabaseSeeder' => __DIR__ . '/../..' . '/Modules/Messaging/database/seeders/MessagingDatabaseSeeder.php',
         'Modules\\Messaging\\Events\\MessageRead' => __DIR__ . '/../..' . '/Modules/Messaging/app/Events/MessageRead.php',
         'Modules\\Messaging\\Events\\MessageSent' => __DIR__ . '/../..' . '/Modules/Messaging/app/Events/MessageSent.php',
+        'Modules\\Messaging\\Events\\MessagesRead' => __DIR__ . '/../..' . '/Modules/Messaging/app/Events/MessagesRead.php',
         'Modules\\Messaging\\Helpers\\AuthParticipant' => __DIR__ . '/../..' . '/Modules/Messaging/app/Helpers/AuthParticipant.php',
         'Modules\\Messaging\\Http\\Controllers\\ChatController' => __DIR__ . '/../..' . '/Modules/Messaging/app/Http/Controllers/ChatController.php',
         'Modules\\Messaging\\Http\\Controllers\\GroupController' => __DIR__ . '/../..' . '/Modules/Messaging/app/Http/Controllers/GroupController.php',
@@ -4505,6 +4538,9 @@ class ComposerStaticInitf5fef90b6f1218a20b4cd79ac6ad352e
         'Modules\\Messaging\\Http\\Controllers\\MessagingController' => __DIR__ . '/../..' . '/Modules/Messaging/app/Http/Controllers/MessagingController.php',
         'Modules\\Messaging\\Http\\Controllers\\OnlineStatusController' => __DIR__ . '/../..' . '/Modules/Messaging/app/Http/Controllers/OnlineStatusController.php',
         'Modules\\Messaging\\Http\\Controllers\\ParticipantDirectoryController' => __DIR__ . '/../..' . '/Modules/Messaging/app/Http/Controllers/ParticipantDirectoryController.php',
+        'Modules\\Messaging\\Http\\Controllers\\SummaryController' => __DIR__ . '/../..' . '/Modules/Messaging/app/Http/Controllers/SummaryController.php',
+        'Modules\\Messaging\\Http\\Controllers\\VoiceCallController' => __DIR__ . '/../..' . '/Modules/Messaging/app/Http/Controllers/VoiceCallController.php',
+        'Modules\\Messaging\\Http\\Middleware\\EnsureMessagingFeatureEnabled' => __DIR__ . '/../..' . '/Modules/Messaging/app/Http/Middleware/EnsureMessagingFeatureEnabled.php',
         'Modules\\Messaging\\Http\\Middleware\\TrackOnlineStatus' => __DIR__ . '/../..' . '/Modules/Messaging/app/Http/Middleware/TrackOnlineStatus.php',
         'Modules\\Messaging\\Models\\Conversation' => __DIR__ . '/../..' . '/Modules/Messaging/app/Models/Conversation.php',
         'Modules\\Messaging\\Models\\ConversationParticipant' => __DIR__ . '/../..' . '/Modules/Messaging/app/Models/ConversationParticipant.php',
@@ -4513,6 +4549,8 @@ class ComposerStaticInitf5fef90b6f1218a20b4cd79ac6ad352e
         'Modules\\Messaging\\Providers\\MessagingServiceProvider' => __DIR__ . '/../..' . '/Modules/Messaging/app/Providers/MessagingServiceProvider.php',
         'Modules\\Messaging\\Providers\\RouteServiceProvider' => __DIR__ . '/../..' . '/Modules/Messaging/app/Providers/RouteServiceProvider.php',
         'Modules\\Messaging\\Services\\ConversationService' => __DIR__ . '/../..' . '/Modules/Messaging/app/Services/ConversationService.php',
+        'Modules\\Messaging\\Services\\GeminiService' => __DIR__ . '/../..' . '/Modules/Messaging/app/Services/GeminiService.php',
+        'Modules\\Messaging\\Services\\UploadService' => __DIR__ . '/../..' . '/Modules/Messaging/app/Services/UploadService.php',
         'Monolog\\Attribute\\AsMonologProcessor' => __DIR__ . '/..' . '/monolog/monolog/src/Monolog/Attribute/AsMonologProcessor.php',
         'Monolog\\Attribute\\WithMonologChannel' => __DIR__ . '/..' . '/monolog/monolog/src/Monolog/Attribute/WithMonologChannel.php',
         'Monolog\\DateTimeImmutable' => __DIR__ . '/..' . '/monolog/monolog/src/Monolog/DateTimeImmutable.php',
@@ -8805,6 +8843,7 @@ class ComposerStaticInitf5fef90b6f1218a20b4cd79ac6ad352e
         'Symfony\\Contracts\\EventDispatcher\\EventDispatcherInterface' => __DIR__ . '/..' . '/symfony/event-dispatcher-contracts/EventDispatcherInterface.php',
         'Symfony\\Contracts\\Service\\Attribute\\Required' => __DIR__ . '/..' . '/symfony/service-contracts/Attribute/Required.php',
         'Symfony\\Contracts\\Service\\Attribute\\SubscribedService' => __DIR__ . '/..' . '/symfony/service-contracts/Attribute/SubscribedService.php',
+        'Symfony\\Contracts\\Service\\ContainerAwareInterface' => __DIR__ . '/..' . '/symfony/service-contracts/ContainerAwareInterface.php',
         'Symfony\\Contracts\\Service\\ResetInterface' => __DIR__ . '/..' . '/symfony/service-contracts/ResetInterface.php',
         'Symfony\\Contracts\\Service\\ServiceCollectionInterface' => __DIR__ . '/..' . '/symfony/service-contracts/ServiceCollectionInterface.php',
         'Symfony\\Contracts\\Service\\ServiceLocatorTrait' => __DIR__ . '/..' . '/symfony/service-contracts/ServiceLocatorTrait.php',

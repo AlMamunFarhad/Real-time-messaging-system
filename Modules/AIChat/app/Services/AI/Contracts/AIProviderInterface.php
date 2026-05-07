@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\AIChat\app\Services\AI\Contracts;
+namespace Modules\AIChat\Services\AI\Contracts;
 
 interface AIProviderInterface
 {

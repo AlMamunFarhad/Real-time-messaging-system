@@ -1,9 +1,9 @@
 <?php
 
-namespace Modules\AIChat\app\Services\AI\Providers;
+namespace Modules\AIChat\Services\AI\Providers;
 
 use Illuminate\Support\Facades\Http;
-use Modules\AIChat\app\Services\AI\Contracts\AIProviderInterface;
+use Modules\AIChat\Services\AI\Contracts\AIProviderInterface;
 
 class GroqProvider implements AIProviderInterface
 {

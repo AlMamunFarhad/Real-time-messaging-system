@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\AIChat\app\Providers;
+namespace Modules\AIChat\Providers;
 
 use Nwidart\Modules\Support\ModuleServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
