@@ -1,7 +1,9 @@
 @props(['auth'])
 
 @if ($auth && messaging_feature('notifications'))
-    <div id="global-message-toast-root" class="pointer-events-none fixed right-4 top-4 z-[90] flex w-full max-w-sm flex-col gap-3 sm:right-6 sm:top-6"></div>
+    <div id="global-message-toast-root"
+        class="pointer-events-none fixed right-4 top-4 z-[90] flex w-full max-w-sm flex-col gap-3 sm:right-6 sm:top-6">
+    </div>
     <script>
         (() => {
             const auth = @json($auth);
@@ -57,7 +59,8 @@
 
                 const toast = document.createElement('button');
                 toast.type = 'button';
-                toast.className = 'pointer-events-auto opacity-0 translate-y-0 transition-all duration-300 text-left';
+                toast.className =
+                    'pointer-events-auto opacity-0 translate-y-0 transition-all duration-300 text-left';
                 toast.innerHTML = `
                     <div class="group relative overflow-hidden rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-[0_10px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.12)] transition-all duration-300">
 
@@ -129,15 +132,24 @@
                     if (typeof window.axios === 'undefined') {
                         window.axios = {
                             get: async (targetUrl) => {
-                                const res = await fetch(targetUrl, { credentials: 'same-origin' });
+                                const res = await fetch(targetUrl, {
+                                    credentials: 'same-origin'
+                                });
                                 const contentType = res.headers.get('content-type') || '';
-                                const data = contentType.includes('application/json') ? await res.json() : await res.text();
+                                const data = contentType.includes('application/json') ? await res
+                                .json() : await res.text();
                                 if (!res.ok) {
                                     const err = new Error('Request failed');
-                                    err.response = { status: res.status, data };
+                                    err.response = {
+                                        status: res.status,
+                                        data
+                                    };
                                     throw err;
                                 }
-                                return { status: res.status, data };
+                                return {
+                                    status: res.status,
+                                    data
+                                };
                             }
                         };
                     }
@@ -162,7 +174,8 @@
                     }
 
                     if (messages.length) {
-                        lastSeenAt = messages[messages.length - 1].created_at || response.data?.server_time || lastSeenAt;
+                        lastSeenAt = messages[messages.length - 1].created_at || response.data?.server_time ||
+                            lastSeenAt;
                     } else if (!lastSeenAt) {
                         lastSeenAt = response.data?.server_time || new Date().toISOString();
                     }
@@ -175,8 +188,45 @@
                 }
             };
 
+            const connectEcho = (retryCount = 0) => {
+                if (typeof window.Echo === 'undefined') {
+                    if (retryCount < 10) setTimeout(() => connectEcho(retryCount + 1), 1000);
+                    return;
+                }
+
+                const channelName = `user.${auth.type}.${auth.id}`;
+                console.log('Global notification listener connecting to:', channelName);
+
+                window.Echo.private(channelName)
+                    .listen('.message.sent', (message) => {
+                        console.log('Global notification received:', message);
+                        if (!message) return;
+                        
+                        // Small delay to let DB catch up if needed
+                        setTimeout(() => {
+                            showToast(message);
+                            if (typeof window.dispatchMessageCounterSync === 'function') {
+                                window.dispatchMessageCounterSync('received', {
+                                    conversationId: message.conversation_id
+                                });
+                            }
+                        }, 100);
+                    });
+            };
+
+            connectEcho();
+
             pollFeed(true);
-            setInterval(() => pollFeed(false), 4000);
+            setInterval(() => {
+                // If Echo is connected, skip polling to reduce server load
+                const isEchoConnected = window.Echo && window.Echo.connector &&
+                    window.Echo.connector.pusher && window.Echo.connector.pusher.connection.state ===
+                    'connected';
+
+                if (isEchoConnected) return;
+
+                pollFeed(false);
+            }, 30000); // Increased from 4s to 30s fallback
         })();
     </script>
 @endif

@@ -5,6 +5,12 @@ use Illuminate\Support\Facades\Auth;
 use Modules\Messaging\Models\ConversationParticipant;
 use Illuminate\Support\Facades\Log;
 
+// Register the authentication endpoint for private/presence channels:
+// POST /broadcasting/auth
+Broadcast::routes([
+    'middleware' => ['web', 'auth:admin,web'],
+]);
+
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });

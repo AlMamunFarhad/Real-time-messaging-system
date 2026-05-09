@@ -1,4 +1,19 @@
 <style>
+    @keyframes slide-in-left {
+        0% {
+            opacity: 0;
+            transform: translateX(-20px) scale(0.98);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+    }
+
+    .received-message-anim {
+        animation: slide-in-left 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
     @keyframes shimmer {
         0% {
             transform: translateX(-100%);
@@ -749,7 +764,8 @@
                                     <div class="flex" :class="isMine(message) ? 'justify-end' : 'justify-start'"
                                         x-transition:enter="transition ease-out duration-300"
                                         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-                                        <div class="max-w-[80%] min-w-0 overflow-visible break-words">
+                                        <div class="max-w-[80%] min-w-0 overflow-visible break-words"
+                                            :class="(!isMine(message) && message.is_new) ? 'received-message-anim' : ''">
                                             <template x-if="!isMine(message)">
                                                 <p class="mb-1 px-3 text-[11px] uppercase tracking-wider font-bold text-rose-400"
                                                     x-text="message.sender_name"></p>
@@ -2071,6 +2087,9 @@
                 if (!this.features.audio_call && !this.features.video_call) return;
                 if (this.signalPollTimer) clearInterval(this.signalPollTimer);
                 this.signalPollTimer = setInterval(async () => {
+                    // Only poll if the tab is visible to reduce server load
+                    if (document.visibilityState !== 'visible') return;
+
                     try {
                         const response = await axios.get('/voice-call/poll');
                         const signals = response.data?.signals || [];
@@ -2080,7 +2099,7 @@
                     } catch (error) {
                         console.error('Signal poll failed', error);
                     }
-                }, 2000);
+                }, 10000); // Increased from 2s to 10s fallback
             },
             notificationChannelName() {
                 return `user.${config.currentType}.${config.currentId}`;
@@ -2146,15 +2165,33 @@
                     .listen('.message.sent', (message) => {
                         if (!message || String(message.conversation_id) !== String(this.activeConversationId))
                             return;
+                        
+                        // Check if it's already in our confirmed messages
+                        const exists = this.messages.some(m => String(m.id) === String(message.id));
+                        if (exists) return;
+
+                        // Check if it's currently in the sending/optimistic queue
+                        // If it is, we'll remove it from the queue and let this real message take over
+                        const senderType = String(message.sender_type || '').split('\\').pop().toLowerCase();
+                        const isMe = String(message.sender_id) === String(config.currentId) && senderType === config.currentType;
+                        
+                        if (isMe) {
+                            // Try to find and remove from sending queue to avoid flicker
+                            this.sendingMessages = this.sendingMessages.filter(m => 
+                                !(m.is_file === !!(message.file_url || message.file_path) && m.body === message.body)
+                            );
+                        }
+
                         const panel = document.getElementById('messages-panel');
                         const wasNearBottom = panel ? this.isNearBottom(panel, 800) : true;
-                        const exists = this.messages.some(m => String(m.id) === String(message.id));
-                        if (!exists) {
-                            this.messages = [...this.messages, message];
-                            // Receiver side: if user is already at/near bottom, always force-scroll to show new message
-                            this.scrollToBottom(0, wasNearBottom ? true : false);
-                            this.markAsRead();
-                        }
+                        
+                        this.messages = [...this.messages, {
+                            ...message,
+                            is_new: true
+                        }];
+                        // Receiver side: if user is already at/near bottom, always force-scroll to show new message
+                        this.scrollToBottom(0, wasNearBottom ? true : false);
+                        this.markAsRead();
                     });
             },
             pushNotificationToast(message) {
@@ -2288,8 +2325,12 @@
                     onConfirm: null
                 };
             },
+            lastMarkedReadAt: 0,
             markAsRead() {
                 if (!this.activeConversationId) return;
+
+                const now = Date.now();
+                if (now - this.lastMarkedReadAt < 3000) return;
 
                 // Only mark as read if the document is visible and the window is focused
                 // This prevents marking as read when the user is in another tab or dashboard
@@ -2300,6 +2341,10 @@
                 axios.post(config.routes.read, {
                     conversation_id: this.activeConversationId
                 }).then(() => {
+                    this.lastMarkedReadAt = now;
+                    if (this.activeConversation) {
+                        this.activeConversation.unread_count = 0;
+                    }
                     if (window.dispatchMessageCounterSync) {
                         window.dispatchMessageCounterSync('read', {
                             conversationId: this.activeConversationId
@@ -2534,6 +2579,7 @@
                 this.isMobileChatOpen = true;
                 localStorage.setItem('user_active_conversation_id', conversation.id);
                 this.activeConversation = conversation;
+                this.activeConversation.unread_count = 0;
                 this.messages = []; // Clear messages for the new conversation
                 this.openMessageMenuId = null;
                 this.cancelInlineEdit();
@@ -2561,6 +2607,7 @@
                 }
 
                 this.lastLoadTime = now;
+                let shouldScrollToBottom = false;
                 try {
                     const panel = document.getElementById('messages-panel');
                     const wasNearBottom = panel ? this.isNearBottom(panel) : true;
@@ -2580,7 +2627,7 @@
                     this.messages = newMessages;
                     const newLastId = newMessages.length ? (newMessages[newMessages.length - 1]?.id ?? null) : null;
 
-                    // Preserve reading position when user scrolls up
+                    // Evaluate scroll logic but execute it later
                     if (preserveDistanceFromBottom) {
                         this.$nextTick(() => {
                             const panelAfter = document.getElementById('messages-panel');
@@ -2591,11 +2638,13 @@
                         const isFirstLoad = previousCount === 0;
                         const hasNew = (newMessages.length > previousCount) || (String(newLastId ?? '') !== String(
                             previousLastId ?? ''));
-                        if (isFirstLoad || hasNew) this.scrollToBottom(30, true);
+                        if (isFirstLoad || hasNew) shouldScrollToBottom = true;
                     }
 
                     axios.post(config.routes.read, {
                         conversation_id: this.activeConversationId
+                    }).then(() => {
+                        if (this.activeConversation) this.activeConversation.unread_count = 0;
                     });
                     if (window.dispatchMessageCounterSync) window.dispatchMessageCounterSync('read', {
                         conversationId: this.activeConversationId
@@ -2605,6 +2654,16 @@
                         this.loadingMessages = false;
                     }
                     this.loadedMessagesForConversation[this.activeConversationId] = true;
+                    
+                    // Force the scroll to happen after the DOM has fully updated with !loadingMessages
+                    this.$nextTick(() => {
+                        if (shouldScrollToBottom) {
+                            this.scrollToBottom(0, true);
+                            
+                            // Failsafe snap to prevent any lingering jitter after heavy images/DOM updates
+                            setTimeout(() => this.scrollToBottom(0, true), 100);
+                        }
+                    });
                 }
             },
             async saveInlineEdit(message) {
@@ -2706,7 +2765,12 @@
                     body: this.draftMessage.trim(),
                     is_file: !!this.selectedFile,
                     fileName: this.selectedFileName,
-                    isSending: true
+                    file_url: this.selectedFilePreview,
+                    isSending: true,
+                    created_at: new Date().toISOString(),
+                    sender_id: config.currentId,
+                    sender_type: config.currentType,
+                    sender_name: 'You'
                 };
 
                 // Add to optimistic queue
@@ -2738,12 +2802,18 @@
                     // Remove from optimistic queue
                     this.sendingMessages = this.sendingMessages.filter(m => m.tempId !== tempId);
 
-                    // Add real message to the list
+                    // Add real message to the list if not already there via Echo
                     const confirmedMessage = {
                         ...response.data,
                         tempId: tempId
                     };
-                    this.messages = [...this.messages, confirmedMessage];
+                    const alreadyExists = this.messages.some(m => String(m.id) === String(confirmedMessage.id));
+                    if (!alreadyExists) {
+                        this.messages = [...this.messages, {
+                            ...confirmedMessage,
+                            is_new: false // Don't animate our own message entry if it's already in optimistic state
+                        }];
+                    }
 
                     // Update polling timer
                     this.lastLoadTime = Date.now();
@@ -3052,6 +3122,15 @@
             startPolling() {
                 if (this.pollTimer) clearInterval(this.pollTimer);
                 this.pollTimer = setInterval(async () => {
+                    // Only poll if tab is active and visible
+                    if (document.visibilityState !== 'visible' || !document.hasFocus()) return;
+
+                    // If Echo is connected, skip polling to reduce server load
+                    const isEchoConnected = window.Echo && window.Echo.connector && 
+                                          window.Echo.connector.pusher && window.Echo.connector.pusher.connection.state === 'connected';
+                    
+                    if (isEchoConnected) return;
+
                     const now = Date.now();
                     if (now - this.lastLoadTime < this.loadDebounceMs) return;
 
@@ -3064,7 +3143,7 @@
                         await this.loadMessages(true); // Call silently in the background
                         if (this.activeConversation?.is_group) await this.loadGroupDetails();
                     }
-                }, 5000);
+                }, 5000); // Reduced to 5s fallback
             }
         };
     }

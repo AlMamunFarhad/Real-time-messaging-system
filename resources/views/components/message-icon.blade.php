@@ -135,26 +135,40 @@
                 unreadCount: config.unreadCount || 0,
                 refreshTimer: null,
                 init() {
-                    // Start refresh loop immediately
+                    // Start refresh loop
                     this.startRefreshLoop();
                     
-                    // Delay initial refresh by 1s to allow dashboard markRead to settle
-                    setTimeout(() => this.refreshConversations(), 1000);
+                    // Delay initial refresh
+                    setTimeout(() => this.refreshConversations(), 2000);
                     
+                    // Only listen to sync events to coordinate between tabs
                     window.addEventListener('message-counter-sync', () => this.refreshConversations());
-                    window.addEventListener('focus', () => this.refreshConversations());
-                    document.addEventListener('visibilitychange', () => {
-                        if (document.visibilityState === 'visible') this.refreshConversations();
-                    });
                     window.addEventListener('storage', (event) => {
                         if (event.key === 'message-counter-sync') this.refreshConversations();
                     });
                 },
                 startRefreshLoop() {
                     if (this.refreshTimer) clearInterval(this.refreshTimer);
-                    this.refreshTimer = setInterval(() => this.refreshConversations(), 2000);
+                    this.refreshTimer = setInterval(() => {
+                        // Only poll if tab is visible
+                        if (document.visibilityState !== 'visible') return;
+
+                        // If Echo is connected, skip polling to reduce server load
+                        const isEchoConnected = window.Echo && window.Echo.connector && 
+                                              window.Echo.connector.pusher && window.Echo.connector.pusher.connection.state === 'connected';
+                        
+                        if (isEchoConnected) return;
+                        
+                        this.refreshConversations();
+                    }, 60000); // Increased to 60s fallback for the icon
                 },
+                lastRefreshedAt: 0,
                 async refreshConversations() {
+                    const now = Date.now();
+                    // Hard throttle: Don't allow refreshes more than once every 5 seconds
+                    if (now - this.lastRefreshedAt < 5000) return;
+                    this.lastRefreshedAt = now;
+
                     try {
                         const response = await fetch(config.conversationsUrl + '?t=' + Date.now(), {
                             credentials: 'include',

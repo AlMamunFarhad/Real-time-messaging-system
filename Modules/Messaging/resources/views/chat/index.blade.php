@@ -299,7 +299,8 @@
         async function markConversationAsRead(force = false) {
             const now = Date.now();
 
-            if (!force && now - window.lastMarkedReadAt < 1500) {
+            // Increase throttle to 3 seconds to reduce redundant requests
+            if (!force && now - window.lastMarkedReadAt < 3000) {
                 return;
             }
 
@@ -357,8 +358,8 @@
             container.className = 'message-container';
 
             let fileUrl = message.file_url || message.fileUrl || '';
-            let hasImage = fileUrl && (fileUrl.endsWith('.jpg') || fileUrl.endsWith('.jpeg') || fileUrl.endsWith('.png') || fileUrl.endsWith('.gif') || fileUrl.endsWith('.webp'));
-            let isAudio = fileUrl && (fileUrl.endsWith('.webm') || fileUrl.endsWith('.mp3') || fileUrl.endsWith('.wav') || fileUrl.endsWith('.ogg') || fileUrl.endsWith('.m4a') || fileUrl.endsWith('.aac'));
+            let hasImage = fileUrl && /\.(jpg|jpeg|png|gif|webp)$/i.test(fileUrl.split('?')[0]);
+            let isAudio = fileUrl && /\.(webm|mp3|wav|ogg|m4a|aac)$/i.test(fileUrl.split('?')[0]);
 
             if (isMe) {
                 let content = message.body || '';
@@ -486,7 +487,7 @@
                                 window.appendMessage(msg);
                             }
                         });
-                    }, 300);
+                    }, 1000);
                 } else {
                     if (chatSkeleton) chatSkeleton.style.display = 'none';
                     if (messages.length === 0) {
@@ -588,10 +589,18 @@
 
         loadMessages();
 
-        // Poll every 3 seconds with debounce
+        // Fallback: Poll for new messages every 10 seconds (ONLY if Echo is NOT available)
         let pollInterval;
         const startPolling = () => {
             pollInterval = setInterval(async () => {
+                // Only poll if tab is active and visible
+                if (document.visibilityState !== 'visible' || !document.hasFocus()) return;
+                // If Echo is connected, skip polling to reduce server load
+                const isEchoConnected = window.Echo && window.Echo.connector && 
+                                      window.Echo.connector.pusher && window.Echo.connector.pusher.connection.state === 'connected';
+                
+                if (isEchoConnected) return;
+
                 if (window.isLoadingMessages) return;
                 const now = Date.now();
                 if (now - window.lastLoadTime < window.loadDebounceMs) return;
@@ -599,20 +608,17 @@
                 window.isLoadingMessages = true;
                 try {
                 const response = await axios.get('/messages/' + window.conversationId + '?t=' + Date.now());
-                console.log('Poll response:', response.data);
+                console.log('Poll fallback response:', response.data);
                 const messages = response.data.messages || [];
                 if (messages.length > 0) {
                     messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
                     const newMessageId = messages[messages.length - 1].id;
-                    console.log('Last message ID:', newMessageId, 'Prev last:', window.lastMessageId);
                     if (newMessageId > window.lastMessageId) {
                         messages.forEach(msg => {
                             if (!window.loadedMessageIds.has(msg.id)) {
                                 window.loadedMessageIds.add(msg.id);
                                 let senderTypeShort = msg.sender_type ? msg.sender_type.split('\\').pop().toLowerCase() : '';
-                                // Check if sender is SAME person (both id AND type must match)
                                 let isSameUser = (msg.sender_id == window.userId && senderTypeShort === window.userTypeShort);
-                                console.log('Message', msg.id, 'from:', senderTypeShort, 'to:', window.userTypeShort, 'sameUser:', isSameUser);
                                 if (!isSameUser) {
                                     window.appendMessage(msg);
                                 }
@@ -627,7 +633,7 @@
             } finally {
                 window.isLoadingMessages = false;
             }
-        }, 3000);
+        }, 5000);
         };
         startPolling();
 
@@ -672,8 +678,12 @@
         }
 
         checkOnlineStatus();
-        setInterval(checkOnlineStatus, 5000);
-        setInterval(sendHeartbeat, 8000);
+        setInterval(() => {
+            if (document.visibilityState === 'visible') checkOnlineStatus();
+        }, 30000); // Reduced from 5s to 30s
+        setInterval(() => {
+            if (document.visibilityState === 'visible') sendHeartbeat();
+        }, 30000); // Reduced from 8s to 30s
         window.addEventListener('focus', () => markConversationAsRead(true));
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {

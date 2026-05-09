@@ -318,7 +318,7 @@ class ConversationService
         }
 
         return $conversation->messages()
-            ->when($participant->last_read_at, fn ($query) => $query->where('created_at', '>', $participant->last_read_at))
+            ->whereNull('read_at')
             ->where(function ($query) use ($participantId, $participantType, $typeShort) {
                 $query->where('sender_id', '!=', $participantId)
                     ->orWhereNotIn('sender_type', [$participantType, $typeShort]);
@@ -442,6 +442,7 @@ class ConversationService
             ),
             'is_pinned' => $isPinned,
             'conversation_id' => $conversationId,
+            'unseen_count' => $conversation ? $this->getUnreadCountForConversation($conversation, $currentId, $currentType) : 0,
         ];
     }
 }

@@ -7,9 +7,15 @@
 
     <style>
         @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
         }
+
         .animate-shimmer {
             animation: shimmer 2s infinite;
         }
@@ -880,12 +886,12 @@
                     <div style="position: relative; margin-top: 10px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                         <img src="${fileUrl}" alt="${safeName}" onload="const cb = this.closest('.flex-1'); if(cb) cb.scrollTop = cb.scrollHeight" style="max-width:240px; display:block; border-radius:16px;">
                         ${!isMe ? `
-                            <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${safeName}', '${escapedFilePath}')" style="position: absolute; bottom: 10px; right: 10px; display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; text-decoration: none; font-size: 12px; color: white; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.7)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'; this.style.transform='scale(1)'">
-                                <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Download
-                            </a>` : ''}
+                                <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${safeName}', '${escapedFilePath}')" style="position: absolute; bottom: 10px; right: 10px; display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; text-decoration: none; font-size: 12px; color: white; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.7)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'; this.style.transform='scale(1)'">
+                                    <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    Download
+                                </a>` : ''}
                     </div>
                 `;
             }
@@ -918,12 +924,12 @@
                         </div>
                     </a>
                     ${!isMe ? `
-                        <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${safeName}', '${escapedFilePath}')" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; text-decoration: none; font-size: 11px; color: #e11d48; font-weight: 800; transition: all 0.2s;" onmouseover="this.style.background='#ffe4e6'" onmouseout="this.style.background='#fff1f2'">
-                            <svg xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            DOWNLOAD FILE
-                        </a>` : ''}
+                            <a href="javascript:void(0)" onclick="downloadFile('${fileUrl}', '${safeName}', '${escapedFilePath}')" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; text-decoration: none; font-size: 11px; color: #e11d48; font-weight: 800; transition: all 0.2s;" onmouseover="this.style.background='#ffe4e6'" onmouseout="this.style.background='#fff1f2'">
+                                <svg xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                DOWNLOAD FILE
+                            </a>` : ''}
                 </div>
             `;
         }
@@ -1013,7 +1019,7 @@
                         const lastMessage = user.last_message || null;
                         const snapshot = {
                             lastMessageId: String(lastMessage?.id || ''),
-                            unreadCount: Number(user.unread_count || 0),
+                            unseenCount: Number(user.unseen_count || 0),
                         };
 
                         const previousSnapshot = this.seenUserSnapshots[String(user.id)];
@@ -1049,17 +1055,20 @@
                 },
                 scrollToBottom(panelOrDelay = 50, smoothOrForce = false) {
                     this.$nextTick(() => {
-                        const panel = (panelOrDelay && typeof panelOrDelay === 'object' && 'scrollHeight' in panelOrDelay)
-                            ? panelOrDelay
-                            : (document.getElementById('chat-box') || document.getElementById('chat-box-modal'));
+                        const panel = (panelOrDelay && typeof panelOrDelay === 'object' && 'scrollHeight' in
+                                panelOrDelay) ?
+                            panelOrDelay :
+                            (document.getElementById('chat-box') || document.getElementById('chat-box-modal'));
                         if (!panel) return;
 
                         const delay = (typeof panelOrDelay === 'number') ? panelOrDelay : 50;
                         const force = (typeof smoothOrForce === 'boolean') ? smoothOrForce : false;
-                        const behavior = (typeof smoothOrForce === 'boolean' && smoothOrForce) ? 'smooth' : 'smooth';
+                        const behavior = (typeof smoothOrForce === 'boolean' && smoothOrForce) ? 'smooth' :
+                        'smooth';
 
                         const threshold = 420; // px
-                        const isNearBottom = (panel.scrollHeight - panel.scrollTop - panel.clientHeight) <= threshold;
+                        const isNearBottom = (panel.scrollHeight - panel.scrollTop - panel.clientHeight) <=
+                            threshold;
                         if (!force && !isNearBottom) return;
 
                         const performScroll = (behavior = 'smooth') => {
@@ -1099,6 +1108,8 @@
                         if (document.visibilityState === 'visible') this.loadUsers(false);
                     });
 
+                    this.connectNotificationListener();
+
                     // Ensure only one audio plays at a time
                     document.addEventListener('play', (event) => {
                         const audios = document.getElementsByTagName('audio');
@@ -1118,6 +1129,20 @@
                         this.startOnlineStatusLoop();
                         this.showChat = true;
                     }
+                },
+                connectNotificationListener() {
+                    if (typeof window.Echo === 'undefined') return;
+
+                    const userId = {{ (int) Auth::guard('admin')->id() }};
+                    const channelName = `user.admin.${userId}`;
+                    console.log('Connecting to notification channel:', channelName);
+
+                    window.Echo.private(channelName)
+                        .listen('.message.sent', async (message) => {
+                            if (!message) return;
+                            await this.loadUsers(false);
+                            this.pushNotificationToast(message);
+                        });
                 },
                 initialFor(name) {
                     return name ? name.charAt(0).toUpperCase() : '?';
@@ -1139,9 +1164,10 @@
                 startUsersRefreshLoop() {
                     if (this.usersRefreshTimer) clearInterval(this.usersRefreshTimer);
                     this.usersRefreshTimer = setInterval(() => {
+                        if (document.visibilityState !== 'visible') return;
                         const now = Date.now();
                         if (now - this.lastUserLoadTime >= this.userLoadDebounceMs) this.loadUsers(false);
-                    }, 3000);
+                    }, 5000); // Reduced to 5s fallback
                 },
                 syncCounterState(reason = 'refresh') {
                     try {
@@ -1194,6 +1220,7 @@
                     this.isMobileChatOpen = true;
                     this.activeUserId = user.id;
                     this.activeUserName = user.name;
+                    user.unseen_count = 0;
                     localStorage.setItem('admin_active_user_id', user.id);
                     localStorage.setItem('admin_active_user_name', user.name);
                     try {
@@ -1226,7 +1253,8 @@
                 },
                 renderSendingMessage(tempId, body, file = null) {
                     const isLargeScreen = window.innerWidth >= 1024;
-                    const chatBox = isLargeScreen ? document.getElementById('chat-box') : document.getElementById('chat-box-modal');
+                    const chatBox = isLargeScreen ? document.getElementById('chat-box') : document.getElementById(
+                        'chat-box-modal');
                     if (!chatBox) return;
 
                     const row = document.createElement('div');
@@ -1244,15 +1272,25 @@
                         content += `<div class="mt-2 text-left italic text-[11px] font-bold">Sending attachment...</div>`;
                     }
 
-                    const bubbleClasses = 'rounded-[24px] px-5 py-3.5 shadow-sm bg-gradient-to-br from-rose-500/80 to-orange-400/80 text-white rounded-br-md border border-rose-400/20 relative overflow-hidden';
-                    const shimmer = '<div class="absolute inset-0 pointer-events-none bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer"></div>';
+                    const bubbleClasses =
+                        'rounded-[24px] px-5 py-3.5 shadow-sm bg-gradient-to-br from-rose-500/80 to-orange-400/80 text-white rounded-br-md border border-rose-400/20 relative overflow-hidden';
+                    const shimmer =
+                        '<div class="absolute inset-0 pointer-events-none bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer"></div>';
 
-                    container.innerHTML = `<div class="${bubbleClasses}">${content}${shimmer}</div><div class="mt-1.5 px-2 flex justify-end"><p class="text-[11px] font-medium text-rose-300">Sending...</p></div>`;
+                    container.innerHTML =
+                        `<div class="${bubbleClasses}">${content}${shimmer}</div><div class="mt-1.5 px-2 flex justify-end"><p class="text-[11px] font-medium text-rose-300">Sending...</p></div>`;
                     row.appendChild(container);
                     chatBox.appendChild(row);
                     this.scrollToBottom(50, true);
                 },
                 renderMessage(message, autoScroll = true, replaceElement = null) {
+                    if (message.id && this.loadedMessageIds && this.loadedMessageIds.has(message.id) && !replaceElement) {
+                        return;
+                    }
+                    if (message.id && this.loadedMessageIds) {
+                        this.loadedMessageIds.add(message.id);
+                    }
+
                     const isLargeScreen = window.innerWidth >= 1024; // lg breakpoint
                     const chatBox = isLargeScreen ? document.getElementById('chat-box') : document.getElementById(
                         'chat-box-modal');
@@ -1304,7 +1342,7 @@
 
                     container.innerHTML = `${senderHtml}<div class="${bubbleClasses}">${content}</div>${timeHtml}`;
                     row.appendChild(container);
-                    
+
                     if (replaceElement) {
                         replaceElement.replaceWith(row);
                     } else {
@@ -1420,17 +1458,17 @@
                     let html = text
                         .replace(/\*\*(.*?)\*\*/g, '<strong class="text-stone-900 font-bold">$1</strong>') // Bold text
                         .replace(/^\s*###\s*(.*$)/gm,
-                        '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // H3 headings
+                            '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // H3 headings
                         .replace(/^\s*##\s*(.*$)/gm,
                             '<h4 class="text-[14px] font-bold text-stone-900 mt-4 mb-2 border-b border-stone-100 pb-1">$1</h4>'
-                            ) // H2 headings
+                        ) // H2 headings
                         .replace(/^\s*#\s*(.*$)/gm,
                             '<h3 class="text-[16px] font-extrabold text-stone-900 mt-5 mb-3">$1</h3>') // H1 headings
                         .replace(/^\s*(\d+\.\s.*)$/gm,
-                        '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // Numbered headings
+                            '<h5 class="text-[13px] font-bold text-stone-800 mt-3 mb-1">$1</h5>') // Numbered headings
                         .replace(/^\s*[-*]\s(.*)$/gm,
                             '<div class="flex items-start gap-2 ml-2 my-0"><span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400"></span><span class="text-stone-700">$1</span></div>'
-                            ); // Bullet points
+                        ); // Bullet points
 
                     html = html.split('\n').map(line => {
                         const trimmed = line.trim();
@@ -1449,7 +1487,7 @@
                     const file = fileInput ? fileInput.files[0] : null;
                     const message = this.draftMessage.trim();
                     if (!message && !file) return;
-                    
+
                     const tempId = Date.now();
                     this.renderSendingMessage(tempId, message, file);
 
@@ -1471,11 +1509,11 @@
                         if (previewEl) previewEl.style.display = 'none';
                         this.loadedMessageIds.add(response.data.id);
                         this.lastMessageId = Math.max(this.lastMessageId, response.data.id);
-                        
+
                         const sendingRow = document.getElementById(`sending-${tempId}`);
                         this.renderMessage(response.data, true, sendingRow);
                         this.scrollToBottom(10, true);
-                        
+
                         await this.loadUsers(false);
                         this.syncCounterState('sent');
                     } catch (error) {
@@ -1484,7 +1522,8 @@
                         if (sendingRow) {
                             sendingRow.style.opacity = '1';
                             sendingRow.querySelector('.text-rose-300').textContent = 'Failed to send';
-                            sendingRow.querySelector('.text-rose-300').className = 'text-[11px] font-bold text-rose-600';
+                            sendingRow.querySelector('.text-rose-300').className =
+                            'text-[11px] font-bold text-rose-600';
                         }
                     }
                 },
@@ -1531,12 +1570,15 @@
                 },
                 async markConversationAsRead(force = false) {
                     const now = Date.now();
-                    if (!force && now - this.lastMarkedReadAt < 1500) return;
+                    if (!force && now - this.lastMarkedReadAt < 3000) return; // Increased throttle to 3s
                     try {
                         await axios.post('/mark-read', {
                             conversation_id: this.activeConversationId
                         });
                         this.lastMarkedReadAt = now;
+                        // Find the user in the list and reset count
+                        const user = this.users.find(u => String(u.id) === String(this.activeUserId));
+                        if (user) user.unseen_count = 0;
                         await this.loadUsers(false);
                         this.syncCounterState('read');
                     } catch (error) {
@@ -1615,7 +1657,41 @@
                 },
                 startPolling() {
                     if (this.pollTimer) clearInterval(this.pollTimer);
+                    window.Echo.private(`conversation.${this.activeConversationId}`)
+                        .listen('.message.sent', (message) => {
+                            if (!message || String(message.conversation_id) !== String(this.activeConversationId))
+                                return;
+
+                            // If it's my own message and I'm currently sending, 
+                            // we'll let the AJAX response handle the UI to avoid flickering
+                            const typeShort = message.sender_type ? message.sender_type.split('\\').pop()
+                            .toLowerCase() : '';
+                            const isMe = message.sender_id == config.userId && typeShort === config.userTypeShort;
+
+                            // Check if already rendered
+                            if (this.loadedMessageIds.has(message.id)) return;
+
+                            // If it's me, only render if we're not in the middle of an AJAX send
+                            // This prevents the "double then single" jump
+                            if (isMe) {
+                                // Remove any existing sending placeholders for this user
+                                document.querySelectorAll('[id^="sending-"]').forEach(el => el.remove());
+                            }
+
+                            this.renderMessage(message);
+                            this.syncCounterState('received');
+                        });
                     this.pollTimer = setInterval(async () => {
+                        // Only poll if tab is active and visible
+                        if (document.visibilityState !== 'visible' || !document.hasFocus()) return;
+
+                        // If Echo is connected, skip polling to reduce server load
+                        const isEchoConnected = window.Echo && window.Echo.connector &&
+                            window.Echo.connector.pusher && window.Echo.connector.pusher.connection.state ===
+                            'connected';
+
+                        if (isEchoConnected) return;
+
                         if (!this.activeConversationId) return;
                         if (this.isLoadingMessages) return;
                         const now = Date.now();
@@ -1648,15 +1724,19 @@
                         } finally {
                             this.isLoadingMessages = false;
                         }
-                    }, 3000);
+                    }, 5000); // Reduced to 5s fallback
                 },
                 startHeartbeatLoop() {
                     if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
-                    this.heartbeatTimer = setInterval(() => this.sendHeartbeat(), 8000);
+                    this.heartbeatTimer = setInterval(() => {
+                        if (document.visibilityState === 'visible') this.sendHeartbeat();
+                    }, 30000); // Increased to 30s
                 },
                 startOnlineStatusLoop() {
                     if (this.onlineStatusTimer) clearInterval(this.onlineStatusTimer);
-                    this.onlineStatusTimer = setInterval(() => this.checkOnlineStatus(), 5000);
+                    this.onlineStatusTimer = setInterval(() => {
+                        if (document.visibilityState === 'visible') this.checkOnlineStatus();
+                    }, 30000); // Increased to 30s
                 },
                 async sendHeartbeat() {
                     try {

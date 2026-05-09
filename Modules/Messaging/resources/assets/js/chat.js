@@ -1,4 +1,23 @@
 window.appendMessage = function (message, append = true, isNew = false) {
+    if (message.id && window.loadedMessageIds && window.loadedMessageIds.has(message.id)) {
+        return;
+    }
+    
+    if (message.id && window.loadedMessageIds) {
+        window.loadedMessageIds.add(message.id);
+        if (typeof window.lastMessageId !== 'undefined') {
+            window.lastMessageId = Math.max(window.lastMessageId, message.id);
+        }
+    }
+
+    if (message.created_at && typeof window.lastMessageDate !== 'undefined') {
+        const msgDate = new Date(message.created_at);
+        const lastDate = new Date(window.lastMessageDate);
+        if (msgDate > lastDate) {
+            window.lastMessageDate = message.created_at;
+        }
+    }
+
     let chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
 
@@ -50,7 +69,8 @@ let lastMarkedReadAt = 0;
 async function markAsRead() {
     const now = Date.now();
 
-    if (now - lastMarkedReadAt < 1500) {
+    // Increase throttle to 3 seconds to reduce redundant requests
+    if (now - lastMarkedReadAt < 3000) {
         return;
     }
 
@@ -163,8 +183,10 @@ function updateOnlineIndicator(isOnline) {
     }
 }
 
-// Set up online status polling - every 3 seconds
-setInterval(checkOnlineStatus, 3000);
+// Set up online status polling - every 30 seconds (reduced from 3s)
+setInterval(() => {
+    if (document.visibilityState === 'visible') checkOnlineStatus();
+}, 30000);
 checkOnlineStatus(); // Initial check
 
 
@@ -265,13 +287,8 @@ window.sendMessage = async function () {
         input.value = '';
 
         if (response.data && response.data.id) {
-            // Always add message ID and display it
-            loadedMessageIds.add(response.data.id);
-            lastMessageId = Math.max(lastMessageId, response.data.id);
-            
-            // Always append own messages immediately
+            // Use appendMessage to handle ID tracking and rendering
             appendMessage(response.data, true, true);
-            console.log('Own message appended, ID:', response.data.id, 'lastMessageId:', lastMessageId);
         }
 
         markAsRead();
@@ -295,8 +312,14 @@ window.handleEnterKey = function (event) {
 }
 
 // Global flag to prevent double initialization
-let chatInitialized = false;
-let lastMessageId = 0;
+if (window.__chatScriptInitialized) {
+    console.log('Chat script already loaded, skipping');
+} else {
+    window.__chatScriptInitialized = true;
+    
+    // Global flag to prevent double initialization
+    let chatInitialized = false;
+    let lastMessageId = 0;
 
 // Initialize on page load
 async function initChat() {
@@ -330,10 +353,12 @@ async function initChat() {
     const echoAvailable = await waitForEcho();
     console.log('Echo available:', echoAvailable, 'attempts:', echoAttempts);
 
-    // Send heartbeat every 5 seconds to stay online
+    // Send heartbeat every 30 seconds (reduced from 5s) to stay online
     setInterval(() => {
-        axios.post('/online-heartbeat').catch(() => { });
-    }, 5000);
+        if (document.visibilityState === 'visible') {
+            axios.post('/online-heartbeat').catch(() => { });
+        }
+    }, 30000);
     // Send initial heartbeat
     axios.post('/online-heartbeat').catch(() => { });
 
@@ -387,8 +412,17 @@ async function initChat() {
         console.log('[Echo] Echo not available, using polling fallback');
     }
 
-    // Fallback: Poll for new messages every 3 seconds (works even without Echo)
+    // Fallback: Poll for new messages every 5 seconds (reduced from 10s)
     setInterval(async () => {
+        // Only poll if tab is active and visible
+        if (document.visibilityState !== 'visible' || !document.hasFocus()) return;
+
+        // If Echo is connected, skip polling to reduce server load
+        const isEchoConnected = window.Echo && window.Echo.connector && 
+                              window.Echo.connector.pusher && window.Echo.connector.pusher.connection.state === 'connected';
+        
+        if (isEchoConnected) return;
+
         try {
             const response = await axios.get(`/messages/${window.conversationId}`);
             const messages = response.data.messages || [];
@@ -402,14 +436,14 @@ async function initChat() {
                 
                 // If there's a new message we haven't loaded
                 if (newMessageId > lastMessageId) {
-                    console.log('[Polling] New message found:', newMessageId, 'last was:', lastMessageId);
+                    console.log('[Polling Fallback] New message found:', newMessageId);
                     
                     messages.forEach(msg => {
                         if (!loadedMessageIds.has(msg.id)) {
                             loadedMessageIds.add(msg.id);
                             // Only append if it's not from current user (we already show sent messages)
                             if (msg.sender_id != window.userId) {
-                                appendMessage(msg, true, true); // isNew = true for animation
+                                appendMessage(msg, true, true);
                             }
                         }
                     });
@@ -421,7 +455,7 @@ async function initChat() {
         } catch (error) {
             // Silent fail for polling
         }
-    }, 3000);
+    }, 10000);
 
     // Also make Echo available globally
     window.Echo = Echo;
@@ -450,9 +484,12 @@ if (document.readyState === 'loading') {
     initChat();
 }
 
-window.addEventListener('focus', () => markAsRead());
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-        markAsRead();
-    }
-});
+    window.addEventListener('focus', () => {
+        if (document.visibilityState === 'visible') markAsRead();
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            markAsRead();
+        }
+    });
+}
